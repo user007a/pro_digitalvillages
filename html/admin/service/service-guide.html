@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>办事指南</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body data-page-title="办事指南" data-page-subtitle="乡村振兴数字平台 · 后台管理">
+<div class="admin-page">
+  <div class="page-header">
+    <h2>办事指南</h2>
+    <span class="text-muted">线上办事指南维护</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-blue">
+      <div class="stat-label">指南总数</div>
+      <div class="stat-value">15 <span class="text-sm">条</span></div>
+      <div class="stat-desc">当前维护的全部指南</div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">线上可办</div>
+      <div class="stat-value">10 <span class="text-sm">条</span></div>
+      <div class="stat-desc">支持线上办理</div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">本月新增</div>
+      <div class="stat-value">2 <span class="text-sm">条</span></div>
+      <div class="stat-desc">本月新增指南</div>
+    </div>
+    <div class="stat-card card-blue">
+      <div class="stat-label">浏览量</div>
+      <div class="stat-value">1,286</div>
+      <div class="stat-desc">本月指南累计浏览</div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增指南</button>
+  </div>
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>分类</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>证明开具</option>
+        <option>补贴申领</option>
+        <option>医保社保</option>
+        <option>农业服务</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>已上架</option>
+        <option>已下架</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>关键字</label>
+      <input type="text" class="form-input" placeholder="指南名称…">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>指南名称</th>
+          <th>分类</th>
+          <th>办理时限</th>
+          <th>是否线上</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>贫困证明开具</td>
+          <td><span class="tag tag-blue">证明开具</span></td>
+          <td>3个工作日</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>宅基地使用权证明</td>
+          <td><span class="tag tag-blue">证明开具</span></td>
+          <td>5个工作日</td>
+          <td><span class="tag tag-gray">否</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>耕地地力补贴申领</td>
+          <td><span class="tag tag-orange">补贴申领</span></td>
+          <td>7个工作日</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>城乡居民医保参保登记</td>
+          <td><span class="tag tag-cyan">医保社保</span></td>
+          <td>即时办理</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>养老保险待遇申领</td>
+          <td><span class="tag tag-cyan">医保社保</span></td>
+          <td>10个工作日</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>农业机械购置补贴</td>
+          <td><span class="tag tag-green">农业服务</span></td>
+          <td>15个工作日</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>农村土地流转备案</td>
+          <td><span class="tag tag-gray">其他</span></td>
+          <td>5个工作日</td>
+          <td><span class="tag tag-gray">否</span></td>
+          <td><span class="tag tag-gray">已下架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="showToast('已上架','success')"><iconify-icon icon="ri:arrow-up-line"></iconify-icon>上架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>惠农贷款申请指引</td>
+          <td><span class="tag tag-green">农业服务</span></td>
+          <td>20个工作日</td>
+          <td><span class="tag tag-green">是</span></td>
+          <td><span class="tag tag-green">已上架</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('addGuideModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showToast('已下架','success')"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除指南',message:'确定删除该指南吗？',onConfirm:function(){showToast('指南已删除','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 15 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn">2</button>
+        <button type="button" class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑指南弹窗 -->
+<div class="modal-overlay" id="addGuideModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>新增指南</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addGuideModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">指南名称 <span class="text-danger">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入指南名称…" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">分类</label>
+          <select class="form-select">
+            <option value="">请选择分类</option>
+            <option>证明开具</option>
+            <option>补贴申领</option>
+            <option>医保社保</option>
+            <option>农业服务</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">办理时限</label>
+          <input type="text" class="form-input" placeholder="如：3个工作日…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">是否线上</label>
+          <select class="form-select">
+            <option>是</option>
+            <option>否</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系电话</label>
+          <input type="text" class="form-input" placeholder="请输入联系电话…">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">办理流程</label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入办理流程说明…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addGuideModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addGuideModal');showToast('指南已保存','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/admin.js"></script>
+</body>
+</html>

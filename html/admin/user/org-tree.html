@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>组织架构 - 数字乡村管理系统</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* 页头（对齐南丰监测数据页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .tree-search { display: inline-flex; align-items: center; position: relative; }
+    .tree-search .search-icon { position: absolute; left: 8px; color: var(--color-neutral-500); font-size: 14px; pointer-events: none; }
+    .tree-search .form-input { padding-left: 30px; width: 200px; height: 34px; font-size: 14px; border-radius: 8px; border-color: #d1d5db; }
+    .page-header .page-header-actions { display: flex; align-items: center; gap: 10px; }
+    .node-content.active { background: var(--color-primary-50); border-color: var(--color-primary-600); }
+    button.node-content { border: none; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; width: 100%; text-align: left; }
+    /* 右侧详情表单控件（对齐南丰：14px + 8px 圆角） */
+    .detail-panel .form-input,
+    .detail-panel .form-select,
+    .detail-panel .form-textarea {
+      font-size: 14px;
+      border-radius: 8px;
+      border-color: #d1d5db;
+    }
+
+    /* 树形结构美化：无展开三角，节点行圆角 + hover + 选中态 + 子级连接线 */
+    .tree-node, .tree-children { list-style: none; margin: 0; padding: 0; }
+    .tree-children { margin-left: 22px; padding-left: 12px; border-left: 1px solid #e5e7eb; }
+    .tree-node li .node-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      margin: 2px 0;
+      border: none;
+      background: none;
+      border-radius: 8px;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease;
+    }
+    .tree-node li .node-content { padding: 8px 10px; }
+    .tree-node li .node-content:hover { background: #f3f4f6; }
+    .tree-node li .node-content.active {
+      background: var(--color-primary-50);
+      border-color: var(--color-primary-600);
+      box-shadow: inset 3px 0 0 var(--color-primary-600);
+    }
+    .tree-node .node-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--color-neutral-500);
+      flex-shrink: 0;
+    }
+    .tree-node .node-content.active .node-icon { color: var(--color-primary-600); }
+    .tree-node .node-label { font-size: 14px; color: var(--text-primary); white-space: nowrap; }
+  </style>
+</head>
+<body style="background:#f0f2f5;padding:24px;box-sizing:border-box" data-no-pg-toolbar data-page-title="组织架构" data-page-subtitle="数字乡村管理系统">
+
+  <!-- 顶部页头：标题副标题（左）+ 新增 / 导出（右） -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>组织架构</h2>
+      <p>县乡村组织层级架构统一管理与维护</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn btn-primary" onclick="openAddNodeModal()"><iconify-icon icon="ri:add-circle-line"></iconify-icon> 新增子节点</button>
+      <button class="btn btn-outline" onclick="openModal('exportModal')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+    </div>
+  </div>
+
+  <!-- 左右分栏 -->
+  <div class="org-layout">
+    <!-- 左侧树 -->
+    <div class="tree-panel">
+      <div class="tree-toolbar">
+        <button class="btn btn-sm btn-outline" onclick="expandAllTree()"><iconify-icon icon="ri:expand-up-down-line"></iconify-icon> 展开全部</button>
+        <button class="btn btn-sm btn-outline" onclick="collapseAllTree()"><iconify-icon icon="ri:expand-up-down-line"></iconify-icon> 折叠全部</button>
+      </div>
+      <ul class="tree-node">
+        <!-- 幸福村（根节点） -->
+        <li data-code="XFV_ROOT" data-type="村" data-leader="李建国" data-desc="幸福村下辖3个村民小组，6个网格，共有村民2,856人。">
+          <button type="button" class="node-content active" onclick="selectTreeNode(this)">
+            
+            <span class="node-icon"><iconify-icon icon="ri:community-line"></iconify-icon></span>
+            <span class="node-label" style="color:var(--color-primary-600);font-weight:600">幸福村</span>
+          </button>
+          <ul class="tree-children">
+            <!-- 第一村民小组 -->
+            <li data-code="XFV_GROUP1" data-type="村民小组" data-leader="王志强" data-desc="第一村民小组，辖第一、第二网格。">
+              <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                
+                <span class="node-icon"><iconify-icon icon="ri:team-line"></iconify-icon></span>
+                <span class="node-label" style="color:#67c23a">第一村民小组</span>
+              </button>
+              <ul class="tree-children">
+                <li data-code="XFV_GROUP1_W1" data-type="网格" data-leader="张海峰" data-desc="第一网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第一网格</span>
+                  </button>
+                </li>
+                <li data-code="XFV_GROUP1_W2" data-type="网格" data-leader="张海峰" data-desc="第二网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第二网格</span>
+                  </button>
+                </li>
+              </ul>
+            </li>
+            <!-- 第二村民小组 -->
+            <li data-code="XFV_GROUP2" data-type="村民小组" data-leader="王志强" data-desc="第二村民小组，辖第三、第四网格。">
+              <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                
+                <span class="node-icon"><iconify-icon icon="ri:team-line"></iconify-icon></span>
+                <span class="node-label" style="color:#67c23a">第二村民小组</span>
+              </button>
+              <ul class="tree-children">
+                <li data-code="XFV_GROUP2_W3" data-type="网格" data-leader="张海峰" data-desc="第三网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第三网格</span>
+                  </button>
+                </li>
+                <li data-code="XFV_GROUP2_W4" data-type="网格" data-leader="张海峰" data-desc="第四网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第四网格</span>
+                  </button>
+                </li>
+              </ul>
+            </li>
+            <!-- 第三村民小组 -->
+            <li data-code="XFV_GROUP3" data-type="村民小组" data-leader="王志强" data-desc="第三村民小组，辖第五、第六网格。">
+              <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                
+                <span class="node-icon"><iconify-icon icon="ri:team-line"></iconify-icon></span>
+                <span class="node-label" style="color:#67c23a">第三村民小组</span>
+              </button>
+              <ul class="tree-children">
+                <li data-code="XFV_GROUP3_W5" data-type="网格" data-leader="张海峰" data-desc="第五网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第五网格</span>
+                  </button>
+                </li>
+                <li data-code="XFV_GROUP3_W6" data-type="网格" data-leader="张海峰" data-desc="第六网格。">
+                  <button type="button" class="node-content" onclick="selectTreeNode(this)">
+                    
+                    <span class="node-icon"><iconify-icon icon="ri:focus-3-line"></iconify-icon></span>
+                    <span class="node-label" style="color:#e6a23c">第六网格</span>
+                  </button>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 右侧节点详情 -->
+    <div class="detail-panel">
+      <div class="detail-header">
+        <h3 style="font-size:16px;font-weight:600;color:#333">节点详情 - 幸福村</h3>
+        <div>
+          <button class="btn btn-sm" onclick="showToast('已取消修改', 'info')">取 消</button>
+          <button class="btn btn-sm btn-primary" onclick="showToast('保存成功', 'success')">保 存</button>
+        </div>
+      </div>
+
+      <div style="max-width:500px">
+        <div class="form-group">
+          <label>节点名称 <span class="required">*</span></label>
+          <input type="text" id="detailName" class="form-input" value="幸福村">
+        </div>
+        <div class="form-group">
+          <label>节点编码 <span class="required">*</span></label>
+          <input type="text" id="detailCode" class="form-input" value="XFV_ROOT">
+        </div>
+        <div class="form-group">
+          <label>上级节点</label>
+          <input type="text" id="detailParent" class="form-input" value="无（根节点）" style="background:var(--color-neutral-50);color:var(--color-neutral-500)" readonly>
+        </div>
+        <div class="form-group">
+          <label>负责人</label>
+          <select id="detailLeader" class="form-select">
+            <option>李建国</option>
+            <option>王志强</option>
+            <option>张海峰</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>节点描述</label>
+          <textarea id="detailDesc" class="form-textarea" placeholder="请输入节点描述…">幸福村下辖3个村民小组，6个网格，共有村民2,856人。</textarea>
+        </div>
+        <div class="form-group">
+          <label>人员数量</label>
+          <input type="text" class="form-input" value="2,856" style="background:var(--color-neutral-50);color:var(--color-neutral-500)" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>导出架构</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">选择导出格式，将当前组织架构树导出为文件。</p>
+        <div class="export-format-grid">
+          <button type="button" class="export-format active" onclick="selectExportFormat(this)"><iconify-icon icon="ri:image-line"></iconify-icon>图片</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-excel-2-line"></iconify-icon>Excel</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>PDF</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-text-line"></iconify-icon>TXT</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('exportModal');showToast('导出成功','success')">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增子节点弹窗 -->
+  <div class="modal-overlay" id="addNodeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新增子节点</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addNodeModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>节点名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="请输入节点名称…" required>
+        </div>
+        <div class="form-group">
+          <label>节点编码 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="请输入节点编码…" required>
+        </div>
+        <div class="form-group">
+          <label>节点类型</label>
+          <select class="form-select">
+            <option>村</option>
+            <option>村民小组</option>
+            <option>网格</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>负责人</label>
+          <select class="form-select">
+            <option>李建国</option>
+            <option>王志强</option>
+            <option>张海峰</option>
+            <option>赵德明</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('addNodeModal')">取 消</button>
+        <button class="btn btn-primary" onclick="addTreeNode()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    function filterTree(keyword) {
+    var nodes = document.querySelectorAll('.node-content');
+    var lower = keyword.toLowerCase();
+    nodes.forEach(function(node) {
+      var label = node.querySelector('.node-label');
+      if (!label) return;
+      var text = label.textContent.toLowerCase();
+      var parentLi = node.closest('li');
+      if (!lower || text.indexOf(lower) > -1) {
+        parentLi.style.display = '';
+        // Show parent ul
+        var parentUl = parentLi.parentElement;
+        while (parentUl && parentUl.classList.contains('tree-children')) {
+          parentUl.style.display = '';
+          parentUl.parentElement.style.display = '';
+          parentUl = parentUl.parentElement.parentElement;
+        }
+      } else {
+        parentLi.style.display = 'none';
+      }
+    });
+  }
+  function expandAllTree() {
+    document.querySelectorAll('.tree-children').forEach(function(c) { c.style.display = ''; });
+  }
+  function collapseAllTree() {
+    document.querySelectorAll('.tree-children').forEach(function(c) { c.style.display = 'none'; });
+  }
+  function selectTreeNode(el) {
+    document.querySelectorAll('.node-content').forEach(function(n) { n.classList.remove('active'); });
+    el.classList.add('active');
+    var li = el.closest('li');
+    window._selNode = li;
+    var label = el.querySelector('.node-label');
+    var name = label ? label.textContent : '';
+    var h = document.querySelector('.detail-header h3');
+    if (h) h.textContent = '节点详情 - ' + name;
+    // 联动右侧详情表单
+    fillNodeDetail(li, name);
+    // 点击节点行同时展开/折叠其子级（替代原三角交互）
+    var children = li ? li.querySelector(':scope > .tree-children') : null;
+    if (children) children.style.display = (children.style.display === 'none') ? '' : 'none';
+  }
+
+  // 根据选中节点回填右侧详情表单
+  function fillNodeDetail(li, name) {
+    var detailName = document.getElementById('detailName');
+    var detailCode = document.getElementById('detailCode');
+    var detailParent = document.getElementById('detailParent');
+    var detailLeader = document.getElementById('detailLeader');
+    var detailDesc = document.getElementById('detailDesc');
+    if (detailName) detailName.value = name || '';
+    if (detailCode) detailCode.value = (li && li.getAttribute('data-code')) || '';
+    if (detailDesc) detailDesc.value = (li && li.getAttribute('data-desc')) || '';
+    if (detailParent) {
+      var parentLi = (li && li.parentElement && li.parentElement.classList.contains('tree-children')) ? li.parentElement.closest('li') : null;
+      var parentLabel = parentLi ? parentLi.querySelector('.node-label') : null;
+      detailParent.value = parentLabel ? parentLabel.textContent : '无（根节点）';
+    }
+    if (detailLeader) {
+      var leader = li ? li.getAttribute('data-leader') : '';
+      if (leader) detailLeader.value = leader;
+    }
+  }
+
+  // 新增子节点入口：未选中节点时提示
+  function openAddNodeModal() {
+    if (!window._selNode) { showToast('请先选择父节点', 'warning'); return; }
+    openModal('addNodeModal');
+  }
+
+  // 节点类型对应的 tag 颜色
+  function nodeTagColor(type) {
+    if (type === '村') return 'tag-green';
+    if (type === '村民小组') return 'tag-blue';
+    return 'tag-orange';
+  }
+
+  // 保存新增子节点：读取弹窗表单并真实插入树中
+  function addTreeNode() {
+    var modal = document.getElementById('addNodeModal');
+    if (!modal) return;
+    var inputs = modal.querySelectorAll('input.form-input');
+    var selects = modal.querySelectorAll('select.form-select');
+    var name = (inputs[0] && inputs[0].value.trim()) || '';
+    var code = (inputs[1] && inputs[1].value.trim()) || '';
+    var type = selects[0] ? selects[0].value : '';
+    var leader = selects[1] ? selects[1].value : '';
+    if (!name || !code) { showToast('请填写节点名称与节点编码', 'warning'); return; }
+    if (!window._selNode) { showToast('请先选择父节点', 'warning'); return; }
+
+    // 构建新节点 li（含 data-* 属性、节点名称、类型 tag，结构参照现有节点）
+    var li = document.createElement('li');
+    li.setAttribute('data-name', name);
+    li.setAttribute('data-code', code);
+    li.setAttribute('data-type', type);
+    li.setAttribute('data-leader', leader);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'node-content';
+    btn.setAttribute('onclick', 'selectTreeNode(this)');
+    var icon = document.createElement('span');
+    icon.className = 'node-icon';
+    icon.innerHTML = '<iconify-icon icon="ri:focus-3-line"></iconify-icon>';
+    var label = document.createElement('span');
+    label.className = 'node-label';
+    label.style.color = '#e6a23c';
+    label.textContent = name;
+    var tag = document.createElement('span');
+    tag.className = 'tag ' + nodeTagColor(type);
+    tag.style.marginLeft = 'auto';
+    tag.textContent = type;
+    btn.appendChild(icon);
+    btn.appendChild(label);
+    btn.appendChild(tag);
+    li.appendChild(btn);
+    var childrenUl = document.createElement('ul');
+    childrenUl.className = 'tree-children';
+    childrenUl.style.display = 'none';
+    li.appendChild(childrenUl);
+
+    // 插入到当前选中节点下
+    var parentLi = window._selNode;
+    var parentChildren = parentLi.querySelector(':scope > .tree-children');
+    if (parentChildren) {
+      parentChildren.appendChild(li);
+      parentChildren.style.display = '';
+    } else {
+      var newChildren = document.createElement('ul');
+      newChildren.className = 'tree-children';
+      newChildren.appendChild(li);
+      parentLi.appendChild(newChildren);
+    }
+
+    closeModal('addNodeModal');
+    showToast('节点添加成功', 'success');
+    // 选中新节点并联动右侧详情表单（不触发展开/折叠切换）
+    document.querySelectorAll('.node-content').forEach(function(n) { n.classList.remove('active'); });
+    btn.classList.add('active');
+    window._selNode = li;
+    var h = document.querySelector('.detail-header h3');
+    if (h) h.textContent = '节点详情 - ' + name;
+    fillNodeDetail(li, name);
+  }
+
+  // 页面初始化：默认选中第一个（当前 active）节点
+  (function() {
+    var active = document.querySelector('.node-content.active');
+    if (active) window._selNode = active.closest('li');
+  })();
+  </script>
+</body>
+</html>

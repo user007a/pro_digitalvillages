@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>三务公开 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>三务公开</h2>
+      <span class="text-muted">党务、村务、财务公开与四议两公开全过程记录管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：党务公开 → 村务公开 → 财务公开 → 四议两公开 -->
+  <div class="tab-bar dv-tabbar" id="affairTabs">
+    <div class="tab-item active" onclick="switchAffairsTab(this)" data-tab="party">党务公开</div>
+    <div class="tab-item" onclick="switchAffairsTab(this)" data-tab="village">村务公开</div>
+    <div class="tab-item" onclick="switchAffairsTab(this)" data-tab="finance">财务公开</div>
+    <div class="tab-item" onclick="switchAffairsTab(this)" data-tab="four">四议两公开</div>
+  </div>
+
+  <!-- ==================== Tab 面板：党务公开 ==================== -->
+  <div class="tab-panel" id="tab-party">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fPartyTitle">标题</label>
+        <input type="text" id="fPartyTitle" class="form-input" placeholder="请输入标题…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fPartyStatus">状态</label>
+        <select id="fPartyStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryPartyRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetPartyFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:flag-2-line"></iconify-icon>党务公开列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addPartyModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增党务公开</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('党务公开')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>公开内容</th>
+              <th>公开日期</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="partyTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="partyRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：村务公开 ==================== -->
+  <div class="tab-panel" id="tab-village" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fVillageTitle">标题</label>
+        <input type="text" id="fVillageTitle" class="form-input" placeholder="请输入标题…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fVillageStatus">状态</label>
+        <select id="fVillageStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryVillageRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetVillageFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:home-4-line"></iconify-icon>村务公开列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addVillageModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增村务公开</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('村务公开')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>公开内容</th>
+              <th>公开日期</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="villageTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="villageRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：财务公开 ==================== -->
+  <div class="tab-panel" id="tab-finance" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fFinanceType">收支类型</label>
+        <select id="fFinanceType" class="form-select">
+          <option value="">全部</option>
+          <option>收入</option>
+          <option>支出</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fFinanceStatus">状态</label>
+        <select id="fFinanceStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFinanceRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFinanceFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:wallet-3-line"></iconify-icon>财务公开列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addFinanceModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增财务公开</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('财务公开')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>收支类型</th>
+              <th>金额(元)</th>
+              <th>公开日期</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="financeTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="financeRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：四议两公开 ==================== -->
+  <div class="tab-panel" id="tab-four" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fFourTitle">议题标题</label>
+        <input type="text" id="fFourTitle" class="form-input" placeholder="请输入议题标题…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fFourType">议题类型</label>
+        <select id="fFourType" class="form-select">
+          <option value="">全部</option>
+          <option>重大事项</option>
+          <option>财务开支</option>
+          <option>工程项目</option>
+          <option>惠民政策</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fFourStatus">状态</label>
+        <select id="fFourStatus" class="form-select">
+          <option value="">全部</option>
+          <option>征求意见</option>
+          <option>党员审议</option>
+          <option>村民代表决议</option>
+          <option>公开</option>
+          <option>归档</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFourRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFourFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:conversation-3-line"></iconify-icon>四议两公开列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addTopicModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增议题</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('四议两公开')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>议题标题</th>
+              <th>议题类型</th>
+              <th>提议人</th>
+              <th>审议日期</th>
+              <th>决议结果</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="fourTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="fourRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：新增 ==================== -->
+
+<!-- 新增党务公开弹窗 -->
+<div class="modal-overlay" id="addPartyModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:flag-2-line"></iconify-icon>新增党务公开</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addPartyModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="partyTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="partyTitle" class="form-input" placeholder="请输入标题…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="partyContent"><span class="req">*</span>公开内容</label>
+          <textarea id="partyContent" class="form-input" rows="4" placeholder="请输入公开内容…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="partyDate"><span class="req">*</span>公开日期</label>
+          <input type="date" id="partyDate" class="form-input" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addPartyModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddParty()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增村务公开弹窗 -->
+<div class="modal-overlay" id="addVillageModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:home-4-line"></iconify-icon>新增村务公开</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addVillageModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="vTitleAdd"><span class="req">*</span>标题</label>
+          <input type="text" id="vTitleAdd" class="form-input" placeholder="请输入标题…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="vContentAdd"><span class="req">*</span>公开内容</label>
+          <textarea id="vContentAdd" class="form-input" rows="4" placeholder="请输入公开内容…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="vDateAdd"><span class="req">*</span>公开日期</label>
+          <input type="date" id="vDateAdd" class="form-input" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addVillageModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddVillage()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增财务公开弹窗 -->
+<div class="modal-overlay" id="addFinanceModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:wallet-3-line"></iconify-icon>新增财务公开</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addFinanceModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="finTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="finTitle" class="form-input" placeholder="请输入标题…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="finType"><span class="req">*</span>收支类型</label>
+            <select id="finType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>收入</option>
+              <option>支出</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="finAmount"><span class="req">*</span>金额(元)</label>
+            <input type="text" id="finAmount" class="form-input" placeholder="请输入金额…" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="finDate"><span class="req">*</span>公开日期</label>
+          <input type="date" id="finDate" class="form-input" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addFinanceModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddFinance()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增议题弹窗 -->
+<div class="modal-overlay" id="addTopicModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:conversation-3-line"></iconify-icon>新增议题</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addTopicModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="topicTitle"><span class="req">*</span>议题标题</label>
+          <input type="text" id="topicTitle" class="form-input" placeholder="请输入议题标题…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="topicType"><span class="req">*</span>议题类型</label>
+            <select id="topicType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>重大事项</option>
+              <option>财务开支</option>
+              <option>工程项目</option>
+              <option>惠民政策</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="topicProposer"><span class="req">*</span>提议人</label>
+            <input type="text" id="topicProposer" class="form-input" placeholder="请输入提议人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="topicDate"><span class="req">*</span>审议日期</label>
+          <input type="date" id="topicDate" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="topicContent">议题内容</label>
+          <textarea id="topicContent" class="form-input" rows="4" placeholder="请输入议题内容…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addTopicModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddTopic()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：查看 ==================== -->
+
+<!-- 查看党务公开弹窗 -->
+<div class="modal-overlay detail-modal" id="viewPartyModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>党务公开详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewPartyModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">标题</span><span class="detail-value" id="viewPartyTitle">—</span></div>
+        <div class="detail-item"><span class="detail-label">公开日期</span><span class="detail-value" id="viewPartyDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewPartyStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">公开内容</span><span class="detail-value" id="viewPartyContent">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewPartyModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看村务公开弹窗 -->
+<div class="modal-overlay detail-modal" id="viewVillageModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>村务公开详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewVillageModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">标题</span><span class="detail-value" id="viewVillageTitle">—</span></div>
+        <div class="detail-item"><span class="detail-label">公开日期</span><span class="detail-value" id="viewVillageDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewVillageStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">公开内容</span><span class="detail-value" id="viewVillageContent">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewVillageModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看财务公开弹窗 -->
+<div class="modal-overlay detail-modal" id="viewFinanceModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>财务公开详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewFinanceModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">标题</span><span class="detail-value" id="viewFinanceTitle">—</span></div>
+        <div class="detail-item"><span class="detail-label">收支类型</span><span class="detail-value" id="viewFinanceType">—</span></div>
+        <div class="detail-item"><span class="detail-label">金额(元)</span><span class="detail-value" id="viewFinanceAmount">—</span></div>
+        <div class="detail-item"><span class="detail-label">公开日期</span><span class="detail-value" id="viewFinanceDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewFinanceStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewFinanceModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑议题弹窗 -->
+<div class="modal-overlay" id="editTopicModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑议题</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editTopicModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editTopicTitle"><span class="req">*</span>议题标题</label>
+          <input type="text" id="editTopicTitle" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTopicType"><span class="req">*</span>议题类型</label>
+            <select id="editTopicType" class="form-select" required>
+              <option>重大事项</option>
+              <option>财务开支</option>
+              <option>工程项目</option>
+              <option>惠民政策</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editTopicProposer"><span class="req">*</span>提议人</label>
+            <input type="text" id="editTopicProposer" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editTopicDate"><span class="req">*</span>审议日期</label>
+          <input type="date" id="editTopicDate" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editTopicContent">议题内容</label>
+          <textarea id="editTopicContent" class="form-input" rows="4" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editTopicModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditTopic()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出公开数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出公开记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="三务公开记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 / 跳转详情 ---- */
+  function switchAffairsTab(tab) {
+    document.querySelectorAll('#affairTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+    window._activeAffairs = tab.textContent.trim();
+  }
+  function goDetail() {
+    if (window.parent && window.parent.openPage) {
+      window.parent.openPage('village/sun/four-open-detail.html', '四议两公开详情');
+    } else {
+      window.location.href = 'four-open-detail.html';
+    }
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 党务公开：筛选 + 分页 ==================== */
+    var partyTbody = document.getElementById('partyTbody');
+    var partyPager = makePager(partyTbody, document.getElementById('partyRowCount'), pagerRefs('#tab-party'), function () {
+      var title = document.getElementById('fPartyTitle').value.trim().toLowerCase();
+      var status = document.getElementById('fPartyStatus').value;
+      var out = [];
+      partyTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (title && row.cells[0].textContent.trim().toLowerCase().indexOf(title) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryPartyRows = function () { partyPager.reset(); };
+    window.resetPartyFilter = function () {
+      document.getElementById('fPartyTitle').value = '';
+      document.getElementById('fPartyStatus').value = '';
+      queryPartyRows();
+    };
+
+    /* ==================== 村务公开 ==================== */
+    var villageTbody = document.getElementById('villageTbody');
+    var villagePager = makePager(villageTbody, document.getElementById('villageRowCount'), pagerRefs('#tab-village'), function () {
+      var title = document.getElementById('fVillageTitle').value.trim().toLowerCase();
+      var status = document.getElementById('fVillageStatus').value;
+      var out = [];
+      villageTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (title && row.cells[0].textContent.trim().toLowerCase().indexOf(title) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryVillageRows = function () { villagePager.reset(); };
+    window.resetVillageFilter = function () {
+      document.getElementById('fVillageTitle').value = '';
+      document.getElementById('fVillageStatus').value = '';
+      queryVillageRows();
+    };
+
+    /* ==================== 财务公开 ==================== */
+    var financeTbody = document.getElementById('financeTbody');
+    var financePager = makePager(financeTbody, document.getElementById('financeRowCount'), pagerRefs('#tab-finance'), function () {
+      var type = document.getElementById('fFinanceType').value;
+      var status = document.getElementById('fFinanceStatus').value;
+      var out = [];
+      financeTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryFinanceRows = function () { financePager.reset(); };
+    window.resetFinanceFilter = function () {
+      document.getElementById('fFinanceType').value = '';
+      document.getElementById('fFinanceStatus').value = '';
+      queryFinanceRows();
+    };
+
+    /* ==================== 四议两公开 ==================== */
+    var fourTbody = document.getElementById('fourTbody');
+    var fourPager = makePager(fourTbody, document.getElementById('fourRowCount'), pagerRefs('#tab-four'), function () {
+      var title = document.getElementById('fFourTitle').value.trim().toLowerCase();
+      var type = document.getElementById('fFourType').value;
+      var status = document.getElementById('fFourStatus').value;
+      var out = [];
+      fourTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (title && row.cells[0].textContent.trim().toLowerCase().indexOf(title) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryFourRows = function () { fourPager.reset(); };
+    window.resetFourFilter = function () {
+      document.getElementById('fFourTitle').value = '';
+      document.getElementById('fFourType').value = '';
+      document.getElementById('fFourStatus').value = '';
+      queryFourRows();
+    };
+
+    /* ==================== 操作列 / 查看 / 提交审核 / 删除 ==================== */
+    function statusTag(status) {
+      return '<span class="tag ' + (status === '已通过' ? 'tag-green' : status === '待审核' ? 'tag-orange' : 'tag-red') + '">' + status + '</span>';
+    }
+    function renderPublicOp(row, panel) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="view' + panel + '(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '待审核' || status === '已驳回') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="submitReview(this)"><iconify-icon icon="ri:send-plane-line"></iconify-icon>提交审核</button>';
+      }
+      html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deleteAffair(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      cell.innerHTML = html;
+    }
+    window.submitReview = function (btn) {
+      showToast('已提交审核', 'success');
+    };
+    window.deleteAffair = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          var key = panel ? panel.id.replace('tab-', '') : '';
+          if (key === 'party') partyPager.render();
+          else if (key === 'village') villagePager.render();
+          else if (key === 'finance') financePager.render();
+          else if (key === 'four') fourPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* 党务 / 村务 查看 */
+    window.viewParty = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewPartyTitle').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewPartyDate').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewPartyStatus').innerHTML = row.cells[3].innerHTML;
+      document.getElementById('viewPartyContent').textContent = row.cells[1].textContent.trim();
+      openModal('viewPartyModal');
+    };
+    window.viewVillage = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewVillageTitle').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewVillageDate').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewVillageStatus').innerHTML = row.cells[3].innerHTML;
+      document.getElementById('viewVillageContent').textContent = row.cells[1].textContent.trim();
+      openModal('viewVillageModal');
+    };
+    window.viewFinance = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewFinanceTitle').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewFinanceType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewFinanceAmount').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewFinanceDate').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewFinanceStatus').innerHTML = row.cells[4].innerHTML;
+      openModal('viewFinanceModal');
+    };
+
+    /* 四议两公开：编辑 */
+    window.openEditTopic = function (btn) {
+      var row = btn.closest('tr');
+      window._editTopicRow = row;
+      document.getElementById('editTopicTitle').value = row.cells[0].textContent.trim();
+      document.getElementById('editTopicType').value = row.cells[1].textContent.trim();
+      document.getElementById('editTopicProposer').value = row.cells[2].textContent.trim();
+      document.getElementById('editTopicDate').value = row.cells[3].textContent.trim();
+      document.getElementById('editTopicContent').value = '';
+      openModal('editTopicModal');
+    };
+    window.submitEditTopic = function () {
+      var row = window._editTopicRow;
+      if (row) {
+        var type = document.getElementById('editTopicType').value;
+        var typeTag = row.cells[1].querySelector('.tag');
+        typeTag.className = 'tag ' + (type === '重大事项' ? 'tag-red' : type === '财务开支' ? 'tag-orange' : type === '工程项目' ? 'tag-blue' : 'tag-cyan');
+        typeTag.textContent = type;
+        row.setAttribute('data-type', type);
+        row.cells[0].textContent = document.getElementById('editTopicTitle').value.trim();
+        row.cells[2].textContent = document.getElementById('editTopicProposer').value.trim();
+        row.cells[3].textContent = document.getElementById('editTopicDate').value;
+      }
+      closeModal('editTopicModal');
+      fourPager.render();
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 新增：插入首行 ==================== */
+    function fmtToday() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function fmtMoney(n) {
+      return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.00';
+    }
+
+    window.submitAddParty = function () {
+      var title = document.getElementById('partyTitle').value.trim();
+      var content = document.getElementById('partyContent').value.trim();
+      var date = document.getElementById('partyDate').value || fmtToday();
+      if (!title || !content) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', '待审核');
+      tr.innerHTML = '<td class="town-name">' + escapeHtml(title) + '</td>' + '<td class="reason-cell">' + escapeHtml(content) + '</td>' + '<td class="nums">' + date + '</td>' + '<td>' + statusTag('待审核') + '</td>' + '<td class="op-cell"></td>';
+      renderPublicOp(tr, 'Party');
+      partyTbody.insertBefore(tr, partyTbody.firstChild);
+      document.getElementById('partyTitle').value = ''; document.getElementById('partyContent').value = ''; document.getElementById('partyDate').value = '';
+      queryPartyRows();
+      closeModal('addPartyModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddVillage = function () {
+      var title = document.getElementById('vTitleAdd').value.trim();
+      var content = document.getElementById('vContentAdd').value.trim();
+      var date = document.getElementById('vDateAdd').value || fmtToday();
+      if (!title || !content) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', '待审核');
+      tr.innerHTML = '<td class="town-name">' + escapeHtml(title) + '</td>' + '<td class="reason-cell">' + escapeHtml(content) + '</td>' + '<td class="nums">' + date + '</td>' + '<td>' + statusTag('待审核') + '</td>' + '<td class="op-cell"></td>';
+      renderPublicOp(tr, 'Village');
+      villageTbody.insertBefore(tr, villageTbody.firstChild);
+      document.getElementById('vTitleAdd').value = ''; document.getElementById('vContentAdd').value = ''; document.getElementById('vDateAdd').value = '';
+      queryVillageRows();
+      closeModal('addVillageModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddFinance = function () {
+      var title = document.getElementById('finTitle').value.trim();
+      var type = document.getElementById('finType').value;
+      var amount = document.getElementById('finAmount').value.trim();
+      var date = document.getElementById('finDate').value || fmtToday();
+      if (!title || !type || !amount) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '待审核');
+      tr.innerHTML = '<td class="town-name">' + escapeHtml(title) + '</td>' + '<td><span class="tag ' + (type === '收入' ? 'tag-green' : 'tag-red') + '">' + type + '</span></td>' + '<td class="nums">' + fmtMoney(Number(amount) || 0) + '</td>' + '<td class="nums">' + date + '</td>' + '<td>' + statusTag('待审核') + '</td>' + '<td class="op-cell"></td>';
+      renderPublicOp(tr, 'Finance');
+      financeTbody.insertBefore(tr, financeTbody.firstChild);
+      document.getElementById('finTitle').value = ''; document.getElementById('finType').value = ''; document.getElementById('finAmount').value = ''; document.getElementById('finDate').value = '';
+      queryFinanceRows();
+      closeModal('addFinanceModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddTopic = function () {
+      var title = document.getElementById('topicTitle').value.trim();
+      var type = document.getElementById('topicType').value;
+      var proposer = document.getElementById('topicProposer').value.trim();
+      var date = document.getElementById('topicDate').value || fmtToday();
+      if (!title || !type || !proposer) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '征求意见');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(title) + '</td>' +
+        '<td><span class="tag ' + (type === '重大事项' ? 'tag-red' : type === '财务开支' ? 'tag-orange' : type === '工程项目' ? 'tag-blue' : 'tag-cyan') + '">' + type + '</span></td>' +
+        '<td>' + escapeHtml(proposer) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td><span class="tag tag-orange">审议中</span></td>' +
+        '<td><span class="tag tag-gray">征求意见</span></td>' +
+        '<td class="op-cell"></td>';
+      renderTopicOp(tr);
+      fourTbody.insertBefore(tr, fourTbody.firstChild);
+      document.getElementById('topicTitle').value = ''; document.getElementById('topicType').value = ''; document.getElementById('topicProposer').value = ''; document.getElementById('topicDate').value = ''; document.getElementById('topicContent').value = '';
+      queryFourRows();
+      closeModal('addTopicModal');
+      showToast('保存成功', 'success');
+    };
+    function renderTopicOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="goDetail()"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditTopic(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteAffair(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '三务公开') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '三务公开记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，验证分页） ==================== */
+    function fmtDate(offset) {
+      var d = new Date(2026, 7, 11 - offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var publicStatuses = ['已通过', '待审核', '已驳回'];
+    var publicContents = ['公示期内如有异议，请及时向党支部或村委会反映。', '组织党员群众开展集中学习与讨论，接受监督。', '相关材料留存村存档备查，公示期为 5 个工作日。', '面向全体村民公开，欢迎提出意见建议。'];
+
+    // 党务（5 条基础 + 20 条）
+    var partyRows = [
+      ['2026年第三季度党支部工作总结', '围绕乡村振兴、党员教育、产业发展部署三季度重点任务', '2026-07-08', '已通过'],
+      ['关于发展新党员的公示', '公示拟发展党员名单，征求党员群众意见', '2026-07-12', '已通过'],
+      ['2026年上半年党费收缴情况', '上半年共收缴党费3260元，已全额上缴镇党委', '2026-07-18', '待审核'],
+      ['党支部"七一"主题党日活动方案', '组织党员赴红色教育基地开展主题党日活动', '2026-07-01', '已通过'],
+      ['党员积分制管理考核办法', '推行党员积分制，量化日常表现与考核', '2026-07-25', '已驳回']
+    ];
+    var partyTitles = ['党员志愿服务队活动公示', '党组织生活会安排公示', '党员发展对象集中培训公示', '党支部换届选举公告', '党员联系服务群众制度公示', '党纪学习教育专题计划', '党员积分兑换公示', '发展对象政治审查公示', '党费收缴标准公示', '主题党日学习清单公示', '党员警示教育案例学习', '积极分子考察公示', '党组织民主评议结果公示', '党小组调整公示', '党员先锋岗评选公示', '理论学习中心组计划公示', '党员责任区划分公示', '主题党日志愿服务公示', '党内帮扶慰问名单公示', '党员星级评定结果公示'];
+    partyRows.forEach(function (r) { buildPublicRow(partyTbody, r[0], r[1], r[2], r[3], 'Party'); });
+    for (var pi = 0; pi < 20; pi++) {
+      buildPublicRow(partyTbody, partyTitles[pi % partyTitles.length], publicContents[pi % publicContents.length], fmtDate(17 - pi), publicStatuses[pi % 3], 'Party');
+    }
+
+    // 村务（5 条基础 + 20 条）
+    var villageRows = [
+      ['幸福村2026年人居环境整治方案', '推进垃圾分类、污水治理与村容村貌提升', '2026-07-05', '已通过'],
+      ['村道硬化工程招标公告', '对村域内2.3公里主干道进行硬化施工招标', '2026-07-10', '待审核'],
+      ['幸福村防汛应急预案', '明确汛期值班、转移避险与应急处置流程', '2026-08-02', '已通过'],
+      ['集体资产租赁情况公示', '村集体门面房年租金收入公开', '2026-07-20', '已通过'],
+      ['村规民约修订征求意见稿', '结合移风易俗对现行村规民约进行修订', '2026-07-28', '待审核']
+    ];
+    var villageTitles = ['村级财务收支情况公示', '人居环境整治考核公示', '集体土地流转收益公示', '惠民补贴发放名单公示', '村庄规划意见征求公示', '养老服务设施建设公示', '农村改厕补贴公示', '医保缴费补助名单公示', '土地确权登记情况公示', '秸秆禁烧责任区公示', '饮水安全工程公示', '村集体产权改革公示', '宅基地审批结果公示', '农业保险补贴公示', '村道养护资金公示', '移风易俗红白理事会公示', '残疾人两项补贴公示', '农村危房改造名单公示', '垃圾分类试点公示', '美丽乡村建设公示'];
+    villageRows.forEach(function (r) { buildPublicRow(villageTbody, r[0], r[1], r[2], r[3], 'Village'); });
+    for (var vi = 0; vi < 20; vi++) {
+      buildPublicRow(villageTbody, villageTitles[vi % villageTitles.length], publicContents[vi % publicContents.length], fmtDate(17 - vi), publicStatuses[vi % 3], 'Village');
+    }
+
+    // 财务（5 条基础 + 20 条）
+    var financeRows = [
+      ['2026年6月村集体收入明细', '收入', 86500, '2026-07-05', '已通过'],
+      ['2026年6月村集体支出明细', '支出', 62300, '2026-07-05', '已通过'],
+      ['2026年第二季度财务预算执行报告', '支出', 158600, '2026-07-15', '待审核'],
+      ['集体公益林补助发放情况', '收入', 24500, '2026-07-22', '已通过'],
+      ['2026年7月办公经费支出', '支出', 3850, '2026-08-01', '待审核']
+    ];
+    var financeTitles = ['2026年7月集体收入明细', '2026年7月集体支出明细', '光伏发电收益分配公示', '集体鱼塘承包金到账公示', '土地流转服务费收入公示', '公益林补偿款到账公示', '人居环境整治支出明细', '党员活动经费支出公示', '村务公开栏维护费支出', '集体资产租金收入公示', '水利设施维修支出公示', '助学金发放明细公示', '办公设备购置支出', '农田水利项目资金公示', '文化礼堂活动经费支出', '秸秆禁烧奖补收入', '村级债务化解公示', '集体经济分红方案公示', '路灯电费支出公示', '集体土地承包金公示'];
+    financeRows.forEach(function (r) { buildFinanceRow(financeTbody, r[0], r[1], r[2], r[3], r[4]); });
+    for (var fi = 0; fi < 20; fi++) {
+      buildFinanceRow(financeTbody, financeTitles[fi % financeTitles.length], (fi % 2 === 0 ? '收入' : '支出'), 15000 + ((fi * 7300) % 80000), fmtDate(17 - fi), publicStatuses[fi % 3]);
+    }
+
+    // 四议两公开（6 条基础 + 19 条）
+    var topicRows = [
+      ['幸福村主干道拓宽硬化工程', '工程项目', '李建国', '2026-07-06', '通过', '公开'],
+      ['2026年村集体大额支出审批', '财务开支', '王桂花', '2026-07-12', '通过', '归档'],
+      ['幸福村幸福互助院建设项目', '工程项目', '赵铁柱', '2026-07-18', '审议中', '村民代表决议'],
+      ['困难群众临时救助名单审议', '惠民政策', '孙富贵', '2026-07-22', '通过', '公开'],
+      ['村集体林地承包经营权流转', '重大事项', '周小敏', '2026-07-26', '否决', '归档'],
+      ['2026年农田水利设施修缮方案', '工程项目', '吴德发', '2026-08-03', '审议中', '党员审议']
+    ];
+    var topicTitles = ['村庄亮化工程实施', '高标准农田建设项目', '集体资产核资方案', '农村电商服务站建设', '乡风文明评比活动', '微型消防站建设', '留守儿童关爱项目', '村卫生室改造提升', '粮食烘干中心项目', '停车位划线管理方案', '自来水收费调整方案', '农文旅融合试点', '集体食堂改造', '村级道路养护承包', '光伏电站二期扩建', '高标准果园建设', '文化礼堂翻新方案', '村集体果园承包', '路灯维修专项资金'];
+    var topicTypes = ['重大事项', '财务开支', '工程项目', '惠民政策'];
+    var proposers = ['李建国', '周小敏', '赵铁柱', '孙富贵', '吴德发', '王桂花', '钱有财', '黄国庆', '周淑芬', '张明远'];
+    topicRows.forEach(function (r) { buildTopicRow(fourTbody, r[0], r[1], r[2], r[3], r[4], r[5]); });
+    for (var ti = 0; ti < 19; ti++) {
+      buildTopicRow(fourTbody, topicTitles[ti % topicTitles.length], topicTypes[ti % 4], proposers[ti % proposers.length], fmtDate(17 - ti), (ti % 5 === 4 ? '否决' : ti % 4 === 3 ? '审议中' : '通过'), (ti % 5 === 4 ? '归档' : ti % 4 === 3 ? '村民代表决议' : '公开'));
+    }
+
+    function buildPublicRow(tbody, title, content, date, status, panel) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', status);
+      tr.innerHTML = '<td class="town-name">' + escapeHtml(title) + '</td>' + '<td class="reason-cell">' + escapeHtml(content) + '</td>' + '<td class="nums">' + date + '</td>' + '<td>' + statusTag(status) + '</td>' + '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderPublicOp(tr, panel);
+    }
+    function buildFinanceRow(tbody, title, type, amount, date, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML = '<td class="town-name">' + escapeHtml(title) + '</td>' + '<td><span class="tag ' + (type === '收入' ? 'tag-green' : 'tag-red') + '">' + type + '</span></td>' + '<td class="nums">' + fmtMoney(amount) + '</td>' + '<td class="nums">' + date + '</td>' + '<td>' + statusTag(status) + '</td>' + '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderPublicOp(tr, 'Finance');
+    }
+    function buildTopicRow(tbody, title, type, proposer, date, result, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(title) + '</td>' +
+        '<td><span class="tag ' + (type === '重大事项' ? 'tag-red' : type === '财务开支' ? 'tag-orange' : type === '工程项目' ? 'tag-blue' : 'tag-cyan') + '">' + type + '</span></td>' +
+        '<td>' + escapeHtml(proposer) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td><span class="tag ' + (result === '通过' ? 'tag-green' : result === '否决' ? 'tag-red' : 'tag-orange') + '">' + result + '</span></td>' +
+        '<td><span class="tag ' + (status === '公开' ? 'tag-green' : status === '归档' ? 'tag-gray' : 'tag-orange') + '">' + status + '</span></td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderTopicOp(tr);
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    partyPager.render();
+    villagePager.render();
+    financePager.render();
+    fourPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#affairTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchAffairsTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

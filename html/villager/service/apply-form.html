@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字乡村 - 线上申请</title>
+<link rel="stylesheet" href="../css/villager.css">
+</head>
+<body data-end="citizen">
+<div class="phone-container">
+<header>
+  <div class="nav-bar"><div class="nav-back" aria-label="返回"></div><h1 class="nav-title">线上申请</h1><div class="nav-right"></div></div>
+</header>
+<main class="page-content"><div class="page-body"><form data-validate onsubmit="return false"><div class="form-group"><label class="form-label">申请事项</label><select class="form-select" required style="font-size:16px;"><option value="">请选择申请事项</option><option>开具户籍证明</option><option>申请低保补助</option><option>办理建房审批</option><option>申请农业补贴</option><option>办理养老保险</option><option>办理医疗保险</option></select></div><div class="form-group"><label class="form-label">申请人姓名</label><input type="text" name="name" class="form-input" value="李秀兰" readonly autocomplete="name" style="font-size:16px;">
+</div><div class="form-group"><label class="form-label">身份证号</label><input type="text" name="idcard" class="form-input" value="3205**********1234" readonly autocomplete="off" spellcheck="false" style="font-size:16px;"></div><div class="form-group"><label class="form-label">联系电话</label><input type="tel" name="phone" class="form-input" value="138****1234" autocomplete="tel" style="font-size:16px;"></div><div class="form-group"><label class="form-label">详细地址</label><input type="text" name="address" class="form-input" placeholder="请输入详细地址…" autocomplete="street-address" style="font-size:16px;"></div><div class="form-group"><label class="form-label">申请事由</label><textarea name="reason" class="form-textarea" placeholder="请详细描述申请事由…" required autocomplete="off" style="font-size:16px;"></textarea></div><div class="form-group"><label class="form-label">材料照片</label><div class="upload-area"><div class="upload-item">+<span class="upload-hint">最多上传9张</span></div></div></div></form><button type="button" class="btn-primary" data-redirect="apply-success.html">提交申请</button></div></main>
+</div>
+<script src="../js/villager.js"></script>
+</body>
+</html>

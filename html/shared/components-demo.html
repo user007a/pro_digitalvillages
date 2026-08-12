@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>组件演示 - 数字乡村设计系统</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="js/icons-local.js"></script>
+  <script src="js/iconify-icon.min.js"></script>
+  <style>
+    body { background: var(--neutral-100); font-family: var(--font-family); padding: 32px; color: var(--neutral-900); }
+    .demo-section { margin-bottom: 48px; }
+    .demo-section h2 { font-size: 22px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--color-primary-500); display: inline-block; }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 12px; }
+    .demo-label { font-size: 12px; color: var(--neutral-500); margin-bottom: 8px; }
+    .demo-card { background: var(--neutral-50); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-xs); }
+    .color-swatch { display: inline-flex; align-items: center; gap: 8px; }
+    .color-swatch .swatch { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--neutral-300); }
+    .spacing-demo { display: inline-block; background: var(--color-primary-300); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<h1 style="font-size:28px;margin-bottom:8px;">🎨 数字乡村设计系统</h1>
+<p style="color:var(--neutral-500);margin-bottom:32px;">「田园生态」Design System — 四端统一的视觉语言与组件库</p>
+
+<!-- Color Palette -->
+<section class="demo-section">
+  <h2>色板 Color Palette</h2>
+  <div class="demo-card">
+    <div class="demo-label">主色 Primary</div>
+    <div class="demo-row">
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-50)"></span>50</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-100)"></span>100</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-300)"></span>300</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-500)"></span>500 #16a34a</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-600)"></span>600</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-primary-900)"></span>900</span>
+    </div>
+    <div class="demo-label" style="margin-top:12px;">功能色 Functional</div>
+    <div class="demo-row">
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-success-500)"></span>Success</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-warning-500)"></span>Warning</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-error-500)"></span>Error</span>
+      <span class="color-swatch"><span class="swatch" style="background:var(--color-info-500)"></span>Info</span>
+    </div>
+  </div>
+</section>
+
+<!-- Buttons -->
+<section class="demo-section">
+  <h2>按钮 Button</h2>
+  <div class="demo-card">
+    <div class="demo-row">
+      <button class="btn btn-primary">主按钮</button>
+      <button class="btn btn-primary" disabled>禁用</button>
+      <button class="btn btn-primary btn-loading">加载中</button>
+    </div>
+    <div class="demo-row">
+      <button class="btn btn-secondary">次按钮</button>
+      <button class="btn btn-outline">线框按钮</button>
+      <button class="btn btn-text">文字按钮</button>
+      <button class="btn btn-danger">危险按钮</button>
+    </div>
+    <div class="demo-row">
+      <button class="btn btn-primary btn-sm">小按钮</button>
+      <button class="btn btn-primary">默认</button>
+      <button class="btn btn-primary btn-lg">大按钮</button>
+    </div>
+  </div>
+</section>
+
+<!-- Form -->
+<section class="demo-section">
+  <h2>表单 Form</h2>
+  <div class="demo-card" style="max-width:480px;">
+    <div class="form-item">
+      <label class="form-label">姓名 <span class="required">*</span></label>
+      <input class="form-input" placeholder="请输入姓名…">
+    </div>
+    <div class="form-item">
+      <label class="form-label">手机号</label>
+      <input class="form-input" placeholder="请输入手机号…" disabled>
+    </div>
+    <div class="form-item is-error">
+      <label class="form-label">身份证号</label>
+      <input class="form-input" value="123">
+      <span class="form-error">请输入正确的身份证号</span>
+    </div>
+    <div class="form-item">
+      <label class="form-label">所属小组</label>
+      <select class="form-select"><option>请选择</option><option>第一组</option><option>第二组</option></select>
+    </div>
+  </div>
+</section>
+
+<!-- Table -->
+<section class="demo-section">
+  <h2>表格 Table</h2>
+  <div class="demo-card" style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>姓名</th><th>性别</th><th>手机号</th><th>所属组</th><th>状态</th></tr></thead>
+      <tbody>
+        <tr><td>王建国</td><td>男</td><td>138****8888</td><td>第一组</td><td><span class="badge badge-success">正常</span></td></tr>
+        <tr><td>李秀兰</td><td>女</td><td>139****9999</td><td>第二组</td><td><span class="badge badge-warning">待审核</span></td></tr>
+        <tr><td>张明远</td><td>男</td><td>136****7777</td><td>第三组</td><td><span class="badge badge-danger">禁用</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Cards -->
+<section class="demo-section">
+  <h2>卡片 Card</h2>
+  <div class="demo-row">
+    <div class="card" style="width:200px;padding:20px;">
+      <div style="font-size:14px;color:var(--neutral-500);">总人口</div>
+      <div style="font-size:32px;font-weight:700;">2,856</div>
+      <div style="font-size:12px;color:var(--color-success-500);">↑ +12</div>
+    </div>
+    <div class="card" style="width:200px;padding:20px;">
+      <div style="font-size:14px;color:var(--neutral-500);">村集体收入</div>
+      <div style="font-size:32px;font-weight:700;color:var(--color-primary-500);">386万</div>
+      <div style="font-size:12px;color:var(--color-success-500);">↑ +15%</div>
+    </div>
+  </div>
+</section>
+
+<!-- Badges -->
+<section class="demo-section">
+  <h2>标签 Badge</h2>
+  <div class="demo-row">
+    <span class="badge badge-success">已完成</span>
+    <span class="badge badge-warning">待处理</span>
+    <span class="badge badge-danger">已取消</span>
+    <span class="badge badge-info">进行中</span>
+    <span class="badge badge-primary">新增</span>
+  </div>
+</section>
+
+<!-- Toast -->
+<section class="demo-section">
+  <h2>提示 Toast</h2>
+  <div class="demo-row">
+    <div class="toast-item toast-success">操作成功</div>
+    <div class="toast-item toast-warning">请注意检查</div>
+    <div class="toast-item toast-error">操作失败</div>
+    <div class="toast-item toast-info">提示信息</div>
+  </div>
+</section>
+
+<!-- Empty State -->
+<section class="demo-section">
+  <h2>空状态 EmptyState</h2>
+  <div class="empty-state">
+    <div class="empty-icon"><iconify-icon icon="ri:inbox-line" style="font-size:48px;color:var(--neutral-300);"></iconify-icon></div>
+    <div class="empty-title">暂无数据</div>
+    <div class="empty-desc">当前没有符合条件的记录</div>
+  </div>
+</section>
+
+<!-- Pagination -->
+<section class="demo-section">
+  <h2>分页 Pagination</h2>
+  <div class="pagination">
+    <button class="page-btn" disabled>上一页</button>
+    <button class="page-btn active">1</button>
+    <button class="page-btn">2</button>
+    <button class="page-btn">3</button>
+    <button class="page-btn">下一页</button>
+    <span class="page-info">共 86 条</span>
+  </div>
+</section>
+
+<!-- Modal (static preview) -->
+<section class="demo-section">
+  <h2>弹窗 Modal</h2>
+  <div class="demo-card" style="max-width:400px;">
+    <div style="font-size:16px;font-weight:600;margin-bottom:12px;">确认删除</div>
+    <p style="color:var(--neutral-500);margin-bottom:16px;">确定要删除选中的村民记录吗？此操作不可恢复。</p>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-secondary">取消</button>
+      <button class="btn btn-danger">确定删除</button>
+    </div>
+  </div>
+</section>
+
+<!-- Spacing Showcase -->
+<section class="demo-section">
+  <h2>间距 Spacing (4px base)</h2>
+  <div class="demo-row" style="align-items:flex-end;">
+    <div><div class="spacing-demo" style="width:4px;height:4px;"></div><span style="font-size:10px;">4</span></div>
+    <div><div class="spacing-demo" style="width:8px;height:8px;"></div><span style="font-size:10px;">8</span></div>
+    <div><div class="spacing-demo" style="width:16px;height:16px;"></div><span style="font-size:10px;">16</span></div>
+    <div><div class="spacing-demo" style="width:24px;height:24px;"></div><span style="font-size:10px;">24</span></div>
+    <div><div class="spacing-demo" style="width:32px;height:32px;"></div><span style="font-size:10px;">32</span></div>
+    <div><div class="spacing-demo" style="width:48px;height:48px;"></div><span style="font-size:10px;">48</span></div>
+  </div>
+</section>
+
+<p style="margin-top:48px;padding-top:16px;border-top:1px solid var(--neutral-300);color:var(--neutral-500);font-size:12px;">
+  数字乡村设计系统 v1.0 · 四端统一 · 交付给研发团队
+</p>
+
+</body>
+</html>

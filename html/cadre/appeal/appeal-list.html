@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>村民诉求</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="../index.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">村民诉求</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 类型Tab -->
+    <div class="tab-row" role="tablist">
+      <div class="tab-btn active" role="tab" aria-selected="true">全部</div>
+      <div class="tab-btn" role="tab">随手拍</div>
+      <div class="tab-btn" role="tab">办事咨询</div>
+      <div class="tab-btn" role="tab">建议意见</div>
+    </div>
+
+    <!-- 状态Tab -->
+    <div class="tab-row" style="border-bottom:1px solid #eee;" role="tablist" data-filter-target=".list-card .list-item">
+      <div class="tab-btn active" role="tab" aria-selected="true" data-filter="all">全部</div>
+      <div class="tab-btn" role="tab" data-filter="pending">待处理</div>
+      <div class="tab-btn" role="tab" data-filter="processing">处理中</div>
+      <div class="tab-btn" role="tab" data-filter="resolved">已回复</div>
+      <div class="tab-btn" role="tab" data-filter="closed">已关闭</div>
+    </div>
+
+    <!-- 诉求列表 -->
+    <div class="list-card" style="margin-top:0;">
+      <!-- 诉求1：待处理 -->
+      <div class="list-item" role="button" onclick="location.href='appeal-detail.html?id=1'" data-status="pending">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-orange">待处理</span>
+            村口道路坑洼影响出行
+          </div>
+          <div class="item-desc">张大爷 - 3组12号 | 06-30 09:00</div>
+          <div class="item-desc2">村口主道路面有两处较大坑洼，雨天积水严重，老人和小孩出行不便，存在安全隐患...</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">随手拍</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> 2张</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 诉求2：处理中 -->
+      <div class="list-item" role="button" onclick="location.href='appeal-detail.html?id=2'" data-status="processing">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-blue">处理中</span>
+            水渠堵塞影响灌溉
+          </div>
+          <div class="item-desc">李婶 - 1组8号 | 06-29 15:30</div>
+          <div class="item-desc2">村南灌溉水渠被杂物堵塞，农田无法正常灌溉，当前正值水稻生长关键期...</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">随手拍</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> 1张</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 诉求3：已回复 -->
+      <div class="list-item" role="button" onclick="location.href='appeal-detail.html?id=3'" data-status="resolved">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-green">已解决</span>
+            路灯损坏存在安全隐患
+          </div>
+          <div class="item-desc">王明 - 2组5号 | 06-28 20:00</div>
+          <div class="item-desc2">村西路段两盏路灯损坏不亮，晚上村民出行不便，已安排电工维修更换</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">随手拍</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> 1张</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 诉求4：待处理 -->
+      <div class="list-item" role="button" onclick="location.href='appeal-detail.html?id=4'" data-status="pending">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-orange">待处理</span>
+            建议增设健身器材
+          </div>
+          <div class="item-desc">赵六 - 3组20号 | 06-27 10:00</div>
+          <div class="item-desc2">建议在村南广场增设一些健身器材，方便村民锻炼身体，丰富业余生活...</div>
+          <div class="item-meta">
+            <span class="tag tag-orange">建议意见</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 诉求5：已关闭 -->
+      <div class="list-item" role="button" onclick="location.href='appeal-detail.html?id=5'" data-status="closed">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-gray">已关闭</span>
+            水管漏水报修
+          </div>
+          <div class="item-desc">孙七 - 2组3号 | 06-25 08:00</div>
+          <div class="item-desc2">家中水管接头处漏水，已安排维修人员上门修复</div>
+          <div class="item-meta">
+            <span class="tag tag-green">办事咨询</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

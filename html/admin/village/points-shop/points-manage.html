@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>积分管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .date-range-group { display: flex; align-items: center; gap: 6px; }
+    .filter-panel .date-range-group .form-input { width: 140px; }
+    .filter-panel .date-range-group span { font-size: 13px; color: #6b7280; }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+    .data-table tbody td.nums { color: #374151; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>积分管理</h2>
+      <span class="text-muted">村民积分体系、积分记录与积分商城管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：积分规则 → 积分审核 → 积分商品 → 兑换单 -->
+  <div class="tab-bar dv-tabbar" id="pointsTabs">
+    <div class="tab-item active" onclick="switchPointsTab(this)" data-tab="rule">积分规则</div>
+    <div class="tab-item" onclick="switchPointsTab(this)" data-tab="audit">积分审核</div>
+    <div class="tab-item" onclick="switchPointsTab(this)" data-tab="goods">积分商品</div>
+    <div class="tab-item" onclick="switchPointsTab(this)" data-tab="order">兑换单</div>
+  </div>
+
+  <!-- ==================== Tab 面板：积分规则 ==================== -->
+  <div class="tab-panel" id="tab-rule">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fRuleName">规则名称</label>
+        <input type="text" id="fRuleName" class="form-input" placeholder="请输入规则名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fBehavior">行为类型</label>
+        <select id="fBehavior" class="form-select">
+          <option value="">全部</option>
+          <option>参与活动</option>
+          <option>便民服务</option>
+          <option>随手拍</option>
+          <option>村务监督</option>
+          <option>志愿活动</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fCrowd">适用人群</label>
+        <select id="fCrowd" class="form-select">
+          <option value="">全部</option>
+          <option>全体村民</option>
+          <option>党员</option>
+          <option>网格员</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fRuleStatus">状态</label>
+        <select id="fRuleStatus" class="form-select">
+          <option value="">全部</option>
+          <option>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryRuleRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetRuleFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:settings-3-line"></iconify-icon>积分规则列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addRuleModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增规则</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('积分规则')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>规则名称</th>
+              <th>行为类型</th>
+              <th>获得积分</th>
+              <th>每日上限</th>
+              <th>适用人群</th>
+              <th>状态</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="ruleTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="ruleRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：积分审核 ==================== -->
+  <div class="tab-panel" id="tab-audit" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fAuditName">村民姓名</label>
+        <input type="text" id="fAuditName" class="form-input" placeholder="请输入村民姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fAuditStatus">审核状态</label>
+        <select id="fAuditStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fAuditType">积分类型</label>
+        <select id="fAuditType" class="form-select">
+          <option value="">全部</option>
+          <option>加分</option>
+          <option>减分</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fAuditGroup">所属组</label>
+        <select id="fAuditGroup" class="form-select">
+          <option value="">全部</option>
+          <option>第一组</option>
+          <option>第二组</option>
+          <option>第三组</option>
+          <option>第四组</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label>申请时间</label>
+        <div class="date-range-group">
+          <input type="date" id="fAuditStart" class="form-input" autocomplete="off">
+          <span>至</span>
+          <input type="date" id="fAuditEnd" class="form-input" autocomplete="off">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryAuditRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetAuditFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>积分审核记录</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('积分审核')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>村民姓名</th>
+              <th>所属组</th>
+              <th>积分规则</th>
+              <th>积分类型</th>
+              <th>申请分值</th>
+              <th>实际分值</th>
+              <th>申请时间</th>
+              <th>审核状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="auditTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="auditRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：积分商品 ==================== -->
+  <div class="tab-panel" id="tab-goods" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fGoodsName">商品名称</label>
+        <input type="text" id="fGoodsName" class="form-input" placeholder="请输入商品名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fCategory">商品分类</label>
+        <select id="fCategory" class="form-select">
+          <option value="">全部</option>
+          <option>日用品</option>
+          <option>食品</option>
+          <option>家电</option>
+          <option>学习用品</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fGoodsStatus">上架状态</label>
+        <select id="fGoodsStatus" class="form-select">
+          <option value="">全部</option>
+          <option>上架</option>
+          <option>下架</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryGoodsRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetGoodsFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:shopping-bag-3-line"></iconify-icon>积分商品列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addGoodsModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增商品</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('积分商品')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>商品图片</th>
+              <th>商品名称</th>
+              <th>商品分类</th>
+              <th>库存数量</th>
+              <th>所需积分</th>
+              <th>上架状态</th>
+              <th>添加时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="goodsTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="goodsRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：兑换单 ==================== -->
+  <div class="tab-panel" id="tab-order" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fOrderNo">兑换单号</label>
+        <input type="text" id="fOrderNo" class="form-input" placeholder="请输入兑换单号…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fExchanger">兑换人</label>
+        <input type="text" id="fExchanger" class="form-input" placeholder="请输入兑换人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fOrderStatus">状态</label>
+        <select id="fOrderStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已发放</option>
+          <option>已取消</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryOrderRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetOrderFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:exchange-funds-line"></iconify-icon>积分兑换单列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('兑换单')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>兑换单号</th>
+              <th>兑换人</th>
+              <th>手机号</th>
+              <th>商品名称</th>
+              <th>所需积分</th>
+              <th>兑换数量</th>
+              <th>兑换时间</th>
+              <th>状态</th>
+              <th>审核人</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="orderTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="orderRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：积分规则 ==================== -->
+
+<!-- 新增规则弹窗 -->
+<div class="modal-overlay" id="addRuleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:settings-3-line"></iconify-icon>新增规则</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addRuleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="ruleForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="ruleName"><span class="req">*</span>规则名称</label>
+          <input type="text" id="ruleName" name="ruleName" class="form-input" placeholder="请输入规则名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ruleBehavior"><span class="req">*</span>行为类型</label>
+            <select id="ruleBehavior" name="ruleBehavior" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>参与活动</option>
+              <option>便民服务</option>
+              <option>随手拍</option>
+              <option>村务监督</option>
+              <option>志愿活动</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="ruleCrowd"><span class="req">*</span>适用人群</label>
+            <select id="ruleCrowd" name="ruleCrowd" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>全体村民</option>
+              <option>党员</option>
+              <option>网格员</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ruleScore"><span class="req">*</span>获得积分</label>
+            <input type="number" id="ruleScore" name="ruleScore" class="form-input" placeholder="请输入获得积分…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="ruleLimit">每日上限</label>
+            <input type="number" id="ruleLimit" name="ruleLimit" class="form-input" placeholder="请输入每日上限…" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ruleStatus">状态</label>
+          <select id="ruleStatus" name="ruleStatus" class="form-select">
+            <option>启用</option>
+            <option>停用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ruleRemark">备注</label>
+          <textarea id="ruleRemark" name="ruleRemark" class="form-input" rows="3" placeholder="请输入备注说明…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addRuleModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddRule()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看规则弹窗 -->
+<div class="modal-overlay detail-modal" id="viewRuleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>规则详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewRuleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">规则名称</span><span class="detail-value" id="viewRuleName">—</span></div>
+        <div class="detail-item"><span class="detail-label">行为类型</span><span class="detail-value" id="viewRuleBehavior">—</span></div>
+        <div class="detail-item"><span class="detail-label">适用人群</span><span class="detail-value" id="viewRuleCrowd">—</span></div>
+        <div class="detail-item"><span class="detail-label">获得积分</span><span class="detail-value" id="viewRuleScore">—</span></div>
+        <div class="detail-item"><span class="detail-label">每日上限</span><span class="detail-value" id="viewRuleLimit">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewRuleStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">备注</span><span class="detail-value" id="viewRuleRemark">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewRuleModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑规则弹窗 -->
+<div class="modal-overlay" id="editRuleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑规则</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editRuleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editName"><span class="req">*</span>规则名称</label>
+          <input type="text" id="editName" name="editName" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editBehavior"><span class="req">*</span>行为类型</label>
+            <select id="editBehavior" name="editBehavior" class="form-select" required>
+              <option>参与活动</option>
+              <option>便民服务</option>
+              <option>随手拍</option>
+              <option>村务监督</option>
+              <option>志愿活动</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editCrowd"><span class="req">*</span>适用人群</label>
+            <select id="editCrowd" name="editCrowd" class="form-select" required>
+              <option>全体村民</option>
+              <option>党员</option>
+              <option>网格员</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editScore"><span class="req">*</span>获得积分</label>
+            <input type="number" id="editScore" name="editScore" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editLimit">每日上限</label>
+            <input type="number" id="editLimit" name="editLimit" class="form-input" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editStatus">状态</label>
+          <select id="editStatus" name="editStatus" class="form-select">
+            <option>启用</option>
+            <option>停用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editRemark">备注</label>
+          <textarea id="editRemark" name="editRemark" class="form-input" rows="3" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editRuleModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditRule()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：积分审核 ==================== -->
+
+<!-- 通过审核弹窗 -->
+<div class="modal-overlay" id="approveAuditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>通过审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('approveAuditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村民姓名</span><span class="detail-value" id="approveName">—</span></div>
+        <div class="detail-item"><span class="detail-label">积分规则</span><span class="detail-value" id="approveRule">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请分值</span><span class="detail-value" id="approveApplyScore">—</span></div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label for="approveScore"><span class="req">*</span>实际分值</label>
+        <input type="number" id="approveScore" class="form-input" placeholder="请输入实际分值…" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="approveOpinion">审核意见</label>
+        <textarea id="approveOpinion" class="form-input" rows="3" placeholder="请输入审核意见（选填）…" autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('approveAuditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitApprove()">通过审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 驳回审核弹窗 -->
+<div class="modal-overlay" id="rejectAuditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:close-circle-line"></iconify-icon>驳回审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('rejectAuditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村民姓名</span><span class="detail-value" id="rejectName">—</span></div>
+        <div class="detail-item"><span class="detail-label">积分规则</span><span class="detail-value" id="rejectRule">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请分值</span><span class="detail-value" id="rejectApplyScore">—</span></div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label for="rejectReason"><span class="req">*</span>驳回原因</label>
+        <textarea id="rejectReason" class="form-input" rows="3" placeholder="请输入驳回原因…" autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('rejectAuditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitReject()">确认驳回</button>
+    </div>
+  </div>
+</div>
+
+<!-- 调整分值弹窗 -->
+<div class="modal-overlay" id="adjustAuditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>调整分值</h3>
+      <button type="button" class="modal-close" onclick="closeModal('adjustAuditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村民姓名</span><span class="detail-value" id="adjustName">—</span></div>
+        <div class="detail-item"><span class="detail-label">积分规则</span><span class="detail-value" id="adjustRule">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请分值</span><span class="detail-value" id="adjustApplyScore">—</span></div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label for="adjustScore"><span class="req">*</span>调整后分值</label>
+        <input type="number" id="adjustScore" class="form-input" placeholder="请输入调整后分值…" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="adjustReason"><span class="req">*</span>调整原因</label>
+        <textarea id="adjustReason" class="form-input" rows="3" placeholder="请输入调整原因…" autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('adjustAuditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAdjust()">确认调整</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核详情弹窗 -->
+<div class="modal-overlay detail-modal" id="viewAuditDetailModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>审核详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewAuditDetailModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村民姓名</span><span class="detail-value" id="viewAuditName">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属组</span><span class="detail-value" id="viewAuditGroup">—</span></div>
+        <div class="detail-item"><span class="detail-label">积分规则</span><span class="detail-value" id="viewAuditRule">—</span></div>
+        <div class="detail-item"><span class="detail-label">积分类型</span><span class="detail-value" id="viewAuditType">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请分值</span><span class="detail-value" id="viewAuditScore">—</span></div>
+        <div class="detail-item"><span class="detail-label">实际分值</span><span class="detail-value" id="viewAuditActual">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value" id="viewAuditTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核状态</span><span class="detail-value" id="viewAuditStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">审核意见</span><span class="detail-value" id="viewAuditOpinion">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewAuditDetailModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：积分商品 ==================== -->
+
+<!-- 新增商品弹窗 -->
+<div class="modal-overlay" id="addGoodsModal" aria-hidden="true">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:shopping-bag-3-line"></iconify-icon>新增商品</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addGoodsModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="goodsForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="goodsName"><span class="req">*</span>商品名称</label>
+          <input type="text" id="goodsName" name="goodsName" class="form-input" placeholder="请输入商品名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="goodsCategory"><span class="req">*</span>商品分类</label>
+            <select id="goodsCategory" name="goodsCategory" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>日用品</option>
+              <option>食品</option>
+              <option>家电</option>
+              <option>学习用品</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="goodsScore"><span class="req">*</span>所需积分</label>
+            <input type="number" id="goodsScore" name="goodsScore" class="form-input" placeholder="请输入所需积分…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="goodsStock">库存数量</label>
+            <input type="number" id="goodsStock" name="goodsStock" class="form-input" placeholder="请输入库存数量…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="goodsStatus">上架状态</label>
+            <select id="goodsStatus" name="goodsStatus" class="form-select">
+              <option>上架</option>
+              <option>下架</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="goodsDesc">商品描述</label>
+          <textarea id="goodsDesc" name="goodsDesc" class="form-input" rows="3" placeholder="请输入商品描述…" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label>商品图片</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择商品图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传商品图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 400×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addGoodsModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddGoods()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看商品弹窗 -->
+<div class="modal-overlay detail-modal" id="viewGoodsModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>商品详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewGoodsModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">商品名称</span><span class="detail-value" id="viewGoodsName">—</span></div>
+        <div class="detail-item"><span class="detail-label">商品分类</span><span class="detail-value" id="viewGoodsCategory">—</span></div>
+        <div class="detail-item"><span class="detail-label">库存数量</span><span class="detail-value" id="viewGoodsStock">—</span></div>
+        <div class="detail-item"><span class="detail-label">所需积分</span><span class="detail-value" id="viewGoodsScore">—</span></div>
+        <div class="detail-item"><span class="detail-label">上架状态</span><span class="detail-value" id="viewGoodsStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">添加时间</span><span class="detail-value" id="viewGoodsTime">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewGoodsModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑商品弹窗 -->
+<div class="modal-overlay" id="editGoodsModal" aria-hidden="true">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑商品</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editGoodsModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editGoodsName"><span class="req">*</span>商品名称</label>
+          <input type="text" id="editGoodsName" name="editGoodsName" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editGoodsCategory"><span class="req">*</span>商品分类</label>
+            <select id="editGoodsCategory" name="editGoodsCategory" class="form-select" required>
+              <option>日用品</option>
+              <option>食品</option>
+              <option>家电</option>
+              <option>学习用品</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editGoodsScore"><span class="req">*</span>所需积分</label>
+            <input type="number" id="editGoodsScore" name="editGoodsScore" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editGoodsStock">库存数量</label>
+            <input type="number" id="editGoodsStock" name="editGoodsStock" class="form-input" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editGoodsStatus">上架状态</label>
+            <select id="editGoodsStatus" name="editGoodsStatus" class="form-select">
+              <option>上架</option>
+              <option>下架</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editGoodsDesc">商品描述</label>
+          <textarea id="editGoodsDesc" name="editGoodsDesc" class="form-input" rows="3" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label>商品图片</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择商品图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传商品图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 400×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editGoodsModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditGoods()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：兑换单 ==================== -->
+
+<!-- 查看兑换单弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOrderModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>兑换单详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOrderModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">兑换单号</span><span class="detail-value" id="viewOrderNo">—</span></div>
+        <div class="detail-item"><span class="detail-label">兑换人</span><span class="detail-value" id="viewOrderExchanger">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewOrderPhone">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">商品名称</span><span class="detail-value" id="viewOrderGoods">—</span></div>
+        <div class="detail-item"><span class="detail-label">所需积分</span><span class="detail-value" id="viewOrderScore">—</span></div>
+        <div class="detail-item"><span class="detail-label">兑换数量</span><span class="detail-value" id="viewOrderQty">—</span></div>
+        <div class="detail-item"><span class="detail-label">兑换时间</span><span class="detail-value" id="viewOrderTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewOrderStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核人</span><span class="detail-value" id="viewOrderAuditor">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOrderModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 兑换单审核弹窗 -->
+<div class="modal-overlay" id="auditOrderModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>兑换单审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('auditOrderModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid" style="margin-bottom:16px;">
+        <div class="detail-item"><span class="detail-label">兑换单号</span><span class="detail-value" id="auditOrderNo">—</span></div>
+        <div class="detail-item"><span class="detail-label">兑换人</span><span class="detail-value" id="auditOrderExchanger">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">商品名称</span><span class="detail-value" id="auditOrderGoods">—</span></div>
+      </div>
+      <form id="auditOrderForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="auditResult"><span class="req">*</span>审核结果</label>
+          <select id="auditResult" name="auditResult" class="form-select" required>
+            <option value="">请选择…</option>
+            <option>通过（发放商品）</option>
+            <option>驳回</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="auditRemark">审核备注</label>
+          <textarea id="auditRemark" name="auditRemark" class="form-input" rows="3" placeholder="请输入审核备注（驳回时必填）…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('auditOrderModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAuditOrder()">确认审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 导出弹窗 ==================== -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出积分数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出积分记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="积分管理记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  (function () {
+    'use strict';
+
+    /* ==================== 全局：Tab 切换 ==================== */
+    window.switchPointsTab = function (tab) {
+      document.querySelectorAll('#pointsTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    };
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 积分规则：筛选 + 分页 ==================== */
+    var ruleTbody = document.getElementById('ruleTbody');
+    var rulePager = makePager(ruleTbody, document.getElementById('ruleRowCount'), pagerRefs('#tab-rule'), function () {
+      var name = document.getElementById('fRuleName').value.trim().toLowerCase();
+      var behavior = document.getElementById('fBehavior').value;
+      var crowd = document.getElementById('fCrowd').value;
+      var status = document.getElementById('fRuleStatus').value;
+      var out = [];
+      ruleTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && behavior && row.getAttribute('data-behavior') !== behavior) show = false;
+        if (show && crowd && row.getAttribute('data-crowd') !== crowd) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryRuleRows = function () { rulePager.reset(); };
+    window.resetRuleFilter = function () {
+      document.getElementById('fRuleName').value = '';
+      document.getElementById('fBehavior').value = '';
+      document.getElementById('fCrowd').value = '';
+      document.getElementById('fRuleStatus').value = '';
+      queryRuleRows();
+    };
+
+    /* ==================== 积分审核：筛选 + 分页 ==================== */
+    var auditTbody = document.getElementById('auditTbody');
+    var auditPager = makePager(auditTbody, document.getElementById('auditRowCount'), pagerRefs('#tab-audit'), function () {
+      var name = document.getElementById('fAuditName').value.trim().toLowerCase();
+      var status = document.getElementById('fAuditStatus').value;
+      var type = document.getElementById('fAuditType').value;
+      var group = document.getElementById('fAuditGroup').value;
+      var start = document.getElementById('fAuditStart').value;
+      var end = document.getElementById('fAuditEnd').value;
+      var out = [];
+      auditTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && (row.getAttribute('data-name') || '').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && group && row.getAttribute('data-group') !== group) show = false;
+        var day = (row.getAttribute('data-time') || '').slice(0, 10);
+        if (show && start && day < start) show = false;
+        if (show && end && day > end) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryAuditRows = function () { auditPager.reset(); };
+    window.resetAuditFilter = function () {
+      document.getElementById('fAuditName').value = '';
+      document.getElementById('fAuditStatus').value = '';
+      document.getElementById('fAuditType').value = '';
+      document.getElementById('fAuditGroup').value = '';
+      document.getElementById('fAuditStart').value = '';
+      document.getElementById('fAuditEnd').value = '';
+      queryAuditRows();
+    };
+
+    /* ==================== 积分商品：筛选 + 分页 ==================== */
+    var goodsTbody = document.getElementById('goodsTbody');
+    var goodsPager = makePager(goodsTbody, document.getElementById('goodsRowCount'), pagerRefs('#tab-goods'), function () {
+      var name = document.getElementById('fGoodsName').value.trim().toLowerCase();
+      var category = document.getElementById('fCategory').value;
+      var status = document.getElementById('fGoodsStatus').value;
+      var out = [];
+      goodsTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && category && row.getAttribute('data-category') !== category) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryGoodsRows = function () { goodsPager.reset(); };
+    window.resetGoodsFilter = function () {
+      document.getElementById('fGoodsName').value = '';
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fGoodsStatus').value = '';
+      queryGoodsRows();
+    };
+
+    /* ==================== 兑换单：筛选 + 分页 ==================== */
+    var orderTbody = document.getElementById('orderTbody');
+    var orderPager = makePager(orderTbody, document.getElementById('orderRowCount'), pagerRefs('#tab-order'), function () {
+      var no = document.getElementById('fOrderNo').value.trim().toLowerCase();
+      var name = document.getElementById('fExchanger').value.trim().toLowerCase();
+      var status = document.getElementById('fOrderStatus').value;
+      var out = [];
+      orderTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (no && row.getAttribute('data-no').toLowerCase().indexOf(no) === -1) show = false;
+        if (show && name && (row.getAttribute('data-name') || '').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryOrderRows = function () { orderPager.reset(); };
+    window.resetOrderFilter = function () {
+      document.getElementById('fOrderNo').value = '';
+      document.getElementById('fExchanger').value = '';
+      document.getElementById('fOrderStatus').value = '';
+      queryOrderRows();
+    };
+
+    /* ==================== 标签与公共工具 ==================== */
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function fmtToday() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function ruleTypeTagClass(b) {
+      return b === '参与活动' ? 'tag-blue' : b === '便民服务' ? 'tag-cyan' : b === '随手拍' ? 'tag-green' : b === '村务监督' ? 'tag-orange' : b === '志愿活动' ? 'tag-blue' : 'tag-gray';
+    }
+    function ruleStatusTag(status) {
+      return '<span class="tag ' + (status === '启用' ? 'tag-green' : 'tag-gray') + '">' + status + '</span>';
+    }
+    function auditTypeTag(type) {
+      return '<span class="tag ' + (type === '加分' ? 'tag-green' : 'tag-red') + '">' + type + '</span>';
+    }
+    function auditStatusTag(status) {
+      return '<span class="tag ' + (status === '已通过' ? 'tag-green' : status === '已驳回' ? 'tag-red' : 'tag-orange') + '">' + status + '</span>';
+    }
+    function goodsCatTagClass(c) {
+      return c === '日用品' ? 'tag-blue' : c === '食品' ? 'tag-green' : c === '家电' ? 'tag-cyan' : c === '学习用品' ? 'tag-orange' : 'tag-gray';
+    }
+    function goodsStatusTag(status) {
+      return '<span class="tag ' + (status === '上架' ? 'tag-green' : 'tag-red') + '">' + status + '</span>';
+    }
+    function orderStatusTag(status) {
+      return '<span class="tag ' + (status === '已发放' ? 'tag-green' : status === '已取消' ? 'tag-red' : 'tag-orange') + '">' + status + '</span>';
+    }
+
+    /* ==================== 操作列渲染 ==================== */
+    function renderRuleOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewRule(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditRule(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deletePointsRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+    function renderAuditOp(row) {
+      var cell = row.querySelector('.op-cell');
+      var status = row.getAttribute('data-status');
+      if (status === '待审核') {
+        cell.innerHTML =
+          '<button type="button" class="btn-op btn-op-edit" onclick="openApproveAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>通过</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="openRejectAudit(this)"><iconify-icon icon="ri:close-circle-line"></iconify-icon>驳回</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op" onclick="openAdjustAudit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>调整分值</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="deletePointsRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      } else {
+        cell.innerHTML =
+          '<button type="button" class="btn-op" onclick="openViewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="deletePointsRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      }
+    }
+    function renderGoodsOp(row) {
+      var cell = row.querySelector('.op-cell');
+      var status = row.getAttribute('data-status');
+      var html =
+        '<button type="button" class="btn-op" onclick="viewGoods(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditGoods(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>';
+      if (status === '上架') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="toggleGoodsStatus(this)"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>';
+      } else {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="toggleGoodsStatus(this)"><iconify-icon icon="ri:arrow-up-line"></iconify-icon>上架</button>';
+      }
+      html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deletePointsRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      cell.innerHTML = html;
+    }
+    function renderOrderOp(row) {
+      var cell = row.querySelector('.op-cell');
+      var status = row.getAttribute('data-status');
+      var html = '<button type="button" class="btn-op" onclick="viewOrder(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '待审核') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="openAuditOrder(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>';
+      }
+      html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deletePointsRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      cell.innerHTML = html;
+    }
+
+    /* ==================== 删除（onConfirm 中先取面板再 removeChild） ==================== */
+    window.deletePointsRow = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          var key = panel ? panel.id.replace('tab-', '') : '';
+          if (key === 'rule') rulePager.render();
+          else if (key === 'audit') auditPager.render();
+          else if (key === 'goods') goodsPager.render();
+          else if (key === 'order') orderPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 积分规则：查看 / 编辑 / 新增 ==================== */
+    window.viewRule = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewRuleName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewRuleBehavior').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewRuleScore').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewRuleLimit').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewRuleCrowd').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewRuleStatus').innerHTML = row.cells[5].innerHTML;
+      document.getElementById('viewRuleRemark').textContent = row.cells[6].textContent.trim();
+      openModal('viewRuleModal');
+    };
+    window.openEditRule = function (btn) {
+      var row = btn.closest('tr');
+      window._editRuleRow = row;
+      document.getElementById('editName').value = row.cells[0].textContent.trim();
+      document.getElementById('editBehavior').value = row.cells[1].textContent.trim();
+      document.getElementById('editScore').value = parseInt(row.cells[2].textContent.replace(/[^0-9-]/g, ''), 10) || 0;
+      document.getElementById('editLimit').value = parseInt(row.cells[3].textContent, 10) || 0;
+      document.getElementById('editCrowd').value = row.cells[4].textContent.trim();
+      document.getElementById('editStatus').value = row.cells[5].textContent.trim();
+      document.getElementById('editRemark').value = row.cells[6].textContent.trim();
+      openModal('editRuleModal');
+    };
+    window.submitEditRule = function () {
+      var row = window._editRuleRow;
+      if (!row) { closeModal('editRuleModal'); return; }
+      var name = document.getElementById('editName').value.trim();
+      var behavior = document.getElementById('editBehavior').value;
+      var crowd = document.getElementById('editCrowd').value;
+      var score = document.getElementById('editScore').value;
+      var limit = document.getElementById('editLimit').value;
+      var status = document.getElementById('editStatus').value;
+      var remark = document.getElementById('editRemark').value.trim();
+      if (!name || !behavior || !crowd || score === '') { showToast('请完整填写必填信息', 'warning'); return; }
+      row.cells[0].textContent = name;
+      var bt = row.cells[1].querySelector('.tag');
+      bt.className = 'tag ' + ruleTypeTagClass(behavior);
+      bt.textContent = behavior;
+      row.setAttribute('data-behavior', behavior);
+      row.cells[2].innerHTML = '<span class="text-green fw-bold">+' + score + '</span>';
+      row.cells[3].textContent = (parseInt(limit, 10) || 0) + ' 分/日';
+      row.cells[4].textContent = crowd;
+      row.setAttribute('data-crowd', crowd);
+      var st = row.cells[5].querySelector('.tag');
+      st.className = 'tag ' + (status === '启用' ? 'tag-green' : 'tag-gray');
+      st.textContent = status;
+      row.setAttribute('data-status', status);
+      row.cells[6].textContent = remark;
+      closeModal('editRuleModal');
+      rulePager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddRule = function () {
+      var name = document.getElementById('ruleName').value.trim();
+      var behavior = document.getElementById('ruleBehavior').value;
+      var crowd = document.getElementById('ruleCrowd').value;
+      var score = document.getElementById('ruleScore').value;
+      var limit = document.getElementById('ruleLimit').value;
+      var status = document.getElementById('ruleStatus').value;
+      var remark = document.getElementById('ruleRemark').value.trim();
+      if (!name || !behavior || !crowd || score === '') { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-behavior', behavior);
+      tr.setAttribute('data-crowd', crowd);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td><span class="tag ' + ruleTypeTagClass(behavior) + '">' + behavior + '</span></td>' +
+        '<td><span class="text-green fw-bold">+' + score + '</span></td>' +
+        '<td class="nums">' + (parseInt(limit, 10) || 0) + ' 分/日</td>' +
+        '<td>' + crowd + '</td>' +
+        '<td>' + ruleStatusTag(status) + '</td>' +
+        '<td>' + escapeHtml(remark) + '</td>' +
+        '<td class="op-cell"></td>';
+      renderRuleOp(tr);
+      ruleTbody.insertBefore(tr, ruleTbody.firstChild);
+      document.getElementById('ruleName').value = '';
+      document.getElementById('ruleBehavior').value = '';
+      document.getElementById('ruleCrowd').value = '';
+      document.getElementById('ruleScore').value = '';
+      document.getElementById('ruleLimit').value = '';
+      document.getElementById('ruleStatus').value = '启用';
+      document.getElementById('ruleRemark').value = '';
+      queryRuleRows();
+      closeModal('addRuleModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 积分审核：查看 / 通过 / 驳回 / 调整 ==================== */
+    function fillAuditModal(row, modalId, nameId, ruleId, scoreId) {
+      document.getElementById(nameId).textContent = row.getAttribute('data-name') || '';
+      document.getElementById(ruleId).textContent = row.getAttribute('data-rule') || '';
+      document.getElementById(scoreId).textContent = row.getAttribute('data-score') || '';
+    }
+    window.openApproveAudit = function (btn) {
+      var row = btn.closest('tr');
+      window._auditRow = row;
+      fillAuditModal(row, 'approveAuditModal', 'approveName', 'approveRule', 'approveApplyScore');
+      document.getElementById('approveScore').value = Math.abs(parseInt(row.getAttribute('data-score'), 10) || 0);
+      document.getElementById('approveOpinion').value = '';
+      openModal('approveAuditModal');
+    };
+    window.submitApprove = function () {
+      var row = window._auditRow;
+      if (!row) { closeModal('approveAuditModal'); return; }
+      var score = document.getElementById('approveScore').value;
+      var opinion = document.getElementById('approveOpinion').value.trim();
+      if (score === '') { showToast('请填写实际分值', 'warning'); return; }
+      row.setAttribute('data-status', '已通过');
+      row.setAttribute('data-actual', '+' + score);
+      row.setAttribute('data-opinion', opinion || '审核通过');
+      row.cells[5].textContent = '+' + score;
+      row.cells[7].innerHTML = auditStatusTag('已通过');
+      renderAuditOp(row);
+      auditPager.render();
+      closeModal('approveAuditModal');
+      showToast('审核通过', 'success');
+    };
+    window.openRejectAudit = function (btn) {
+      var row = btn.closest('tr');
+      window._auditRow = row;
+      fillAuditModal(row, 'rejectAuditModal', 'rejectName', 'rejectRule', 'rejectApplyScore');
+      document.getElementById('rejectReason').value = '';
+      openModal('rejectAuditModal');
+    };
+    window.submitReject = function () {
+      var row = window._auditRow;
+      if (!row) { closeModal('rejectAuditModal'); return; }
+      var reason = document.getElementById('rejectReason').value.trim();
+      if (!reason) { showToast('请填写驳回原因', 'warning'); return; }
+      row.setAttribute('data-status', '已驳回');
+      row.setAttribute('data-opinion', reason);
+      row.cells[7].innerHTML = auditStatusTag('已驳回');
+      renderAuditOp(row);
+      auditPager.render();
+      closeModal('rejectAuditModal');
+      showToast('已驳回', 'success');
+    };
+    window.openAdjustAudit = function (btn) {
+      var row = btn.closest('tr');
+      window._auditRow = row;
+      fillAuditModal(row, 'adjustAuditModal', 'adjustName', 'adjustRule', 'adjustApplyScore');
+      document.getElementById('adjustScore').value = '';
+      document.getElementById('adjustReason').value = '';
+      openModal('adjustAuditModal');
+    };
+    window.submitAdjust = function () {
+      var row = window._auditRow;
+      if (!row) { closeModal('adjustAuditModal'); return; }
+      var score = document.getElementById('adjustScore').value;
+      var reason = document.getElementById('adjustReason').value.trim();
+      if (score === '') { showToast('请填写调整后分值', 'warning'); return; }
+      if (!reason) { showToast('请填写调整原因', 'warning'); return; }
+      row.setAttribute('data-status', '已通过');
+      row.setAttribute('data-actual', '+' + score);
+      row.setAttribute('data-opinion', reason);
+      row.cells[5].textContent = '+' + score;
+      row.cells[7].innerHTML = auditStatusTag('已通过');
+      renderAuditOp(row);
+      auditPager.render();
+      closeModal('adjustAuditModal');
+      showToast('调整成功', 'success');
+    };
+    window.openViewAudit = function (btn) {
+      var row = btn.closest('tr');
+      var d = row.dataset;
+      document.getElementById('viewAuditName').textContent = d.name || '';
+      document.getElementById('viewAuditGroup').textContent = d.group || '';
+      document.getElementById('viewAuditRule').textContent = d.rule || '';
+      document.getElementById('viewAuditType').innerHTML = auditTypeTag(d.type || '加分');
+      document.getElementById('viewAuditScore').textContent = d.score || '—';
+      document.getElementById('viewAuditActual').textContent = (d.actual && d.actual !== '—') ? d.actual : '—';
+      document.getElementById('viewAuditTime').textContent = d.time || '';
+      document.getElementById('viewAuditStatus').innerHTML = auditStatusTag(d.status || '待审核');
+      document.getElementById('viewAuditOpinion').textContent = d.opinion || '—';
+      openModal('viewAuditDetailModal');
+    };
+
+    /* ==================== 积分商品：查看 / 编辑 / 新增 / 上架下架 ==================== */
+    window.viewGoods = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewGoodsName').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewGoodsCategory').innerHTML = row.cells[2].innerHTML;
+      document.getElementById('viewGoodsStock').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewGoodsScore').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewGoodsStatus').innerHTML = row.cells[5].innerHTML;
+      document.getElementById('viewGoodsTime').textContent = row.cells[6].textContent.trim();
+      openModal('viewGoodsModal');
+    };
+    window.openEditGoods = function (btn) {
+      var row = btn.closest('tr');
+      window._editGoodsRow = row;
+      document.getElementById('editGoodsName').value = row.cells[1].textContent.trim();
+      document.getElementById('editGoodsCategory').value = row.cells[2].textContent.trim();
+      document.getElementById('editGoodsStock').value = row.cells[3].textContent.trim();
+      document.getElementById('editGoodsScore').value = row.cells[4].textContent.trim();
+      document.getElementById('editGoodsStatus').value = row.cells[5].textContent.trim();
+      document.getElementById('editGoodsDesc').value = '';
+      openModal('editGoodsModal');
+    };
+    window.submitEditGoods = function () {
+      var row = window._editGoodsRow;
+      if (!row) { closeModal('editGoodsModal'); return; }
+      var name = document.getElementById('editGoodsName').value.trim();
+      var category = document.getElementById('editGoodsCategory').value;
+      var score = document.getElementById('editGoodsScore').value;
+      var stock = document.getElementById('editGoodsStock').value;
+      var status = document.getElementById('editGoodsStatus').value;
+      if (!name || !category || score === '') { showToast('请完整填写必填信息', 'warning'); return; }
+      row.cells[1].textContent = name;
+      row.setAttribute('data-name', name);
+      var ct = row.cells[2].querySelector('.tag');
+      ct.className = 'tag ' + goodsCatTagClass(category);
+      ct.textContent = category;
+      row.setAttribute('data-category', category);
+      row.cells[3].textContent = stock || '0';
+      row.cells[4].textContent = score;
+      var st = row.cells[5].querySelector('.tag');
+      st.className = 'tag ' + (status === '上架' ? 'tag-green' : 'tag-red');
+      st.textContent = status;
+      row.setAttribute('data-status', status);
+      renderGoodsOp(row);
+      closeModal('editGoodsModal');
+      goodsPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddGoods = function () {
+      var name = document.getElementById('goodsName').value.trim();
+      var category = document.getElementById('goodsCategory').value;
+      var score = document.getElementById('goodsScore').value;
+      var stock = document.getElementById('goodsStock').value;
+      var status = document.getElementById('goodsStatus').value;
+      var desc = document.getElementById('goodsDesc').value.trim();
+      if (!name || !category || score === '') { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td><img src="' + goodsImg(name) + '" style="width:40px;height:40px;border-radius:6px;object-fit:cover" alt="商品图片"></td>' +
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td><span class="tag ' + goodsCatTagClass(category) + '">' + category + '</span></td>' +
+        '<td class="nums">' + (stock || 0) + '</td>' +
+        '<td class="nums">' + score + '</td>' +
+        '<td>' + goodsStatusTag(status) + '</td>' +
+        '<td class="nums">' + fmtToday() + ' 10:00</td>' +
+        '<td class="op-cell"></td>';
+      renderGoodsOp(tr);
+      goodsTbody.insertBefore(tr, goodsTbody.firstChild);
+      document.getElementById('goodsName').value = '';
+      document.getElementById('goodsCategory').value = '';
+      document.getElementById('goodsScore').value = '';
+      document.getElementById('goodsStock').value = '';
+      document.getElementById('goodsStatus').value = '上架';
+      document.getElementById('goodsDesc').value = '';
+      queryGoodsRows();
+      closeModal('addGoodsModal');
+      showToast('保存成功', 'success');
+    };
+    window.toggleGoodsStatus = function (btn) {
+      var row = btn.closest('tr');
+      var cur = row.getAttribute('data-status');
+      var next = cur === '上架' ? '下架' : '上架';
+      showConfirm({
+        title: next + '确认',
+        message: '确定' + next + '该商品吗？',
+        confirmText: '确认' + next,
+        onConfirm: function () {
+          row.setAttribute('data-status', next);
+          row.cells[5].innerHTML = goodsStatusTag(next);
+          renderGoodsOp(row);
+          showToast(next + '成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 兑换单：查看 / 审核 ==================== */
+    window.viewOrder = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewOrderNo').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewOrderExchanger').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewOrderPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewOrderGoods').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewOrderScore').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewOrderQty').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewOrderTime').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewOrderStatus').innerHTML = row.cells[7].innerHTML;
+      document.getElementById('viewOrderAuditor').textContent = row.cells[8].textContent.trim();
+      openModal('viewOrderModal');
+    };
+    window.openAuditOrder = function (btn) {
+      var row = btn.closest('tr');
+      window._auditOrderRow = row;
+      document.getElementById('auditOrderNo').textContent = row.cells[0].textContent.trim();
+      document.getElementById('auditOrderExchanger').textContent = row.cells[1].textContent.trim();
+      document.getElementById('auditOrderGoods').textContent = row.cells[3].textContent.trim();
+      document.getElementById('auditResult').value = '';
+      document.getElementById('auditRemark').value = '';
+      openModal('auditOrderModal');
+    };
+    window.submitAuditOrder = function () {
+      var row = window._auditOrderRow;
+      if (!row) { closeModal('auditOrderModal'); return; }
+      var result = document.getElementById('auditResult').value;
+      if (!result) { showToast('请选择审核结果', 'warning'); return; }
+      var status = result.indexOf('通过') === 0 ? '已发放' : '已取消';
+      row.setAttribute('data-status', status);
+      row.cells[7].innerHTML = orderStatusTag(status);
+      row.cells[8].textContent = status === '已发放' ? '周小敏' : '—';
+      renderOrderOp(row);
+      orderPager.render();
+      closeModal('auditOrderModal');
+      showToast('审核完成', 'success');
+    };
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '积分管理') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '积分管理记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，验证分页） ==================== */
+    function fmtDate(offset) {
+      var d = new Date(2026, 7, 11 - offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function fmtDateTime(offset) {
+      var d = new Date(2026, 7, 11 - offset, 8 + (offset % 9), (offset * 13) % 60);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') +
+        ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function buildRuleRow(tbody, name, behavior, score, limit, crowd, status, remark) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-behavior', behavior);
+      tr.setAttribute('data-crowd', crowd);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td><span class="tag ' + ruleTypeTagClass(behavior) + '">' + behavior + '</span></td>' +
+        '<td><span class="text-green fw-bold">+' + score + '</span></td>' +
+        '<td class="nums">' + limit + ' 分/日</td>' +
+        '<td>' + crowd + '</td>' +
+        '<td>' + ruleStatusTag(status) + '</td>' +
+        '<td>' + escapeHtml(remark) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderRuleOp(tr);
+    }
+    function buildAuditRow(tbody, name, group, rule, type, score, actual, time, status, opinion) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-group', group);
+      tr.setAttribute('data-rule', rule);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-score', score);
+      tr.setAttribute('data-actual', actual);
+      tr.setAttribute('data-time', time);
+      tr.setAttribute('data-status', status);
+      tr.setAttribute('data-opinion', opinion);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + group + '</td>' +
+        '<td>' + escapeHtml(rule) + '</td>' +
+        '<td>' + auditTypeTag(type) + '</td>' +
+        '<td class="nums">' + score + '</td>' +
+        '<td class="nums">' + actual + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + auditStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderAuditOp(tr);
+    }
+    // 按商品名分配实景商品图（本地位于 html/images/ 下）
+    function goodsImg(name) {
+      var n = String(name || '');
+      if (/蜜桔|农产|水果/.test(n)) return '../../../images/village-card-1.jpg';
+      if (/日用|洗/.test(n)) return '../../../images/village-card-2.jpg';
+      if (/食品|零食|饮料/.test(n)) return '../../../images/village-card-3.jpg';
+      return '../../../images/village-card-4.jpg';
+    }
+    function buildGoodsRow(tbody, name, category, stock, score, status, time) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td><img src="' + goodsImg(name) + '" style="width:40px;height:40px;border-radius:6px;object-fit:cover" alt="商品图片"></td>' +
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td><span class="tag ' + goodsCatTagClass(category) + '">' + category + '</span></td>' +
+        '<td class="nums">' + stock + '</td>' +
+        '<td class="nums">' + score + '</td>' +
+        '<td>' + goodsStatusTag(status) + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderGoodsOp(tr);
+    }
+    function buildOrderRow(tbody, no, exchanger, phone, goods, score, qty, time, status, auditor) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-no', no);
+      tr.setAttribute('data-name', exchanger);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + no + '</td>' +
+        '<td>' + escapeHtml(exchanger) + '</td>' +
+        '<td>' + phone + '</td>' +
+        '<td>' + escapeHtml(goods) + '</td>' +
+        '<td class="nums">' + score + '</td>' +
+        '<td class="nums">' + qty + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + orderStatusTag(status) + '</td>' +
+        '<td>' + (auditor || '—') + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderOrderOp(tr);
+    }
+
+    // 积分规则：6 条基础 + 19 条
+    var ruleBase = [
+      ['参与村务活动', '参与活动', 10, 50, '全体村民', '启用', '参加村民代表大会、议事协商等村务活动'],
+      ['办理便民事项', '便民服务', 5, 20, '全体村民', '启用', '通过平台线上办理便民服务事项'],
+      ['随手拍上报', '随手拍', 3, 30, '全体村民', '启用', '上报环境卫生、安全隐患等问题线索'],
+      ['村务监督建言', '村务监督', 8, 10, '党员', '启用', '提出有效村务监督建议并采纳'],
+      ['参加志愿服务', '志愿活动', 15, 100, '网格员', '启用', '参与志愿巡查、帮扶等志愿服务活动'],
+      ['其他贡献奖励', '其他', 5, 20, '全体村民', '停用', '临时性贡献奖励，暂未启用']
+    ];
+    var ruleTitles = ['党员积分学习打卡', '垃圾分类正确投放', '参与矛盾调解', '参加文体活动', '汛期巡查值守', '义务植树活动', '助老志愿服务', '政策宣讲积分', '移风易俗践行', '人居环境整治参与', '邻里互助帮扶', '防灾减灾宣传', '夜间治安巡逻', '村规民约宣传', '红白理事会服务', '水源保护巡查', '关爱留守儿童', '禁毒反诈宣传', '森林防火值守', '临时专项贡献'];
+    // 行为类型与规则名称一一对应：垃圾分类→参与活动、矛盾调解→村务监督、文体活动→参与活动、志愿服务类→志愿活动等
+    var ruleBehaviors = ['参与活动', '参与活动', '村务监督', '参与活动', '志愿活动', '志愿活动', '志愿活动', '参与活动', '其他', '参与活动', '志愿活动', '参与活动', '志愿活动', '参与活动', '便民服务', '随手拍', '志愿活动', '参与活动', '志愿活动'];
+    var ruleCrowds = ['全体村民', '党员', '网格员'];
+    var ruleScores = [10, 5, 3, 8, 15, 20];
+    var ruleLimits = [50, 20, 30, 10, 100];
+    var ruleRemarks = ['按参与次数累计积分', '表现优秀者可额外奖励', '需上传凭证后由网格员核实', '由村两委会议审议确认', '活动结束后统一登记加分', '每月末汇总审核一次'];
+    ruleBase.forEach(function (r) { buildRuleRow(ruleTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6]); });
+    for (var ri = 0; ri < 19; ri++) {
+      buildRuleRow(ruleTbody, ruleTitles[ri % ruleTitles.length], ruleBehaviors[ri], ruleScores[ri % ruleScores.length], ruleLimits[ri % ruleLimits.length], ruleCrowds[ri % ruleCrowds.length], (ri % 8 === 7 ? '停用' : '启用'), ruleRemarks[ri % ruleRemarks.length]);
+    }
+
+    // 积分审核：6 条基础 + 19 条
+    var auditBase = [
+      ['李大华', '第一组', '参与志愿服务', '加分', '+10', '—', '2026-06-30 09:15', '待审核', ''],
+      ['王小明', '第二组', '门前卫生达标', '加分', '+5', '—', '2026-06-30 08:30', '待审核', ''],
+      ['张美丽', '第三组', '乱扔垃圾', '减分', '-10', '—', '2026-06-29 16:42', '待审核', ''],
+      ['赵国强', '第一组', '参加文体活动', '加分', '+3', '—', '2026-06-29 14:20', '待审核', ''],
+      ['刘建国', '第四组', '邻里纠纷调解成功', '加分', '+8', '—', '2026-06-28 10:55', '待审核', ''],
+      ['陈秀英', '第二组', '参与志愿服务', '加分', '+10', '+10', '2026-06-27 09:10', '已通过', '材料齐全，审核通过。']
+    ];
+    var auditNames = ['钱有财', '黄国庆', '周淑芬', '张明远', '林秀兰', '何志强', '曹丽华', '沈建平', '韩雪梅', '杨树林', '郑秀兰', '冯建国', '董雪梅', '梁志明', '谢春华', '唐丽萍', '许文娟', '高志强', '罗桂兰'];
+    var auditRules = ['垃圾分类正确投放', '参加村民大会', '参与志愿服务', '门前卫生达标', '参加文体活动', '邻里纠纷调解成功', '义务劳动参与', '环境整治行动', '政策宣讲学习', '防汛值守'];
+    // 减分行为使用专门的扣分规则，加分行为保持正向规则，保证「参与志愿服务」等只出现在加分行
+    var deductRules = ['乱扔垃圾', '破坏公共设施', '乱堆乱放', '不文明行为'];
+    var auditGroups = ['第一组', '第二组', '第三组', '第四组'];
+    var auditStatusList = ['待审核', '已通过', '已驳回'];
+    auditBase.forEach(function (r) { buildAuditRow(auditTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var ai = 0; ai < 19; ai++) {
+      var atype = ai % 3 === 2 ? '减分' : '加分';
+      var arule = atype === '减分' ? deductRules[Math.floor(ai / 3) % deductRules.length] : auditRules[ai % auditRules.length];
+      var ascore = atype === '加分' ? (3 + ((ai * 7) % 13)) : -(3 + ((ai * 5) % 8));
+      var astatus = auditStatusList[ai % 3];
+      var aactual = astatus === '已通过' ? (ascore > 0 ? '+' + ascore : '' + ascore) : '—';
+      var aopinion = astatus === '已通过' ? '材料齐全，审核通过。' : astatus === '已驳回' ? '材料不完整，请补充后重新提交。' : '';
+      buildAuditRow(auditTbody, auditNames[ai % auditNames.length], auditGroups[ai % 4], arule, atype, (ascore > 0 ? '+' + ascore : '' + ascore), aactual, fmtDateTime(ai + 8), astatus, aopinion);
+    }
+
+    // 积分商品：6 条基础 + 19 条
+    var goodsBase = [
+      ['蓝月亮洗衣液 2kg', '日用品', 80, 300, '上架', '2026-07-05 10:20'],
+      ['金龙鱼大米 10kg', '食品', 50, 800, '上架', '2026-07-08 14:30'],
+      ['美的电热水壶 1.8L', '家电', 30, 1200, '上架', '2026-07-12 09:15'],
+      ['得力文具套装', '学习用品', 100, 200, '上架', '2026-07-15 16:40'],
+      ['益农蜜桔礼盒 5kg', '食品', 40, 500, '下架', '2026-07-20 11:00'],
+      ['多功能置物架', '其他', 25, 350, '上架', '2026-08-01 15:25']
+    ];
+    var goodsTitles = ['洗洁精 1kg', '东北大米 5kg', '不锈钢保温杯', '儿童文具礼盒', '抽纸 24包', '家用小风扇', '折叠雨伞', '保温饭盒', '小麦面粉 5kg', '卷纸 12卷', '玻璃水杯', '拖把套装', '洗发水 750ml', '洗手液 500ml', '垃圾袋 100只', '毛巾三件套', '冰丝凉席', '电蚊香液套装', '收纳箱 55L'];
+    var goodsCats = ['日用品', '食品', '家电', '学习用品', '其他'];
+    goodsBase.forEach(function (r) { buildGoodsRow(goodsTbody, r[0], r[1], r[2], r[3], r[4], r[5]); });
+    for (var gi = 0; gi < 19; gi++) {
+      buildGoodsRow(goodsTbody, goodsTitles[gi % goodsTitles.length], goodsCats[gi % goodsCats.length], 20 + ((gi * 13) % 90), 150 + ((gi * 95) % 800), (gi % 7 === 6 ? '下架' : '上架'), fmtDateTime(gi + 20));
+    }
+
+    // 兑换单：6 条基础 + 19 条
+    var orderBase = [
+      ['EX-202608-1001', '李建国', '138****5678', '蓝月亮洗衣液 2kg', 300, 1, '2026-08-05 09:30', '待审核', '—'],
+      ['EX-202608-1002', '王桂花', '138****2233', '金龙鱼大米 10kg', 800, 1, '2026-08-05 14:20', '已发放', '周小敏'],
+      ['EX-202608-1003', '赵铁柱', '138****4455', '美的电热水壶', 1200, 1, '2026-08-04 10:15', '待审核', '—'],
+      ['EX-202608-1004', '孙富贵', '138****6677', '得力文具套装', 200, 2, '2026-08-04 16:40', '已发放', '周小敏'],
+      ['EX-202608-1005', '吴德发', '138****8899', '益农蜜桔礼盒', 500, 1, '2026-08-03 11:00', '已取消', '—'],
+      ['EX-202608-1006', '李大壮', '138****1010', '多功能置物架', 350, 1, '2026-08-03 15:25', '已发放', '周小敏']
+    ];
+    var orderExchangers = ['钱有财', '黄国庆', '周淑芬', '张明远', '林秀兰', '何志强', '曹丽华', '沈建平', '韩雪梅', '杨树林'];
+    var orderGoods = ['洗洁精 1kg', '东北大米 5kg', '不锈钢保温杯', '儿童文具礼盒', '抽纸 24包', '家用小风扇', '折叠雨伞', '保温饭盒', '小麦面粉 5kg', '卷纸 12卷'];
+    var orderStatusList = ['待审核', '已发放', '已取消'];
+    orderBase.forEach(function (r) { buildOrderRow(orderTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var oi = 0; oi < 19; oi++) {
+      var oscore = 150 + ((oi * 95) % 800);
+      var ostatus = orderStatusList[oi % 3];
+      buildOrderRow(orderTbody, 'EX-202608-' + (1007 + oi), orderExchangers[oi % orderExchangers.length], '138****' + (1000 + ((oi * 137) % 9000)), orderGoods[oi % orderGoods.length], oscore, 1 + (oi % 3), fmtDateTime(oi + 38), ostatus, ostatus === '已发放' ? (oi % 2 === 0 ? '周小敏' : '刘建国') : '—');
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    rulePager.render();
+    auditPager.render();
+    goodsPager.render();
+    orderPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#pointsTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchPointsTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

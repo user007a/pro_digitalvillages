@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备监控</title>
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="../css/cadre.css">
+  <style>
+    /* ===== 设备监控页美化 ===== */
+    /* 状态条：顶部彩色标识 */
+    .mdv-status-item { border-top: 3px solid transparent; }
+    .mdv-status-item:nth-child(1) { border-top-color: #10B981; }
+    .mdv-status-item:nth-child(2) { border-top-color: #9CA3AF; }
+    .mdv-status-item:nth-child(3) { border-top-color: #EF4444; }
+    .mdv-status-item:nth-child(4) { border-top-color: #D97706; }
+    /* 过滤Tab行：卡片化，两行明确分离 */
+    .page-content-no-tab .tab-row {
+      margin: 0 16px 12px;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      box-shadow: var(--shadow-sm);
+      background: #fff;
+    }
+    .filter-scroll-wrap { position: relative; margin: 12px 16px 12px; }
+    .filter-scroll-wrap .tab-row { margin: 0; }
+    .filter-scroll-wrap::after {
+      content: '';
+      position: absolute; top: 2px; right: 2px; bottom: 2px; width: 30px;
+      background: linear-gradient(to left, #FFFFFF, rgba(255,255,255,0));
+      pointer-events: none; border-radius: 0 12px 12px 0;
+    }
+    .filter-scroll-wrap::before {
+      content: '';
+      position: absolute; top: 2px; left: 2px; bottom: 2px; width: 14px;
+      background: linear-gradient(to right, #FFFFFF, rgba(255,255,255,0));
+      pointer-events: none; border-radius: 12px 0 0 12px;
+    }
+  </style>
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="../index.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">设备监控</h1>
+      <span class="nav-right"></span>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 顶部状态条 -->
+    <div class="mdv-status" role="status" aria-label="设备监控状态">
+      <div class="mdv-status-item">
+        <div class="mdv-status-num">9</div>
+        <div class="mdv-status-label">在线</div>
+      </div>
+      <div class="mdv-status-item">
+        <div class="mdv-status-num" style="color:#6B7280;">2</div>
+        <div class="mdv-status-label">离线</div>
+      </div>
+      <div class="mdv-status-item">
+        <div class="mdv-status-num" style="color:#EF4444;">1</div>
+        <div class="mdv-status-label">故障</div>
+      </div>
+      <div class="mdv-status-item warn-item">
+        <div class="mdv-status-num warn">5</div>
+        <div class="mdv-status-label">今日预警</div>
+      </div>
+    </div>
+
+    <!-- 设备类型过滤 -->
+    <div class="filter-scroll-wrap" role="tablist" aria-label="设备类型过滤">
+      <div class="tab-row mdv-tab-scroll mdv-tabs-row" id="mdvTypeTabs">
+        <div class="tab-btn active" role="tab" aria-selected="true" data-filter="all" onclick="selectTab(this)">全部</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="behavior" onclick="selectTab(this)">人员行为</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="gather" onclick="selectTab(this)">人员聚集</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="fire" onclick="selectTab(this)">山林火情</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="light" onclick="selectTab(this)">智能路灯</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="river" onclick="selectTab(this)">河道监控</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="trash" onclick="selectTab(this)">垃圾治污</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="watch" onclick="selectTab(this)">老人手环</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="weather" onclick="selectTab(this)">气象监控</div>
+        <div class="tab-btn" role="tab" aria-selected="false" data-filter="speaker" onclick="selectTab(this)">大喇叭</div>
+      </div>
+    </div>
+
+    <!-- 设备状态过滤 -->
+    <div class="tab-row mdv-tabs-row" role="tablist" aria-label="设备状态过滤" id="mdvStatusTabs">
+      <div class="tab-btn active" role="tab" aria-selected="true" data-filter="all" onclick="selectTab(this)">全部</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="online" onclick="selectTab(this)">在线</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="offline" onclick="selectTab(this)">离线</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="fault" onclick="selectTab(this)">故障</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="alert" onclick="selectTab(this)">有预警</div>
+    </div>
+
+    <!-- 设备卡片列表 -->
+    <div class="mdv-device-list" id="mdvDeviceList">
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-001&name=村口广场行为监控&type=人员行为监控&pos=村口广场&grid=第一网格&ip=192.168.1.101" data-type="behavior" data-status="在线" data-warn="2">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:user-follow-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">村口广场行为监控</div>
+          <div class="mdv-device-sub">
+            <span>村口广场</span>
+            <span>·</span>
+            <span>第一网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+          <span class="tag tag-orange">预警2</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-002&name=集市口聚集检测&type=人员聚集&pos=集市口&grid=第一网格&ip=192.168.1.102" data-type="gather" data-status="在线" data-warn="1">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:group-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">集市口聚集检测</div>
+          <div class="mdv-device-sub">
+            <span>集市口</span>
+            <span>·</span>
+            <span>第一网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+          <span class="tag tag-red">告警1</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-003&name=后山林区火情监控&type=山林火灾监控&pos=后山林区&grid=第二网格&ip=192.168.1.103" data-type="fire" data-status="在线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:fire-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">后山林区火情监控</div>
+          <div class="mdv-device-sub">
+            <span>后山林区</span>
+            <span>·</span>
+            <span>第二网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-004&name=主路智能路灯01&type=智能路灯&pos=主路东段&grid=第三网格&ip=192.168.1.104" data-type="light" data-status="在线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:lightbulb-flash-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">主路智能路灯01</div>
+          <div class="mdv-device-sub">
+            <span>主路东段</span>
+            <span>·</span>
+            <span>第三网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-005&name=幸福河道监控&type=河道监控&pos=幸福河大桥&grid=第二网格&ip=192.168.1.105" data-type="river" data-status="离线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:water-flash-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">幸福河道监控</div>
+          <div class="mdv-device-sub">
+            <span>幸福河大桥</span>
+            <span>·</span>
+            <span>第二网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-gray">离线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-006&name=垃圾转运站治污监控&type=垃圾治污监控&pos=垃圾转运站&grid=第一网格&ip=192.168.1.106" data-type="trash" data-status="在线" data-warn="1">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:recycle-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">垃圾转运站治污监控</div>
+          <div class="mdv-device-sub">
+            <span>垃圾转运站</span>
+            <span>·</span>
+            <span>第一网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+          <span class="tag tag-orange">预警1</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-007&name=张大爷老人手环&type=老人手环&pos=三组12号&grid=第三网格&ip=192.168.1.107" data-type="watch" data-status="在线" data-warn="1">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:smartphone-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">张大爷老人手环</div>
+          <div class="mdv-device-sub">
+            <span>三组12号</span>
+            <span>·</span>
+            <span>第三网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+          <span class="tag tag-red">告警1</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-008&name=村气象观测站&type=气象监控&pos=村东高坡&grid=第二网格&ip=192.168.1.108" data-type="weather" data-status="在线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:cloudy-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">村气象观测站</div>
+          <div class="mdv-device-sub">
+            <span>村东高坡</span>
+            <span>·</span>
+            <span>第二网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-009&name=村委会大喇叭&type=大喇叭&pos=村委会&grid=第一网格&ip=192.168.1.109" data-type="speaker" data-status="在线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:volume-up-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">村委会大喇叭</div>
+          <div class="mdv-device-sub">
+            <span>村委会</span>
+            <span>·</span>
+            <span>第一网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-010&name=养老院聚集检测&type=人员聚集&pos=养老院&grid=第三网格&ip=192.168.1.110" data-type="gather" data-status="故障" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:group-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">养老院聚集检测</div>
+          <div class="mdv-device-sub">
+            <span>养老院</span>
+            <span>·</span>
+            <span>第三网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-red">故障</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-011&name=河尾河道监控&type=河道监控&pos=河尾&grid=第三网格&ip=192.168.1.111" data-type="river" data-status="在线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:water-flash-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">河尾河道监控</div>
+          <div class="mdv-device-sub">
+            <span>河尾</span>
+            <span>·</span>
+            <span>第三网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-green">在线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+
+      <a class="mdv-device-card" href="device-detail.html?id=DEV-012&name=南街智能路灯05&type=智能路灯&pos=南街&grid=第二网格&ip=192.168.1.112" data-type="light" data-status="离线" data-warn="0">
+        <div class="mdv-device-icon" aria-hidden="true">
+          <iconify-icon icon="ri:lightbulb-flash-line"></iconify-icon>
+        </div>
+        <div class="mdv-device-info">
+          <div class="mdv-device-name">南街智能路灯05</div>
+          <div class="mdv-device-sub">
+            <span>南街</span>
+            <span>·</span>
+            <span>第二网格</span>
+          </div>
+        </div>
+        <div class="mdv-device-right">
+          <span class="tag tag-gray">离线</span>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" class="mdv-device-arrow" aria-hidden="true"></iconify-icon>
+      </a>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+<script>
+/* ============ 类型 Tab 与状态 Tab 组合过滤 ============ */
+function selectTab(btn) {
+  var row = btn.parentNode;
+  var btns = row.querySelectorAll('.tab-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.remove('active');
+    btns[i].setAttribute('aria-selected', 'false');
+  }
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  filterDevices();
+}
+
+function getActiveFilter(tabId) {
+  var tabs = document.getElementById(tabId).querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].classList.contains('active')) {
+      return tabs[i].getAttribute('data-filter');
+    }
+  }
+  return 'all';
+}
+
+function filterDevices() {
+  var typeFilter = getActiveFilter('mdvTypeTabs');
+  var statusFilter = getActiveFilter('mdvStatusTabs');
+  var cards = document.querySelectorAll('.mdv-device-card');
+  for (var i = 0; i < cards.length; i++) {
+    var card = cards[i];
+    var okType = typeFilter === 'all' || card.getAttribute('data-type') === typeFilter;
+    var st = card.getAttribute('data-status');
+    var warn = card.getAttribute('data-warn');
+    var okStatus = false;
+    if (statusFilter === 'all') {
+      okStatus = true;
+    } else if (statusFilter === 'online') {
+      okStatus = (st === '在线');
+    } else if (statusFilter === 'offline') {
+      okStatus = (st === '离线');
+    } else if (statusFilter === 'fault') {
+      okStatus = (st === '故障');
+    } else if (statusFilter === 'alert') {
+      okStatus = (warn !== '0');
+    }
+    card.style.display = (okType && okStatus) ? '' : 'none';
+  }
+}
+</script>
+</body>
+</html>

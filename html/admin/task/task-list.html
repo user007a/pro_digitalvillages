@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务管理</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ===== 统计卡片：对齐「病虫害模型·防控方案」页面风格（每行 4 个） ===== */
+    .stat-cards.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-cards.cols-4 .stat-card {
+      position: relative;
+      display: block;
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-left: none;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 20px 76px 20px 20px;
+      min-height: 112px;
+      transition: box-shadow 0.2s ease;
+    }
+    .stat-cards.cols-4 .stat-card:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+      transform: none;
+    }
+    .stat-cards.cols-4 .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .stat-cards.cols-4 .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; line-height: 1.2; }
+    .stat-cards.cols-4 .stat-value .text-sm { font-size: 13px; font-weight: 400; color: #9ca3af; margin-left: 2px; }
+    .stat-cards.cols-4 .stat-desc { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+    .stat-cards.cols-4 .stat-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .stat-cards.cols-4 .stat-card.card-red .stat-icon { background: #fef2f2; color: #dc2626; }
+    .stat-cards.cols-4 .stat-card.card-yellow .stat-icon { background: #fffbeb; color: #d97706; }
+    .stat-cards.cols-4 .stat-card.card-green .stat-icon { background: #f0fdf4; color: #16a34a; }
+    .stat-cards.cols-4 .stat-card.card-blue .stat-icon { background: #f0fdfa; color: #0f766e; }
+    @media (max-width: 992px) { .stat-cards.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .stat-cards.cols-4 { grid-template-columns: 1fr; } }
+  </style></head>
+<body data-page-title="任务管理" data-page-subtitle="乡村振兴数字平台 · 后台管理">
+<div class="admin-page">
+  <!-- 页面标题 -->
+  <div class="page-header">
+    <h2>任务管理</h2>
+    <span class="text-muted">村干部工作任务分配与执行</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-blue">
+      <div class="stat-label">任务总数</div>
+      <div class="stat-value">18 <span class="text-sm">项</span></div>
+      <div class="stat-desc">本月任务总量</div>
+      <div class="stat-icon"><iconify-icon icon="ri:task-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-red">
+      <div class="stat-label">待分配</div>
+      <div class="stat-value">3 <span class="text-sm">项</span></div>
+      <div class="stat-desc">需要尽快分配</div>
+      <div class="stat-icon"><iconify-icon icon="ri:inbox-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">进行中</div>
+      <div class="stat-value">8 <span class="text-sm">项</span></div>
+      <div class="stat-desc">正在执行中</div>
+      <div class="stat-icon"><iconify-icon icon="ri:refresh-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">已完成</div>
+      <div class="stat-value">7 <span class="text-sm">项</span></div>
+      <div class="stat-desc">完成率 38.9%</div>
+      <div class="stat-icon"><iconify-icon icon="ri:check-line"></iconify-icon></div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openModal('addTaskModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增任务</button>
+  </div>
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>任务类型</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>事件处置</option>
+        <option>巡查任务</option>
+        <option>通知发布</option>
+        <option>积分审核</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>优先级</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>紧急</option>
+        <option>高</option>
+        <option>中</option>
+        <option>低</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>待分配</option>
+        <option>进行中</option>
+        <option>已完成</option>
+        <option>已关闭</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>关键字</label>
+      <input type="text" class="form-input" placeholder="任务编号/标题…">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>任务编号</th>
+          <th>标题</th>
+          <th>类型</th>
+          <th>优先级</th>
+          <th>执行人</th>
+          <th>截止时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>TSK-202607-0001</td>
+          <td>村口垃圾清理跟进</td>
+          <td><span class="tag tag-orange">事件处置</span></td>
+          <td><span class="tag tag-red">紧急</span></td>
+          <td>王建国</td>
+          <td>2026-07-05</td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0002</td>
+          <td>河道防汛专项巡查</td>
+          <td><span class="tag tag-blue">巡查任务</span></td>
+          <td><span class="tag tag-orange">高</span></td>
+          <td>李秀兰</td>
+          <td>2026-07-12</td>
+          <td><span class="tag tag-blue">进行中</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-edit" onclick="confirmTaskDone(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>完成</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0003</td>
+          <td>防汛预警通知发布</td>
+          <td><span class="tag tag-cyan">通知发布</span></td>
+          <td><span class="tag tag-red">紧急</span></td>
+          <td>张明远</td>
+          <td>2026-07-08</td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0004</td>
+          <td>积分申报材料复核</td>
+          <td><span class="tag tag-purple">积分审核</span></td>
+          <td><span class="tag tag-yellow">中</span></td>
+          <td>王建国</td>
+          <td>2026-07-20</td>
+          <td><span class="tag tag-blue">进行中</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-edit" onclick="confirmTaskDone(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>完成</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0005</td>
+          <td>邻里纠纷调解</td>
+          <td><span class="tag tag-orange">事件处置</span></td>
+          <td><span class="tag tag-orange">高</span></td>
+          <td>—</td>
+          <td>2026-07-15</td>
+          <td><span class="tag tag-gray">待分配</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openAssignModal(this)"><iconify-icon icon="ri:share-forward-line"></iconify-icon>分配</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0006</td>
+          <td>路灯维修验收</td>
+          <td><span class="tag tag-orange">事件处置</span></td>
+          <td><span class="tag tag-yellow">中</span></td>
+          <td>张明远</td>
+          <td>2026-07-25</td>
+          <td><span class="tag tag-blue">进行中</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-edit" onclick="confirmTaskDone(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>完成</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0007</td>
+          <td>夏季健康知识宣传</td>
+          <td><span class="tag tag-cyan">通知发布</span></td>
+          <td><span class="tag tag-gray">低</span></td>
+          <td>—</td>
+          <td>2026-07-30</td>
+          <td><span class="tag tag-gray">待分配</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openAssignModal(this)"><iconify-icon icon="ri:share-forward-line"></iconify-icon>分配</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>TSK-202607-0008</td>
+          <td>美丽乡村迎检台账整理</td>
+          <td><span class="tag tag-gray">其他</span></td>
+          <td><span class="tag tag-yellow">中</span></td>
+          <td>李秀兰</td>
+          <td>2026-07-28</td>
+          <td><span class="tag tag-gray">已关闭</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="showToast('已查看任务详情','info')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 18 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn">2</button>
+        <button type="button" class="page-btn">3</button>
+        <button type="button" class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增任务弹窗 -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新增任务</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addTaskModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">任务标题 <span class="text-danger">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入任务标题…">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">任务类型</label>
+          <select class="form-select">
+            <option value="">请选择类型</option>
+            <option>事件处置</option>
+            <option>巡查任务</option>
+            <option>通知发布</option>
+            <option>积分审核</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">优先级</label>
+          <select class="form-select">
+            <option>紧急</option>
+            <option>高</option>
+            <option>中</option>
+            <option>低</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">执行人</label>
+          <select class="form-select">
+            <option value="">请选择执行人</option>
+            <option>王建国</option>
+            <option>李秀兰</option>
+            <option>张明远</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">截止时间</label>
+          <input type="date" class="form-input">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addTaskModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addTaskModal');showToast('任务已创建','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分配任务弹窗 -->
+<script>
+function openAssignModal(btn) {
+  window._assignRow = btn.closest('tr');
+  var sel = document.querySelector('#assignModal .form-select');
+  if (sel) sel.value = '';
+  openModal('assignModal');
+}
+function setTaskRow(row, status, tagCls, executor) {
+  var tds = row.querySelectorAll('td');
+  if (executor !== undefined && tds[4]) tds[4].textContent = executor;
+  if (tds[6]) tds[6].innerHTML = '<span class="tag tag-' + tagCls + '">' + status + '</span>';
+}
+function confirmTaskAssign() {
+  var sel = document.querySelector('#assignModal .form-select');
+  var executor = sel ? sel.value : '';
+  if (!executor) { showToast('请选择执行人', 'warning'); return; }
+  var row = window._assignRow;
+  if (row) {
+    setTaskRow(row, '进行中', 'blue', executor);
+    var opCell = row.querySelectorAll('td')[7];
+    if (opCell) {
+      var btn = opCell.querySelector('.btn-op-warning');
+      if (btn) {
+        var div = btn.nextElementSibling;
+        var doneBtn = document.createElement('button');
+        doneBtn.className = 'btn-op btn-op-edit';
+        doneBtn.setAttribute('onclick', 'confirmTaskDone(this)');
+        doneBtn.innerHTML = '<iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>完成';
+        opCell.replaceChild(doneBtn, btn);
+        if (div && div.classList.contains('op-divider')) div.remove();
+      }
+    }
+    window._assignRow = null;
+  }
+  closeModal('assignModal');
+  showToast('分配成功', 'success');
+}
+function confirmTaskDone(btn) {
+  var row = btn.closest('tr');
+  showConfirm({
+    title: '完成任务',
+    message: '确定标记该任务为已完成吗？',
+    onConfirm: function () {
+      setTaskRow(row, '已完成', 'green');
+      var opCell = row.querySelectorAll('td')[7];
+      if (opCell) {
+        var doneBtn = opCell.querySelector('.btn-op-edit');
+        var div = doneBtn ? doneBtn.nextElementSibling : null;
+        if (doneBtn) { if (div && div.classList.contains('op-divider')) div.remove(); doneBtn.remove(); }
+      }
+      showToast('任务已完成', 'success');
+    }
+  });
+}
+</script>
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>分配任务</h3>
+      <button type="button" class="modal-close" onclick="closeModal('assignModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">执行人 <span class="text-danger">*</span></label>
+        <select class="form-select">
+          <option value="">请选择执行人</option>
+          <option>王建国</option>
+          <option>李秀兰</option>
+          <option>张明远</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">处理要求</label>
+        <textarea class="form-textarea" rows="3" placeholder="请输入处理要求…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('assignModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmTaskAssign()">确认分配</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/admin.js"></script>
+<script>
+  /* ---- 筛选/查询/重置后同步 pg-pager 分页信息（不修改公共脚本） ---- */
+  function syncTaskPager() {
+    var pager = document.querySelector('.pagination.pg-pager');
+    if (!pager) return;
+    var table = pager.parentNode.querySelector('table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].style.display === 'none') rows[i].classList.add('pg-filtered');
+      else rows[i].classList.remove('pg-filtered');
+    }
+    if (typeof pager._pgRender === 'function') pager._pgRender();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var bars = document.querySelectorAll('.filter-bar, .search-filter');
+    for (var i = 0; i < bars.length; i++) {
+      var actions = bars[i].querySelector('.filter-actions');
+      if (!actions) continue;
+      var searchBtn = actions.querySelector('.btn-primary');
+      var resetBtn = actions.querySelector('.btn:not(.btn-primary):not(.btn-success)');
+      if (searchBtn) searchBtn.addEventListener('click', syncTaskPager);
+      if (resetBtn) resetBtn.addEventListener('click', syncTaskPager);
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>乡村旅游 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>乡村旅游</h2>
+      <span class="text-muted">乡村旅游资源与项目展示管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：旅游村开通 → 旅游资源 → 景点管理 -->
+  <div class="tab-bar dv-tabbar" id="tourismTabs">
+    <div class="tab-item active" onclick="switchTourismTab(this)" data-tab="open">旅游村开通</div>
+    <div class="tab-item" onclick="switchTourismTab(this)" data-tab="resource">旅游资源</div>
+    <div class="tab-item" onclick="switchTourismTab(this)" data-tab="scenic">景点管理</div>
+  </div>
+
+  <!-- ==================== Tab 面板：旅游村开通 ==================== -->
+  <div class="tab-panel" id="tab-open">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fOpenName">村名称</label>
+        <input type="text" id="fOpenName" class="form-input" placeholder="请输入村名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fOpenStatus">开通状态</label>
+        <select id="fOpenStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待开通</option>
+          <option>已开通</option>
+          <option>已拒绝</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryOpenRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetOpenFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:store-3-line"></iconify-icon>旅游村开通列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addOpenModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增申请</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('旅游村开通')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>村名称</th>
+              <th>申请时间</th>
+              <th>开通状态</th>
+              <th>开通时间</th>
+              <th>联系人</th>
+              <th>联系电话</th>
+              <th>旅游资源数</th>
+              <th>景点数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="openTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="openRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：旅游资源 ==================== -->
+  <div class="tab-panel" id="tab-resource" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fResourceName">资源名称</label>
+        <input type="text" id="fResourceName" class="form-input" placeholder="请输入资源名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fResourceType">资源类型</label>
+        <select id="fResourceType" class="form-select">
+          <option value="">全部</option>
+          <option>自然景观</option>
+          <option>人文景观</option>
+          <option>特色农业</option>
+          <option>民俗文化</option>
+          <option>餐饮住宿</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fResourceStatus">状态</label>
+        <select id="fResourceStatus" class="form-select">
+          <option value="">全部</option>
+          <option>已上线</option>
+          <option>已下线</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryResRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetResFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:leaf-line"></iconify-icon>旅游资源列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addResModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增资源</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('旅游资源')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>资源名称</th>
+              <th>资源类型</th>
+              <th>位置</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>状态</th>
+              <th>添加时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="resTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="resRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：景点管理 ==================== -->
+  <div class="tab-panel" id="tab-scenic" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fScenicName">景点名称</label>
+        <input type="text" id="fScenicName" class="form-input" placeholder="请输入景点名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fScenicType">景点类型</label>
+        <select id="fScenicType" class="form-select">
+          <option value="">全部</option>
+          <option>观光点</option>
+          <option>采摘园</option>
+          <option>民宿</option>
+          <option>农家乐</option>
+          <option>文化场馆</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fScenicStatus">状态</label>
+        <select id="fScenicStatus" class="form-select">
+          <option value="">全部</option>
+          <option>开放</option>
+          <option>关闭</option>
+          <option>维护</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryScenicRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetScenicFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:mountain-line"></iconify-icon>景点管理列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addScenicModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增景点</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('景点管理')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>景点名称</th>
+              <th>景点类型</th>
+              <th>地址</th>
+              <th>开放时间</th>
+              <th>门票价格(元)</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="scenicTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="scenicRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：旅游村开通 ==================== -->
+
+<!-- 新增旅游村开通申请弹窗 -->
+<div class="modal-overlay" id="addOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:store-3-line"></iconify-icon>新增旅游村开通申请</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addVillage"><span class="req">*</span>村名称</label>
+            <select id="addVillage" name="village" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+              <option>青山村</option>
+              <option>桃花村</option>
+              <option>杨梅村</option>
+              <option>白鹭村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addContact"><span class="req">*</span>联系人</label>
+            <input type="text" id="addContact" name="contact" class="form-input" placeholder="请输入联系人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addPhone"><span class="req">*</span>联系电话</label>
+            <input type="tel" id="addPhone" name="phone" class="form-input" placeholder="请输入手机号…" inputmode="tel" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addResource">旅游资源数</label>
+            <input type="number" id="addResource" name="resource" class="form-input" placeholder="请输入资源数…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="addDesc">申请说明</label>
+          <textarea id="addDesc" name="desc" class="form-input" rows="3" placeholder="请输入旅游资源情况说明…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addOpenModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddOpen()">提 交</button>
+    </div>
+  </div>
+</div>
+
+<!-- 拒绝开通弹窗 -->
+<div class="modal-overlay" id="rejectOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:close-circle-line"></iconify-icon>拒绝开通</h3>
+      <button type="button" class="modal-close" onclick="closeModal('rejectOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="rejectReason"><span class="req">*</span>拒绝原因</label>
+          <textarea id="rejectReason" name="reason" class="form-input" rows="4" placeholder="请输入拒绝开通的原因…" required autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('rejectOpenModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitRejectOpen()">确认拒绝</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看旅游村开通弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>旅游村开通详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村名称</span><span class="detail-value" id="viewOpenName">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value" id="viewOpenApplyTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">开通状态</span><span class="detail-value" id="viewOpenStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">开通时间</span><span class="detail-value" id="viewOpenOpenTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系人</span><span class="detail-value" id="viewOpenContact">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewOpenPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">旅游资源数</span><span class="detail-value" id="viewOpenResourceNum">—</span></div>
+        <div class="detail-item"><span class="detail-label">景点数</span><span class="detail-value" id="viewOpenScenicNum">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">特色说明</span><span class="detail-value" id="viewOpenDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOpenModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：旅游资源 ==================== -->
+
+<!-- 新增旅游资源弹窗 -->
+<div class="modal-overlay" id="addResModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:leaf-line"></iconify-icon>新增旅游资源</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addResModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="resName"><span class="req">*</span>资源名称</label>
+          <input type="text" id="resName" name="resName" class="form-input" placeholder="请输入资源名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="resType"><span class="req">*</span>资源类型</label>
+            <select id="resType" name="resType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>自然景观</option>
+              <option>人文景观</option>
+              <option>特色农业</option>
+              <option>民俗文化</option>
+              <option>餐饮住宿</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="resStatus"><span class="req">*</span>状态</label>
+            <select id="resStatus" name="resStatus" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>已上线</option>
+              <option>已下线</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="resOwner"><span class="req">*</span>负责人</label>
+            <input type="text" id="resOwner" name="resOwner" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="resPhone"><span class="req">*</span>联系电话</label>
+            <input type="tel" id="resPhone" name="resPhone" class="form-input" placeholder="请输入手机号…" inputmode="tel" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="resLoc">位置</label>
+          <input type="text" id="resLoc" name="resLoc" class="form-input" placeholder="请输入资源位置…" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addResModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddRes()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看旅游资源弹窗 -->
+<div class="modal-overlay detail-modal" id="viewResModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>旅游资源详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewResModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">资源名称</span><span class="detail-value" id="viewResName">—</span></div>
+        <div class="detail-item"><span class="detail-label">资源类型</span><span class="detail-value" id="viewResType">—</span></div>
+        <div class="detail-item"><span class="detail-label">位置</span><span class="detail-value" id="viewResLoc">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewResOwner">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewResPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewResStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">添加时间</span><span class="detail-value" id="viewResTime">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">资源说明</span><span class="detail-value" id="viewResDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewResModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑旅游资源弹窗 -->
+<div class="modal-overlay" id="editResModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑旅游资源</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editResModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editResName"><span class="req">*</span>资源名称</label>
+          <input type="text" id="editResName" name="editName" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editResType"><span class="req">*</span>资源类型</label>
+            <select id="editResType" class="form-select" required>
+              <option>自然景观</option>
+              <option>人文景观</option>
+              <option>特色农业</option>
+              <option>民俗文化</option>
+              <option>餐饮住宿</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editResStatus"><span class="req">*</span>状态</label>
+            <select id="editResStatus" class="form-select" required>
+              <option>已上线</option>
+              <option>已下线</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editResOwner"><span class="req">*</span>负责人</label>
+            <input type="text" id="editResOwner" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editResPhone"><span class="req">*</span>联系电话</label>
+            <input type="tel" id="editResPhone" class="form-input" inputmode="tel" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editResLoc">位置</label>
+          <input type="text" id="editResLoc" class="form-input" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editResModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditRes()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：景点管理 ==================== -->
+
+<!-- 新增景点弹窗 -->
+<div class="modal-overlay" id="addScenicModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:mountain-line"></iconify-icon>新增景点</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addScenicModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="scName"><span class="req">*</span>景点名称</label>
+          <input type="text" id="scName" name="scName" class="form-input" placeholder="请输入景点名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="scType"><span class="req">*</span>景点类型</label>
+            <select id="scType" name="scType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>观光点</option>
+              <option>采摘园</option>
+              <option>民宿</option>
+              <option>农家乐</option>
+              <option>文化场馆</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="scStatus"><span class="req">*</span>状态</label>
+            <select id="scStatus" name="scStatus" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>开放</option>
+              <option>关闭</option>
+              <option>维护</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="scTime">开放时间</label>
+            <input type="text" id="scTime" name="scTime" class="form-input" placeholder="如 09:00-17:00…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="scPrice">门票价格(元)</label>
+            <input type="number" id="scPrice" name="scPrice" class="form-input" placeholder="请输入门票价格…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="scOwner"><span class="req">*</span>负责人</label>
+            <input type="text" id="scOwner" name="scOwner" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="scPhone"><span class="req">*</span>联系电话</label>
+            <input type="tel" id="scPhone" name="scPhone" class="form-input" placeholder="请输入手机号…" inputmode="tel" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="scAddr">地址</label>
+          <input type="text" id="scAddr" name="scAddr" class="form-input" placeholder="请输入景点地址…" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addScenicModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddScenic()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看景点弹窗 -->
+<div class="modal-overlay detail-modal" id="viewScenicModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>景点详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewScenicModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">景点名称</span><span class="detail-value" id="viewScName">—</span></div>
+        <div class="detail-item"><span class="detail-label">景点类型</span><span class="detail-value" id="viewScType">—</span></div>
+        <div class="detail-item"><span class="detail-label">地址</span><span class="detail-value" id="viewScAddr">—</span></div>
+        <div class="detail-item"><span class="detail-label">开放时间</span><span class="detail-value" id="viewScTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">门票价格</span><span class="detail-value" id="viewScPrice">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewScOwner">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewScPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewScStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">景点简介</span><span class="detail-value" id="viewScDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewScenicModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑景点弹窗 -->
+<div class="modal-overlay" id="editScenicModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑景点</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editScenicModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editScName"><span class="req">*</span>景点名称</label>
+          <input type="text" id="editScName" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editScType"><span class="req">*</span>景点类型</label>
+            <select id="editScType" class="form-select" required>
+              <option>观光点</option>
+              <option>采摘园</option>
+              <option>民宿</option>
+              <option>农家乐</option>
+              <option>文化场馆</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editScStatus"><span class="req">*</span>状态</label>
+            <select id="editScStatus" class="form-select" required>
+              <option>开放</option>
+              <option>关闭</option>
+              <option>维护</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editScTime">开放时间</label>
+            <input type="text" id="editScTime" class="form-input" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editScPrice">门票价格(元)</label>
+            <input type="number" id="editScPrice" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editScOwner"><span class="req">*</span>负责人</label>
+            <input type="text" id="editScOwner" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editScPhone"><span class="req">*</span>联系电话</label>
+            <input type="tel" id="editScPhone" class="form-input" inputmode="tel" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editScAddr">地址</label>
+          <input type="text" id="editScAddr" class="form-input" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editScenicModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditScenic()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 导出弹窗（三面板共享） ==================== -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出旅游数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出乡村旅游记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="乡村旅游记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 ---- */
+  function switchTourismTab(tab) {
+    document.querySelectorAll('#tourismTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+    window._activeTourism = tab.textContent.trim();
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 旅游村开通：筛选 + 分页 ==================== */
+    var openTbody = document.getElementById('openTbody');
+    var openPager = makePager(openTbody, document.getElementById('openRowCount'), pagerRefs('#tab-open'), function () {
+      var name = document.getElementById('fOpenName').value.trim().toLowerCase();
+      var status = document.getElementById('fOpenStatus').value;
+      var out = [];
+      openTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryOpenRows = function () { openPager.reset(); };
+    window.resetOpenFilter = function () {
+      document.getElementById('fOpenName').value = '';
+      document.getElementById('fOpenStatus').value = '';
+      queryOpenRows();
+    };
+
+    /* ==================== 旅游资源：筛选 + 分页 ==================== */
+    var resTbody = document.getElementById('resTbody');
+    var resPager = makePager(resTbody, document.getElementById('resRowCount'), pagerRefs('#tab-resource'), function () {
+      var name = document.getElementById('fResourceName').value.trim().toLowerCase();
+      var type = document.getElementById('fResourceType').value;
+      var status = document.getElementById('fResourceStatus').value;
+      var out = [];
+      resTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryResRows = function () { resPager.reset(); };
+    window.resetResFilter = function () {
+      document.getElementById('fResourceName').value = '';
+      document.getElementById('fResourceType').value = '';
+      document.getElementById('fResourceStatus').value = '';
+      queryResRows();
+    };
+
+    /* ==================== 景点管理：筛选 + 分页 ==================== */
+    var scenicTbody = document.getElementById('scenicTbody');
+    var scenicPager = makePager(scenicTbody, document.getElementById('scenicRowCount'), pagerRefs('#tab-scenic'), function () {
+      var name = document.getElementById('fScenicName').value.trim().toLowerCase();
+      var type = document.getElementById('fScenicType').value;
+      var status = document.getElementById('fScenicStatus').value;
+      var out = [];
+      scenicTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryScenicRows = function () { scenicPager.reset(); };
+    window.resetScenicFilter = function () {
+      document.getElementById('fScenicName').value = '';
+      document.getElementById('fScenicType').value = '';
+      document.getElementById('fScenicStatus').value = '';
+      queryScenicRows();
+    };
+
+    /* ==================== 通用工具 ==================== */
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function fmtNow() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+    function fmtDateTime(offset, hour, minute) {
+      var d = new Date(2026, 7, 11 - offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(hour % 24).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0');
+    }
+    function resTypeTag(type) {
+      return '<span class="tag ' + (type === '自然景观' ? 'tag-blue' : type === '人文景观' ? 'tag-yellow' : type === '特色农业' ? 'tag-green' : type === '民俗文化' ? 'tag-cyan' : 'tag-orange') + '">' + type + '</span>';
+    }
+    function scTypeTag(type) {
+      return '<span class="tag ' + (type === '文化场馆' ? 'tag-blue' : type === '观光点' ? 'tag-green' : type === '采摘园' ? 'tag-orange' : type === '民宿' ? 'tag-yellow' : 'tag-green') + '">' + type + '</span>';
+    }
+    function openStatusTag(status) {
+      return '<span class="tag ' + (status === '已开通' ? 'tag-green' : status === '待开通' ? 'tag-orange' : 'tag-red') + '">' + status + '</span>';
+    }
+    function resStatusTag(status) {
+      return '<span class="tag ' + (status === '已上线' ? 'tag-green' : 'tag-red') + '">' + status + '</span>';
+    }
+    function scStatusTag(status) {
+      return '<span class="tag ' + (status === '开放' ? 'tag-green' : status === '关闭' ? 'tag-red' : 'tag-yellow') + '">' + status + '</span>';
+    }
+
+    /* ==================== 操作列渲染 ==================== */
+    function renderOpenOp(row) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="viewOpen(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '已开通') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="toggleOpen(this)"><iconify-icon icon="ri:stop-circle-line"></iconify-icon>关闭开通</button>';
+      } else if (status === '待开通') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-success" onclick="approveOpen(this)"><iconify-icon icon="ri:check-line"></iconify-icon>开通</button>';
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="openReject(this)"><iconify-icon icon="ri:close-line"></iconify-icon>拒绝</button>';
+      }
+      cell.innerHTML = html;
+    }
+    function renderResOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewRes(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditRes(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteTourismRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+    function renderScenicOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewScenic(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditScenic(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteTourismRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+
+    /* ==================== 旅游村开通：查看 / 开通 / 关闭 / 拒绝 ==================== */
+    window.viewOpen = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewOpenName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewOpenApplyTime').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewOpenStatus').innerHTML = row.cells[2].innerHTML;
+      document.getElementById('viewOpenOpenTime').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewOpenContact').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewOpenPhone').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewOpenResourceNum').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewOpenScenicNum').textContent = row.cells[7].textContent.trim();
+      document.getElementById('viewOpenDesc').textContent = row.getAttribute('data-desc') || '该村依托本地特色资源发展乡村旅游，规划建设观光采摘、农事体验、民宿餐饮等业态，带动村民增收。';
+      openModal('viewOpenModal');
+    };
+    window.approveOpen = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '开通确认',
+        message: '确定开通「' + name + '」旅游服务吗？',
+        confirmText: '确认开通',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已开通');
+          row.cells[2].innerHTML = openStatusTag('已开通');
+          row.cells[3].textContent = fmtNow();
+          renderOpenOp(row);
+          openPager.render();
+          showToast('开通成功', 'success');
+        }
+      });
+    };
+    window.toggleOpen = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '关闭确认',
+        message: '确定关闭「' + name + '」旅游服务吗？关闭后游客将无法访问。',
+        confirmText: '确认关闭',
+        onConfirm: function () {
+          row.setAttribute('data-status', '待开通');
+          row.cells[2].innerHTML = openStatusTag('待开通');
+          row.cells[3].textContent = '—';
+          renderOpenOp(row);
+          openPager.render();
+          showToast('已关闭', 'success');
+        }
+      });
+    };
+    window.openReject = function (btn) {
+      window._rejectRow = btn.closest('tr');
+      document.getElementById('rejectReason').value = '';
+      openModal('rejectOpenModal');
+    };
+    window.submitRejectOpen = function () {
+      var reason = document.getElementById('rejectReason').value.trim();
+      if (!reason) { showToast('请填写拒绝原因', 'warning'); return; }
+      var row = window._rejectRow;
+      if (row) {
+        row.setAttribute('data-status', '已拒绝');
+        row.cells[2].innerHTML = openStatusTag('已拒绝');
+        row.cells[3].textContent = '—';
+        renderOpenOp(row);
+        openPager.render();
+      }
+      document.getElementById('rejectReason').value = '';
+      closeModal('rejectOpenModal');
+      showToast('已拒绝开通', 'success');
+    };
+
+    /* ==================== 旅游资源：查看 / 编辑 ==================== */
+    window.viewRes = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewResName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewResType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewResLoc').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewResOwner').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewResPhone').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewResStatus').innerHTML = row.cells[5].innerHTML;
+      document.getElementById('viewResTime').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewResDesc').textContent = row.getAttribute('data-desc') || '该资源依托当地自然与人文禀赋开发，已纳入乡村旅游线路统一运营管理。';
+      openModal('viewResModal');
+    };
+    window.openEditRes = function (btn) {
+      var row = btn.closest('tr');
+      window._editResRow = row;
+      document.getElementById('editResName').value = row.cells[0].textContent.trim();
+      document.getElementById('editResType').value = row.cells[1].textContent.trim();
+      document.getElementById('editResStatus').value = row.cells[5].textContent.trim();
+      document.getElementById('editResOwner').value = row.cells[3].textContent.trim();
+      document.getElementById('editResPhone').value = row.cells[4].textContent.trim();
+      document.getElementById('editResLoc').value = row.cells[2].textContent.trim();
+      openModal('editResModal');
+    };
+    window.submitEditRes = function () {
+      var row = window._editResRow;
+      if (row) {
+        var type = document.getElementById('editResType').value;
+        var status = document.getElementById('editResStatus').value;
+        row.cells[0].textContent = document.getElementById('editResName').value.trim();
+        row.setAttribute('data-type', type);
+        row.cells[1].innerHTML = resTypeTag(type);
+        row.cells[2].textContent = document.getElementById('editResLoc').value.trim();
+        row.cells[3].textContent = document.getElementById('editResOwner').value.trim();
+        row.cells[4].textContent = document.getElementById('editResPhone').value.trim();
+        row.setAttribute('data-status', status);
+        row.cells[5].innerHTML = resStatusTag(status);
+      }
+      closeModal('editResModal');
+      resPager.render();
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 景点管理：查看 / 编辑 ==================== */
+    window.viewScenic = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewScName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewScType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewScAddr').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewScTime').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewScPrice').textContent = row.cells[4].textContent.trim() + ' 元';
+      document.getElementById('viewScOwner').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewScPhone').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewScStatus').innerHTML = row.cells[7].innerHTML;
+      document.getElementById('viewScDesc').textContent = row.getAttribute('data-desc') || '该景点为乡村旅游线路核心节点，配套完善的服务设施，向游客开放参观游览。';
+      openModal('viewScenicModal');
+    };
+    window.openEditScenic = function (btn) {
+      var row = btn.closest('tr');
+      window._editScenicRow = row;
+      document.getElementById('editScName').value = row.cells[0].textContent.trim();
+      document.getElementById('editScType').value = row.cells[1].textContent.trim();
+      document.getElementById('editScStatus').value = row.cells[7].textContent.trim();
+      document.getElementById('editScTime').value = row.cells[3].textContent.trim();
+      document.getElementById('editScPrice').value = row.cells[4].textContent.trim();
+      document.getElementById('editScOwner').value = row.cells[5].textContent.trim();
+      document.getElementById('editScPhone').value = row.cells[6].textContent.trim();
+      document.getElementById('editScAddr').value = row.cells[2].textContent.trim();
+      openModal('editScenicModal');
+    };
+    window.submitEditScenic = function () {
+      var row = window._editScenicRow;
+      if (row) {
+        var type = document.getElementById('editScType').value;
+        var status = document.getElementById('editScStatus').value;
+        row.cells[0].textContent = document.getElementById('editScName').value.trim();
+        row.setAttribute('data-type', type);
+        row.cells[1].innerHTML = scTypeTag(type);
+        row.cells[2].textContent = document.getElementById('editScAddr').value.trim();
+        row.cells[3].textContent = document.getElementById('editScTime').value.trim();
+        row.cells[4].textContent = document.getElementById('editScPrice').value.trim() || '0';
+        row.cells[5].textContent = document.getElementById('editScOwner').value.trim();
+        row.cells[6].textContent = document.getElementById('editScPhone').value.trim();
+        row.setAttribute('data-status', status);
+        row.cells[7].innerHTML = scStatusTag(status);
+      }
+      closeModal('editScenicModal');
+      scenicPager.render();
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 删除（三面板共用，删除前先取面板） ==================== */
+    window.deleteTourismRow = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          var key = panel ? panel.id.replace('tab-', '') : '';
+          if (key === 'open') openPager.render();
+          else if (key === 'resource') resPager.render();
+          else if (key === 'scenic') scenicPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 新增：插入首行并刷新分页 ==================== */
+    window.submitAddOpen = function () {
+      var village = document.getElementById('addVillage').value;
+      var contact = document.getElementById('addContact').value.trim();
+      var phone = document.getElementById('addPhone').value.trim();
+      if (!village || !contact || !phone) { showToast('请完整填写必填信息', 'warning'); return; }
+      var resNum = document.getElementById('addResource').value.trim() || '0';
+      var desc = document.getElementById('addDesc').value.trim() || '该村申请开通乡村旅游服务，拟规划观光采摘与农事体验业态。';
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', '待开通');
+      tr.setAttribute('data-desc', desc);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(village) + '</td>' +
+        '<td class="nums">' + fmtNow() + '</td>' +
+        '<td>' + openStatusTag('待开通') + '</td>' +
+        '<td>—</td>' +
+        '<td>' + escapeHtml(contact) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td class="nums">' + resNum + '</td>' +
+        '<td class="nums">0</td>' +
+        '<td class="op-cell"></td>';
+      renderOpenOp(tr);
+      openTbody.insertBefore(tr, openTbody.firstChild);
+      document.getElementById('addVillage').value = ''; document.getElementById('addContact').value = ''; document.getElementById('addPhone').value = ''; document.getElementById('addResource').value = ''; document.getElementById('addDesc').value = '';
+      queryOpenRows();
+      closeModal('addOpenModal');
+      showToast('申请提交成功', 'success');
+    };
+
+    window.submitAddRes = function () {
+      var name = document.getElementById('resName').value.trim();
+      var type = document.getElementById('resType').value;
+      var status = document.getElementById('resStatus').value;
+      var owner = document.getElementById('resOwner').value.trim();
+      var phone = document.getElementById('resPhone').value.trim();
+      if (!name || !type || !status || !owner || !phone) { showToast('请完整填写必填信息', 'warning'); return; }
+      var loc = document.getElementById('resLoc').value.trim() || '—';
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + resTypeTag(type) + '</td>' +
+        '<td>' + escapeHtml(loc) + '</td>' +
+        '<td>' + escapeHtml(owner) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td>' + resStatusTag(status) + '</td>' +
+        '<td class="nums">' + fmtNow() + '</td>' +
+        '<td class="op-cell"></td>';
+      renderResOp(tr);
+      resTbody.insertBefore(tr, resTbody.firstChild);
+      document.getElementById('resName').value = ''; document.getElementById('resType').value = ''; document.getElementById('resStatus').value = ''; document.getElementById('resOwner').value = ''; document.getElementById('resPhone').value = ''; document.getElementById('resLoc').value = '';
+      queryResRows();
+      closeModal('addResModal');
+      showToast('保存成功', 'success');
+    };
+
+    window.submitAddScenic = function () {
+      var name = document.getElementById('scName').value.trim();
+      var type = document.getElementById('scType').value;
+      var status = document.getElementById('scStatus').value;
+      var owner = document.getElementById('scOwner').value.trim();
+      var phone = document.getElementById('scPhone').value.trim();
+      if (!name || !type || !status || !owner || !phone) { showToast('请完整填写必填信息', 'warning'); return; }
+      var time = document.getElementById('scTime').value.trim() || '—';
+      var price = document.getElementById('scPrice').value.trim() || '0';
+      var addr = document.getElementById('scAddr').value.trim() || '—';
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + scTypeTag(type) + '</td>' +
+        '<td>' + escapeHtml(addr) + '</td>' +
+        '<td>' + escapeHtml(time) + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td>' + escapeHtml(owner) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td>' + scStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      renderScenicOp(tr);
+      scenicTbody.insertBefore(tr, scenicTbody.firstChild);
+      document.getElementById('scName').value = ''; document.getElementById('scType').value = ''; document.getElementById('scStatus').value = ''; document.getElementById('scTime').value = ''; document.getElementById('scPrice').value = ''; document.getElementById('scOwner').value = ''; document.getElementById('scPhone').value = ''; document.getElementById('scAddr').value = '';
+      queryScenicRows();
+      closeModal('addScenicModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 导出弹窗（三面板共享） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '乡村旅游') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '乡村旅游记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，验证分页 3 页） ==================== */
+    var contacts = ['王桂花', '李建国', '赵铁柱', '孙富贵', '周小敏', '吴德发', '钱有财', '黄国庆', '周淑芬', '张明远'];
+    var phones = ['138****5678', '139****1234', '137****8866', '136****5522'];
+
+    // ---- 旅游村开通（6 条基础 + 19 条追加） ----
+    function buildOpenRow(tbody, name, applyTime, status, openTime, contact, phone, resNum, scNum, desc) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', status);
+      if (desc) tr.setAttribute('data-desc', desc);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td class="nums">' + applyTime + '</td>' +
+        '<td>' + openStatusTag(status) + '</td>' +
+        '<td>' + openTime + '</td>' +
+        '<td>' + escapeHtml(contact) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td class="nums">' + resNum + '</td>' +
+        '<td class="nums">' + scNum + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderOpenOp(tr);
+    }
+    buildOpenRow(openTbody, '幸福村（益农蜜桔村）', '2026-07-01 09:00', '已开通', '2026-07-03 10:00', '王桂花', '138****5678', 5, 5, '幸福村又名益农蜜桔村，以特色产品益农蜜桔闻名，依托万亩蜜桔基地发展观光采摘、农事体验旅游。');
+    buildOpenRow(openTbody, '平安村', '2026-07-05 14:30', '待开通', '—', '李建国', '138****5678', 3, 3, '平安村拥有稻田画、花海等景观资源，拟发展观光农业与亲子研学旅游。');
+    buildOpenRow(openTbody, '丰收村', '2026-07-08 10:15', '待开通', '—', '赵铁柱', '138****5678', 2, 2, '丰收村以农耕体验为特色，建有农事体验基地，拟发展农旅融合业态。');
+    buildOpenRow(openTbody, '金桔村', '2026-07-10 16:00', '已拒绝', '—', '孙富贵', '138****5678', 4, 6, '');
+    buildOpenRow(openTbody, '青山村', '2026-07-15 11:00', '待开通', '—', '周小敏', '138****5678', 2, 2, '');
+    buildOpenRow(openTbody, '桃花村', '2026-07-18 09:30', '已拒绝', '—', '吴德发', '138****5678', 3, 4, '');
+
+    var openVillages = ['杨梅村', '白鹭村', '龙潭村', '茶园村', '云溪村', '花桥村', '石泉村', '竹海村', '稻香村', '荷塘村', '松林村', '紫云村', '临水村', '果岭村', '橘花村', '溪口村', '枫桥村', '石桥村', '梅岭村'];
+    var openStatuses = ['已开通', '待开通', '已拒绝'];
+    for (var oi = 0; oi < 19; oi++) {
+      var ost = openStatuses[oi % 3];
+      buildOpenRow(openTbody, openVillages[oi], fmtDateTime(3 + oi, 9 + (oi % 8), oi * 7), ost, ost === '已开通' ? fmtDateTime(1 + oi, 10 + (oi % 8), oi * 11) : '—', contacts[oi % 10], phones[oi % 4], 2 + (oi % 4), 2 + (oi % 5));
+    }
+
+    // ---- 旅游资源（6 条基础 + 19 条追加） ----
+    function buildResRow(tbody, name, type, loc, owner, phone, status, time, desc) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      if (desc) tr.setAttribute('data-desc', desc);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + resTypeTag(type) + '</td>' +
+        '<td>' + escapeHtml(loc) + '</td>' +
+        '<td>' + escapeHtml(owner) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td>' + resStatusTag(status) + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderResOp(tr);
+    }
+    buildResRow(resTbody, '幸福村蜜桔采摘园', '特色农业', '幸福村东侧', '王桂花', '138****5678', '已上线', '2026-07-05 09:00', '依托益农蜜桔万亩基地建成标准化采摘园，秋季蜜桔成熟期对外开放，提供亲子采摘、果品认养等服务。');
+    buildResRow(resTbody, '百年古樟树', '自然景观', '幸福村村口', '李建国', '138****5678', '已上线', '2026-07-06 10:30', '树龄逾百年的古樟树，枝叶繁茂，为村口地标景观，兼具祈福文化内涵。');
+    buildResRow(resTbody, '桔乡民俗文化馆', '人文景观', '幸福村中心', '赵铁柱', '138****5678', '已上线', '2026-07-08 14:00', '集中展示桔乡农耕民俗、传统手工艺与乡村记忆，定期举办民俗体验活动。');
+    buildResRow(resTbody, '平安村稻田画', '自然景观', '平安村北', '孙富贵', '138****5678', '已上线', '2026-07-12 11:00', '利用彩色水稻在田间绘制主题画卷，为最佳观景季节提供观光体验。');
+    buildResRow(resTbody, '桔乡农家乐集群', '餐饮住宿', '幸福村美食街', '周小敏', '138****5678', '已下线', '2026-07-15 16:20', '');
+    buildResRow(resTbody, '丰收农耕体验园', '特色农业', '丰收村西', '吴德发', '138****5678', '已上线', '2026-07-20 09:45', '提供犁田、播种、收割等农事体验项目，配套亲子课堂与农产品展销。');
+
+    var resTitles = ['山间梯田观光带', '竹林氧吧', '溪谷漂流', '渔家乐集群', '花海观光带', '古民居群', '茶文化体验园', '农事体验基地', '露营基地', '骑行绿道', '温泉度假村', '果蔬采摘基地', '乡村美术馆', '民俗节庆广场', '手工工坊', '星空营地', '果园观光栈道', '荷塘月色景区', '非遗传承馆'];
+    var resTypes = ['自然景观', '人文景观', '特色农业', '民俗文化', '餐饮住宿'];
+    var resLocs = ['幸福村东侧', '平安村北', '丰收村西', '金桔村南', '青山村口'];
+    var resStatuses = ['已上线', '已下线'];
+    for (var ri = 0; ri < 19; ri++) {
+      buildResRow(resTbody, resTitles[ri], resTypes[ri % 5], resLocs[ri % 5], contacts[ri % 10], phones[ri % 4], resStatuses[ri % 2], fmtDateTime(3 + ri, 9 + (ri % 8), ri * 13));
+    }
+
+    // ---- 景点管理（6 条基础 + 19 条追加） ----
+    function buildScenicRow(tbody, name, type, addr, time, price, owner, phone, status, desc) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      if (desc) tr.setAttribute('data-desc', desc);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + scTypeTag(type) + '</td>' +
+        '<td>' + escapeHtml(addr) + '</td>' +
+        '<td>' + escapeHtml(time) + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td>' + escapeHtml(owner) + '</td>' +
+        '<td>' + escapeHtml(phone) + '</td>' +
+        '<td>' + scStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderScenicOp(tr);
+    }
+    buildScenicRow(scenicTbody, '蜜桔文化展示馆', '文化场馆', '幸福村中心', '08:00-17:30', 0, '王桂花', '138****5678', '开放', '展示益农蜜桔种植历史、品种科普与农事文化，是研学游的重要节点场馆，免费向游客开放。');
+    buildScenicRow(scenicTbody, '万亩桔海观景台', '观光点', '幸福村东坡', '全天', 0, '李建国', '138****5678', '开放', '登台可俯瞰万亩蜜桔园风光，是摄影与观景的热门打卡点。');
+    buildScenicRow(scenicTbody, '亲子采摘体验园', '采摘园', '幸福村东侧', '09:00-17:00', 30, '赵铁柱', '138****5678', '开放', '面向亲子家庭提供蜜桔、时令蔬果采摘体验，寓教于乐。');
+    buildScenicRow(scenicTbody, '桔乡民宿聚落', '民宿', '幸福村南', '全天', 280, '孙富贵', '138****5678', '维护', '');
+    buildScenicRow(scenicTbody, '农家美食一条街', '农家乐', '幸福村美食街', '10:00-21:00', 0, '周小敏', '138****5678', '开放', '汇集桔乡特色农家菜与地方小吃，是游客用餐休闲的好去处。');
+    buildScenicRow(scenicTbody, '百年古樟祈福台', '观光点', '幸福村村口', '全天', 0, '吴德发', '138****5678', '关闭', '');
+
+    var scTitles = ['蜜桔采摘园', '观鸟塔', '溪畔步道', '民俗戏台', '茶园观景台', '露营地', '亲子农场', '农家菜馆', '民宿小院', '非遗工坊', '彩虹滑道', '荷塘栈道', '竹林迷宫', '星空观测点', '果园咖啡屋', '乡村书院', '儿童游乐场', '垂钓园', '摄影基地'];
+    var scTypes = ['观光点', '采摘园', '民宿', '农家乐', '文化场馆'];
+    var scAddrs = ['幸福村东侧', '平安村北', '丰收村西', '金桔村南', '青山村口'];
+    var scTimes = ['08:00-17:30', '09:00-17:00', '10:00-21:00', '全天'];
+    var scPrices = [0, 30, 50, 80, 280];
+    var scStatuses = ['开放', '关闭', '维护'];
+    for (var si = 0; si < 19; si++) {
+      buildScenicRow(scenicTbody, scTitles[si], scTypes[si % 5], scAddrs[si % 5], scTimes[si % 4], scPrices[si % 5], contacts[si % 10], phones[si % 4], scStatuses[si % 3]);
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    openPager.render();
+    resPager.render();
+    scenicPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#tourismTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchTourismTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

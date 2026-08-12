@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡村振兴数字平台 · 村民端</title>
+  <script src="../shared/js/icons-local.js"></script>
+  <script src="../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="css/villager.css">
+  <style>
+    /* Iconify icon sizing inside existing containers */
+    .grid-icon iconify-icon { font-size: 22px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .tab-icon iconify-icon { font-size: 22px; }
+    .notice-icon iconify-icon { font-size: 20px; }
+    /* Service section card styles */
+    .service-card { cursor: pointer; transition: transform 0.15s ease; }
+    .service-card:active { transform: scale(0.98); }
+    /* v3.0 生态绿覆盖：villager.css 蓝系硬编码为第二批清理项，本页先行覆盖为生态绿/暖棕 */
+    body { background: var(--bg-page); font-family: var(--font-family); }
+    .phone-container { background: var(--bg-page); }
+    :root { --shadow-primary: var(--shadow-green-md); }
+    .tab-bar .tab-item.active { color: var(--color-primary-500); }
+    .tab-bar .tab-item.active::after { background: var(--color-primary-500); }
+    .notice-bar { background: var(--color-primary-50); border-bottom: 1px solid var(--color-primary-100); }
+    .bg-blue { background: var(--color-primary-50); color: var(--color-primary-600); }
+    .banner .banner-dot.active { background: var(--color-primary-500); }
+    .points-card { background: linear-gradient(160deg, var(--color-primary-600), var(--color-primary-800)); box-shadow: var(--shadow-green-md); }
+    .points-card .points-row { padding-top: 8px; }
+    /* 覆盖 villager.css 通知图标旧蓝色为生态绿 */
+    .notice-bar .notice-icon { color: var(--color-primary-600); }
+  </style>
+</head>
+<body data-end="citizen">
+  <div class="phone-container">
+    <!-- 页面内容 -->
+    <main class="page-content">
+
+      <!-- 积分卡 - 积分驱动首页 -->
+      <div class="points-card" style="margin: 16px; position: relative; overflow: hidden; padding: 14px 20px 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+          <div>
+            <div style="font-size: 12px; opacity: 0.85; color: #fff;">我的积分</div>
+            <div class="points-total" style="color: #fff; text-align: left; font-size: 26px; font-weight: 700; line-height: 1.2;">2,860</div>
+          </div>
+          <a href="points/points-home.html" style="background: rgba(255,255,255,0.2); color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+            <iconify-icon icon="ri:gift-line" style="font-size: 16px;"></iconify-icon>兑换
+          </a>
+        </div>
+        <div class="points-row">
+          <div class="points-item">
+            <div class="points-change plus" style="color: #a8ffb8;">+120</div>
+            <div class="points-desc" style="color: rgba(255,255,255,0.8);">本月获得</div>
+          </div>
+          <div class="points-item">
+            <div class="points-change minus" style="color: #ffd6d6;">-50</div>
+            <div class="points-desc" style="color: rgba(255,255,255,0.8);">本月兑换</div>
+          </div>
+          <div class="points-item">
+            <div class="points-change" style="color: #fff; font-size: 18px; font-weight: 600;">15</div>
+            <div class="points-desc" style="color: rgba(255,255,255,0.8);">村排名</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通知滚动条 -->
+      <div class="notice-bar" role="marquee" aria-label="通知滚动条">
+        <div class="notice-icon">
+          <iconify-icon icon="ri:notification-3-line"></iconify-icon>
+        </div>
+        <div class="notice-scroll">
+          <span class="notice-text">关于缴纳2026年度城乡居民医保的通知，请各位村民及时缴费。</span>
+        </div>
+      </div>
+
+      <!-- 功能宫格 -->
+      <section class="grid-icons" aria-label="功能导航">
+        <a class="grid-item" href="affairs/affairs-list.html" role="button">
+          <div class="grid-icon bg-blue">
+            <iconify-icon icon="ri:file-list-3-line"></iconify-icon>
+          </div>
+          <div class="grid-label">村务公开</div>
+        </a>
+        <a class="grid-item" href="service/service-home.html" role="button">
+          <div class="grid-icon bg-blue" style="background: var(--color-primary-50); color: var(--color-primary-600);">
+            <iconify-icon icon="ri:customer-service-2-line"></iconify-icon>
+          </div>
+          <div class="grid-label">办事服务</div>
+        </a>
+        <a class="grid-item" href="discuss/topic-list.html" role="button">
+          <div class="grid-icon bg-blue" style="background: #fef3c7; color: #d97706;">
+            <iconify-icon icon="ri:chat-3-line"></iconify-icon>
+          </div>
+          <div class="grid-label">村民说事</div>
+        </a>
+        <a class="grid-item" href="report/report-home.html" role="button">
+          <div class="grid-icon bg-blue" style="background: #fef2f2; color: #dc2626;">
+            <iconify-icon icon="ri:camera-line"></iconify-icon>
+          </div>
+          <div class="grid-label">随手拍</div>
+        </a>
+        <a class="grid-item" href="notice/notice-list.html" role="button">
+          <div class="grid-icon bg-blue" style="background: #fffbeb; color: #d97706;">
+            <iconify-icon icon="ri:notification-3-line"></iconify-icon>
+          </div>
+          <div class="grid-label">通知公告</div>
+        </a>
+        <a class="grid-item" href="service/guide-list.html" role="button">
+          <div class="grid-icon bg-blue" style="background: #ecfdf5; color: #0f766e;">
+            <iconify-icon icon="ri:book-open-line"></iconify-icon>
+          </div>
+          <div class="grid-label">办事指南</div>
+        </a>
+        <a class="grid-item" href="javascript:void(0)" role="button" onclick="showModal('便民电话', '村委办公室：0512-88888888\n卫生室：0512-88888889\n派出所：0512-88888890\n供电所：0512-88888891')">
+          <div class="grid-icon bg-blue" style="background: #fef9c3; color: #ca8a04;">
+            <iconify-icon icon="ri:phone-line"></iconify-icon>
+          </div>
+          <div class="grid-label">便民电话</div>
+        </a>
+        <a class="grid-item" href="device/device-list.html" role="button">
+          <div class="grid-icon bg-blue" style="background: #dcfce7; color: #15803d;">
+            <iconify-icon icon="ri:shield-check-line"></iconify-icon>
+          </div>
+          <div class="grid-label">安防监控</div>
+        </a>
+      </section>
+
+      <!-- 便民服务快捷入口 -->
+      <section style="margin: 0 16px 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px;">便民服务</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="service-card" style="background: #fff; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(28,25,23,0.05);" onclick="window.location.href='service/service-home.html'" role="button" tabindex="0">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--color-primary-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <iconify-icon icon="ri:flashlight-line" style="font-size: 18px; color: var(--color-primary-600);"></iconify-icon>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">水电缴费</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">在线缴费</div>
+            </div>
+          </div>
+          <div class="service-card" style="background: #fff; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(28,25,23,0.05);" onclick="window.location.href='service/service-home.html'" role="button" tabindex="0">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--color-error-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <iconify-icon icon="ri:heart-pulse-line" style="font-size: 18px; color: var(--color-error);"></iconify-icon>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">医保缴费</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">城乡居民医保</div>
+            </div>
+          </div>
+          <div class="service-card" style="background: #fff; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(28,25,23,0.05);" onclick="window.location.href='service/apply-form.html'" role="button" tabindex="0">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--color-accent-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <iconify-icon icon="ri:file-list-3-line" style="font-size: 18px; color: var(--color-accent-600);"></iconify-icon>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">证明开具</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">在线申请</div>
+            </div>
+          </div>
+          <div class="service-card" style="background: #fff; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(28,25,23,0.05);" onclick="window.location.href='discuss/topic-list.html'" role="button" tabindex="0">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--color-accent-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <iconify-icon icon="ri:group-line" style="font-size: 18px; color: var(--color-accent-600);"></iconify-icon>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">民主议事</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">参与讨论</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Banner轮播 -->
+      <div class="banner-wrapper">
+        <div class="banner" aria-label="轮播图">
+          <div class="banner-track">
+            <div class="banner-item" style="background: url('../images/banner-village.jpg') center/cover;">
+              <div style="padding: 20px; color: white; background: rgba(22,163,74,0.85);">
+                <div style="font-size: 16px; font-weight: 600;">数字乡村便民服务</div>
+                <div style="font-size: 12px; margin-top: 4px;">手机上就能办 少跑腿</div>
+              </div>
+            </div>
+            <div class="banner-item" style="background: url('../images/banner-village.jpg') center/cover;">
+              <div style="padding: 20px; color: white; background: rgba(15,118,110,0.85);">
+                <div style="font-size: 16px; font-weight: 600;">村民代表大会通知</div>
+                <div style="font-size: 12px; margin-top: 4px;">7月15日上午9:00 村委会会议室</div>
+              </div>
+            </div>
+            <div class="banner-item" style="background: url('../images/banner-village.jpg') center/cover;">
+              <div style="padding: 20px; color: white; background: rgba(217,119,6,0.85);">
+                <div style="font-size: 16px; font-weight: 600;">村庄环境整治活动</div>
+                <div style="font-size: 12px; margin-top: 4px;">7月20日上午 村委会门前集合</div>
+              </div>
+            </div>
+          </div>
+          <div class="banner-dots">
+            <div class="banner-dot active"></div>
+            <div class="banner-dot"></div>
+            <div class="banner-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下拉刷新 -->
+      <div class="pull-refresh">下拉刷新</div>
+
+      <!-- 最新村务 -->
+      <div class="card card--latest-affairs" aria-label="最新村务">
+        <div class="card__title">最新村务</div>
+        <a href="affairs/affairs-detail.html" class="card__link">
+          <div class="card__link-title">关于幸福村2026年度财务预算方案的公示</div>
+          <div class="card__link-date">2026-06-28</div>
+        </a>
+        <a href="affairs/affairs-detail.html" class="card__link">
+          <div class="card__link-title">关于开展村庄环境整治活动的通知</div>
+          <div class="card__link-date">2026-06-25</div>
+        </a>
+        <a href="affairs/affairs-detail.html" class="card__link">
+          <div class="card__link-title">2026年第二季度村务公开工作报告</div>
+          <div class="card__link-date">2026-06-20</div>
+        </a>
+        <a href="affairs/affairs-detail.html" class="card__link">
+          <div class="card__link-title">关于村内道路硬化工程招标结果的公告</div>
+          <div class="card__link-date">2026-06-18</div>
+        </a>
+        <a href="affairs/affairs-detail.html" class="card__link card__link--last">
+          <div class="card__link-title">幸福村2026年上半年惠农补贴发放公示</div>
+          <div class="card__link-date">2026-06-15</div>
+        </a>
+      </div>
+
+      <div class="load-more">没有更多了</div>
+    </main>
+
+    <!-- 底部TabBar -->
+    <nav class="tab-bar" role="tablist">
+      <a class="tab-item active" href="index.html" role="tab" aria-current="page">
+        <div class="tab-icon">
+          <iconify-icon icon="ri:home-4-fill"></iconify-icon>
+        </div>
+        <div class="tab-label">首页</div>
+      </a>
+      <a class="tab-item" href="service/service-home.html" role="tab">
+        <div class="tab-icon">
+          <iconify-icon icon="ri:customer-service-2-line"></iconify-icon>
+        </div>
+        <div class="tab-label">服务</div>
+      </a>
+      <a class="tab-item" href="points/points-home.html" role="tab">
+        <div class="tab-icon">
+          <iconify-icon icon="ri:star-line"></iconify-icon>
+        </div>
+        <div class="tab-label">积分</div>
+      </a>
+      <a class="tab-item" href="profile/profile.html" role="tab">
+        <div class="tab-icon">
+          <iconify-icon icon="ri:user-3-line"></iconify-icon>
+        </div>
+        <div class="tab-label">我的</div>
+      </a>
+    </nav>
+  </div>
+  <script src="js/villager.js"></script>
+</body>
+</html>

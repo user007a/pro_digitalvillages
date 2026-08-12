@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字乡村 - 事件上报</title>
+<link rel="stylesheet" href="../css/villager.css">
+</head>
+<body data-end="citizen">
+<div class="phone-container">
+<header>
+  <div class="nav-bar"><div class="nav-back" aria-label="返回"></div><h1 class="nav-title">事件上报</h1><div class="nav-right"></div></div>
+</header>
+<main class="page-content"><div class="page-body"><form data-validate onsubmit="return false"><div class="form-group"><label class="form-label">照片上传</label><div class="upload-area"><div class="upload-item">+<span class="upload-hint">最多上传9张，至少1张</span></div></div></div><div class="form-group"><label class="form-label">事件分类</label><select class="form-select" required style="font-size:16px;"><option value="">请选择事件分类</option><option>垃圾乱堆</option><option>污水直排</option><option>道路损坏</option><option>设施损坏</option><option>违章建筑</option><option>安全隐患</option><option>其他</option></select></div><div class="form-group"><label class="form-label">事件描述</label><textarea name="description" class="form-textarea" placeholder="请详细描述事件情况…" required autocomplete="off" style="font-size:16px;"></textarea></div><div class="form-group"><label class="form-label">事发地点</label><div class="location-info"><span class="location-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="location-text">自动定位中...</span><span class="location-btn">手动调整</span></div></div></form><button type="button" class="btn-primary" data-redirect="report-success.html">提交上报</button></div></main>
+</div>
+<script src="../js/villager.js"></script>
+</body>
+</html>

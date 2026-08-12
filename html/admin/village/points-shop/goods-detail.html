@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>商品详情 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="商品详情" data-page-subtitle="积分商品信息与上下架管理">
+
+  <!-- 顶部页头 -->
+  <div class="page-header" style="flex-direction:row;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="points-manage.html" class="btn"><iconify-icon icon="ri:arrow-left-line"></iconify-icon> 返回</a>
+      <h2>商品详情</h2>
+      <span class="text-muted" style="font-size:13px">积分商品信息与上下架管理</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="showToast('编辑功能已打开','info')"><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑</button>
+      <button class="btn" onclick="showConfirm({title:'上架确认',message:'确定上架该商品吗？',onConfirm:function(){showToast('上架成功','success')}})"><iconify-icon icon="ri:arrow-up-line"></iconify-icon> 上架</button>
+      <button class="btn" onclick="showConfirm({title:'下架确认',message:'确定下架该商品吗？',onConfirm:function(){showToast('下架成功','success')}})"><iconify-icon icon="ri:arrow-down-line"></iconify-icon> 下架</button>
+      <button class="btn btn-outline" style="color:#e34d59;border-color:#e34d59" onclick="showConfirm({title:'删除确认',message:'确定删除该商品吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon> 删除</button>
+    </div>
+  </div>
+
+  <!-- 商品详情卡片 -->
+  <div class="card" style="padding:24px">
+    <div style="display:flex;gap:32px;flex-wrap:wrap">
+      <!-- 商品图片 -->
+      <div style="width:240px;flex-shrink:0">
+        <img src="../../../images/village-card-2.jpg" style="width:240px;height:160px;object-fit:cover;border-radius:8px" alt="商品图片">
+      </div>
+      <!-- 商品信息 -->
+      <div style="flex:1;min-width:300px">
+        <div class="detail-grid">
+          <div class="detail-item detail-full"><span class="detail-label">商品名称</span><span class="detail-value" style="font-size:18px;font-weight:600">蓝月亮洗衣液 2kg</span></div>
+          <div class="detail-item"><span class="detail-label">商品分类</span><span class="detail-value"><span class="tag tag-blue">日用品</span></span></div>
+          <div class="detail-item"><span class="detail-label">上架状态</span><span class="detail-value"><span class="tag tag-green">上架</span></span></div>
+          <div class="detail-item"><span class="detail-label">所需积分</span><span class="detail-value" style="color:#22a84a;font-weight:600">300 分</span></div>
+          <div class="detail-item"><span class="detail-label">库存数量</span><span class="detail-value">80 件</span></div>
+          <div class="detail-item"><span class="detail-label">添加时间</span><span class="detail-value">2026-07-05 10:20</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">商品描述</span><span class="detail-value">蓝月亮深层洁净洗衣液，2kg 装，去污力强，温和不伤手。本商品仅限幸福村村民使用积分兑换，每人每月限兑 2 件。</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

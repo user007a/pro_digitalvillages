@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>巡查打卡</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="patrol-plan.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">巡查打卡</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 巡查计划信息 -->
+    <div class="card">
+      <div class="card-title">巡查计划信息</div>
+      <div class="info-row">
+        <div class="info-label">计划标题</div>
+        <div class="info-value">幸福村第一网格巡查</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">巡查区域</div>
+        <div class="info-value">第一网格（村东片区）</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">巡查要点</div>
+        <div class="info-value">检查河道卫生、垃圾清运、路面状况</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">签到位置</div>
+        <div class="info-value">幸福村村委会</div>
+      </div>
+    </div>
+
+    <!-- GPS定位 -->
+    <div class="card">
+      <div class="card-title">GPS定位</div>
+      <div class="map-placeholder">
+        <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> 幸福村村委会周边地图</span>
+      </div>
+      <div class="gps-info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        定位成功：幸福村村委会（第一网格起点）
+      </div>
+    </div>
+
+    <form data-validate onsubmit="return false">
+    <!-- 巡查照片上传 -->
+    <div class="card">
+      <div class="card-title">巡查照片</div>
+      <div class="upload-area">
+        <div class="upload-add" onclick="showToast('选择照片')">
+          <span class="upload-icon">+</span>
+          <span>添加照片</span>
+        </div>
+      </div>
+      <div class="text-sm text-gray" style="padding:4px 0;">拍摄巡查现场照片（1-9张）</div>
+    </div>
+
+    <!-- 巡查记录 -->
+    <div class="card">
+      <div class="card-title">巡查记录</div>
+      <textarea class="form-textarea" placeholder="请描述巡查情况…" rows="5" required></textarea>
+    </div>
+    </form>
+
+    <!-- 提交按钮 -->
+    <button class="btn btn-primary btn-block" onclick="showModal('打卡确认', '确认提交本次巡查打卡记录？', function(){ showToast('打卡成功'); })" style="font-size:16px;padding:14px;">签到打卡</button>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>脱贫户管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「运营人员」页面规范（南丰蜜桔·监测数据风格）：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 分页条默认 10 条/页；弹窗白底圆角、标题 18px、标签 13px
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 导入弹窗：上传区 */
+    .import-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .import-tpl { color: #16a34a; font-size: 13px; font-weight: 500; text-decoration: none; }
+    .import-tpl:hover { color: #15803d; text-decoration: underline; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>脱贫户管理</h2>
+        <p>管理本村脱贫户基础档案，支持新增编辑与批量导入导出，跟踪脱贫监测状态</p>
+      </div>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fName">户主姓名</label>
+        <input type="text" id="fName" class="form-input" placeholder="请输入户主姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fType">脱贫类型</label>
+        <select id="fType" class="form-select">
+          <option value="">全部</option>
+          <option>稳定脱贫</option>
+          <option>脱贫不稳定</option>
+          <option>边缘易致贫</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>已脱贫</option>
+          <option>监测中</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFilter()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 操作按钮 -->
+      <div class="table-actions-header">
+        <h3>脱贫户列表</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="button" class="btn btn-outline" onclick="openImportModal()">
+            <iconify-icon icon="ri:upload-2-line"></iconify-icon> 批量导入
+          </button>
+          <button type="button" class="btn btn-export" onclick="openExportModal()">
+            <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+          </button>
+          <button type="button" class="btn btn-primary" onclick="openModal('addPovertyModal')">
+            <iconify-icon icon="ri:add-line"></iconify-icon> 新增脱贫户
+          </button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>户主姓名</th>
+              <th>家庭编号</th>
+              <th>脱贫年份</th>
+              <th>脱贫类型</th>
+              <th>家庭人口</th>
+              <th>年收入</th>
+              <th>帮扶责任人</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="povertyTbody">
+            <tr data-type="稳定脱贫" data-status="已脱贫">
+              <td class="town-name">赵铁柱</td>
+              <td class="nums">XF-003</td>
+              <td class="nums">2020</td>
+              <td><span class="tag tag-green">稳定脱贫</span></td>
+              <td class="nums">5</td>
+              <td class="nums">65000 元</td>
+              <td>李建国</td>
+              <td><span class="tag tag-green">已脱贫</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-type="稳定脱贫" data-status="已脱贫">
+              <td class="town-name">孙富贵</td>
+              <td class="nums">XF-004</td>
+              <td class="nums">2019</td>
+              <td><span class="tag tag-green">稳定脱贫</span></td>
+              <td class="nums">2</td>
+              <td class="nums">38000 元</td>
+              <td>周小敏</td>
+              <td><span class="tag tag-green">已脱贫</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-type="脱贫不稳定" data-status="监测中">
+              <td class="town-name">吴德发</td>
+              <td class="nums">XF-006</td>
+              <td class="nums">2021</td>
+              <td><span class="tag tag-orange">脱贫不稳定</span></td>
+              <td class="nums">3</td>
+              <td class="nums">28000 元</td>
+              <td>李建国</td>
+              <td><span class="tag tag-orange">监测中</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-type="稳定脱贫" data-status="已脱贫">
+              <td class="town-name">黄国庆</td>
+              <td class="nums">TP-007</td>
+              <td class="nums">2020</td>
+              <td><span class="tag tag-green">稳定脱贫</span></td>
+              <td class="nums">4</td>
+              <td class="nums">52000 元</td>
+              <td>周小敏</td>
+              <td><span class="tag tag-green">已脱贫</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-type="边缘易致贫" data-status="监测中">
+              <td class="town-name">钱有财</td>
+              <td class="nums">TP-008</td>
+              <td class="nums">2022</td>
+              <td><span class="tag tag-yellow">边缘易致贫</span></td>
+              <td class="nums">3</td>
+              <td class="nums">24000 元</td>
+              <td>李建国</td>
+              <td><span class="tag tag-orange">监测中</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-type="稳定脱贫" data-status="已脱贫">
+              <td class="town-name">周淑芬</td>
+              <td class="nums">TP-009</td>
+              <td class="nums">2019</td>
+              <td><span class="tag tag-green">稳定脱贫</span></td>
+              <td class="nums">2</td>
+              <td class="nums">36000 元</td>
+              <td>周小敏</td>
+              <td><span class="tag tag-green">已脱贫</span></td>
+              <td class="op-cell"></td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">6</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增脱贫户弹窗 -->
+  <div class="modal-overlay" id="addPovertyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:user-add-line"></iconify-icon> 新增脱贫户</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addPovertyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pHead"><span class="req">*</span>户主姓名</label>
+              <input type="text" id="pHead" class="form-input" placeholder="请输入户主姓名…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="pNo"><span class="req">*</span>家庭编号</label>
+              <input type="text" id="pNo" class="form-input" placeholder="请输入家庭编号…" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pYear"><span class="req">*</span>脱贫年份</label>
+              <input type="text" id="pYear" class="form-input" placeholder="请输入脱贫年份…" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="pType"><span class="req">*</span>脱贫类型</label>
+              <select id="pType" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>稳定脱贫</option>
+                <option>脱贫不稳定</option>
+                <option>边缘易致贫</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pPopulation"><span class="req">*</span>家庭人口</label>
+              <input type="text" id="pPopulation" class="form-input" placeholder="请输入家庭人口数…" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="pIncome"><span class="req">*</span>年收入</label>
+              <input type="text" id="pIncome" class="form-input" placeholder="请输入年收入（元）…" required autocomplete="off" inputmode="numeric">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pHelper">帮扶责任人</label>
+              <input type="text" id="pHelper" class="form-input" placeholder="请输入帮扶责任人…" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="pStatus"><span class="req">*</span>状态</label>
+              <select id="pStatus" class="form-select" required>
+                <option value="已脱贫">已脱贫</option>
+                <option value="监测中">监测中</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addPovertyModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAddPoverty()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看脱贫户弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewPovertyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-user-line"></iconify-icon> 脱贫户详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewPovertyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">户主姓名</span><span class="detail-value" id="viewPHead">—</span></div>
+          <div class="detail-item"><span class="detail-label">家庭编号</span><span class="detail-value" id="viewPNo">—</span></div>
+          <div class="detail-item"><span class="detail-label">脱贫年份</span><span class="detail-value" id="viewPYear">—</span></div>
+          <div class="detail-item"><span class="detail-label">脱贫类型</span><span class="detail-value" id="viewPType">—</span></div>
+          <div class="detail-item"><span class="detail-label">家庭人口</span><span class="detail-value" id="viewPPopulation">—</span></div>
+          <div class="detail-item"><span class="detail-label">年收入</span><span class="detail-value" id="viewPIncome">—</span></div>
+          <div class="detail-item"><span class="detail-label">帮扶责任人</span><span class="detail-value" id="viewPHelper">—</span></div>
+          <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewPStatus">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewPovertyModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑脱贫户弹窗 -->
+  <div class="modal-overlay" id="editPovertyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑脱贫户</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editPovertyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPHead"><span class="req">*</span>户主姓名</label>
+              <input type="text" id="editPHead" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editPNo"><span class="req">*</span>家庭编号</label>
+              <input type="text" id="editPNo" class="form-input" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPYear"><span class="req">*</span>脱贫年份</label>
+              <input type="text" id="editPYear" class="form-input" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="editPType"><span class="req">*</span>脱贫类型</label>
+              <select id="editPType" class="form-select" required>
+                <option>稳定脱贫</option>
+                <option>脱贫不稳定</option>
+                <option>边缘易致贫</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPPopulation"><span class="req">*</span>家庭人口</label>
+              <input type="text" id="editPPopulation" class="form-input" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="editPIncome"><span class="req">*</span>年收入</label>
+              <input type="text" id="editPIncome" class="form-input" required autocomplete="off" inputmode="numeric">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPHelper">帮扶责任人</label>
+              <input type="text" id="editPHelper" class="form-input" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editPStatus"><span class="req">*</span>状态</label>
+              <select id="editPStatus" class="form-select" required>
+                <option>已脱贫</option>
+                <option>监测中</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editPovertyModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditPoverty()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 批量导入弹窗 -->
+  <div class="modal-overlay" id="importModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:upload-2-line"></iconify-icon> 批量导入脱贫户</h3>
+        <button type="button" class="modal-close" onclick="closeModal('importModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="import-tip">请选择 Excel 文件（.xlsx / .xls），按导入模板字段批量新增脱贫户档案，导入前请核对数据准确性。</p>
+        <div class="upload-area" onclick="document.getElementById('importFile').click()">
+          <iconify-icon icon="ri:upload-cloud-2-line" class="upload-icon"></iconify-icon>
+          <p class="upload-text">点击或拖拽文件到此区域上传</p>
+          <p class="upload-hint">支持 .xlsx、.xls 格式，单文件不超过 10MB</p>
+          <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none">
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label for="importFile">导入模板</label>
+          <a href="javascript:void(0)" class="import-tpl" onclick="downloadTemplate()">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon> 下载导入模板（脱贫户档案.xlsx）
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('importModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="confirmImport()">确认导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出脱贫户数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前筛选结果导出脱贫户档案列表。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="脱贫户列表" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- 搜索筛选：户主姓名 / 脱贫类型 / 状态 + 分页（默认 10 条/页） ---- */
+      var tbody = document.getElementById('povertyTbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+      var pageSize = 10;
+      var currentPage = 1;
+
+      /* 获取当前筛选条件下应显示的行集合（未分页） */
+      function getVisibleRows() {
+        var name = document.getElementById('fName').value.trim().toLowerCase();
+        var type = document.getElementById('fType').value;
+        var status = document.getElementById('fStatus').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var show = true;
+          if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+          if (show && type && row.getAttribute('data-type') !== type) show = false;
+          if (show && status && row.getAttribute('data-status') !== status) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      /* 统一渲染：筛选 + 分页 */
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      /* 分页条事件（事件委托） */
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) {
+          currentPage = parseInt(numBtn.getAttribute('data-page'), 10);
+          renderRows();
+          return;
+        }
+        if (e.target.closest('.pager-prev')) {
+          if (currentPage > 1) { currentPage--; renderRows(); }
+          return;
+        }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      window.queryFilter = function () { currentPage = 1; renderRows(); };
+      window.resetFilter = function () {
+        document.getElementById('fName').value = '';
+        document.getElementById('fType').value = '';
+        document.getElementById('fStatus').value = '';
+        queryFilter();
+      };
+
+      /* ---- 操作列渲染 ---- */
+      function renderOpCell(row) {
+        var cell = row.querySelector('.op-cell');
+        cell.innerHTML =
+          '<button type="button" class="btn-op" onclick="viewPoverty(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-edit" onclick="openEditPoverty(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="deletePoverty(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      }
+
+      /* ---- 查看详情 ---- */
+      window.viewPoverty = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewPHead').textContent = td[0].textContent.trim();
+        document.getElementById('viewPNo').textContent = td[1].textContent.trim();
+        document.getElementById('viewPYear').textContent = td[2].textContent.trim();
+        document.getElementById('viewPType').innerHTML = td[3].innerHTML;
+        document.getElementById('viewPPopulation').textContent = td[4].textContent.trim();
+        document.getElementById('viewPIncome').textContent = td[5].textContent.trim();
+        document.getElementById('viewPHelper').textContent = td[6].textContent.trim();
+        document.getElementById('viewPStatus').innerHTML = td[7].innerHTML;
+        openModal('viewPovertyModal');
+      };
+
+      /* ---- 编辑 ---- */
+      window.openEditPoverty = function (btn) {
+        var row = btn.closest('tr');
+        window._editRow = row;
+        var td = row.cells;
+        document.getElementById('editPHead').value = td[0].textContent.trim();
+        document.getElementById('editPNo').value = td[1].textContent.trim();
+        document.getElementById('editPYear').value = td[2].textContent.trim();
+        document.getElementById('editPType').value = td[3].textContent.trim();
+        document.getElementById('editPPopulation').value = td[4].textContent.trim();
+        document.getElementById('editPIncome').value = td[5].textContent.trim().replace(/ 元$/, '');
+        document.getElementById('editPHelper').value = td[6].textContent.trim();
+        document.getElementById('editPStatus').value = td[7].textContent.trim();
+        openModal('editPovertyModal');
+      };
+
+      window.submitEditPoverty = function () {
+        var head = document.getElementById('editPHead').value.trim();
+        var no = document.getElementById('editPNo').value.trim();
+        if (!head || !no) { showToast('请完整填写必填信息', 'warning'); return; }
+        var row = window._editRow;
+        if (row) {
+          var type = document.getElementById('editPType').value;
+          var status = document.getElementById('editPStatus').value;
+          var typeTag = row.cells[3].querySelector('.tag');
+          typeTag.className = 'tag ' + (type === '稳定脱贫' ? 'tag-green' : type === '脱贫不稳定' ? 'tag-orange' : 'tag-yellow');
+          typeTag.textContent = type;
+          row.setAttribute('data-type', type);
+          var statusTag = row.cells[7].querySelector('.tag');
+          statusTag.className = 'tag ' + (status === '已脱贫' ? 'tag-green' : 'tag-orange');
+          statusTag.textContent = status;
+          row.setAttribute('data-status', status);
+          row.cells[0].textContent = head;
+          row.cells[1].textContent = no;
+          row.cells[2].textContent = document.getElementById('editPYear').value.trim();
+          row.cells[4].textContent = document.getElementById('editPPopulation').value.trim();
+          row.cells[5].textContent = (document.getElementById('editPIncome').value.trim() || '0') + ' 元';
+          row.cells[6].textContent = document.getElementById('editPHelper').value.trim() || '—';
+        }
+        closeModal('editPovertyModal');
+        renderRows();
+        showToast('保存成功', 'success');
+      };
+
+      /* ---- 删除 ---- */
+      window.deletePoverty = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        showConfirm({
+          title: '删除确认',
+          message: '确定删除脱贫户「' + name + '」的记录吗？删除后不可恢复。',
+          confirmText: '确认删除',
+          onConfirm: function () {
+            row.parentNode.removeChild(row);
+            renderRows();
+            showToast('删除成功', 'success');
+          }
+        });
+      };
+
+      /* ---- 新增脱贫户 ---- */
+      window.submitAddPoverty = function () {
+        var head = document.getElementById('pHead').value.trim();
+        var no = document.getElementById('pNo').value.trim();
+        var year = document.getElementById('pYear').value.trim();
+        var type = document.getElementById('pType').value;
+        var population = document.getElementById('pPopulation').value.trim();
+        var income = document.getElementById('pIncome').value.trim();
+        var helper = document.getElementById('pHelper').value.trim();
+        var status = document.getElementById('pStatus').value;
+        if (!head || !no || !year || !type || !population || !income) {
+          showToast('请完整填写必填信息', 'warning');
+          return;
+        }
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-type', type);
+        tr.setAttribute('data-status', status);
+        tr.innerHTML =
+          '<td class="town-name">' + escapeHtml(head) + '</td>' +
+          '<td class="nums">' + escapeHtml(no) + '</td>' +
+          '<td class="nums">' + escapeHtml(year) + '</td>' +
+          '<td><span class="tag ' + (type === '稳定脱贫' ? 'tag-green' : type === '脱贫不稳定' ? 'tag-orange' : 'tag-yellow') + '">' + escapeHtml(type) + '</span></td>' +
+          '<td class="nums">' + escapeHtml(population) + '</td>' +
+          '<td class="nums">' + escapeHtml(income) + ' 元</td>' +
+          '<td>' + (helper ? escapeHtml(helper) : '—') + '</td>' +
+          '<td><span class="tag ' + (status === '已脱贫' ? 'tag-green' : 'tag-orange') + '">' + escapeHtml(status) + '</span></td>' +
+          '<td class="op-cell"></td>';
+        renderOpCell(tr);
+        tbody.insertBefore(tr, tbody.firstChild);
+        ['pHead', 'pNo', 'pYear', 'pType', 'pPopulation', 'pIncome', 'pHelper']
+          .forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el.tagName === 'SELECT') el.value = '';
+            else el.value = '';
+          });
+        document.getElementById('pStatus').value = '已脱贫';
+        currentPage = 1;
+        resetFilter();
+        closeModal('addPovertyModal');
+        showToast('保存成功', 'success');
+      };
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      /* ---- 批量导入 ---- */
+      window.openImportModal = function () {
+        document.getElementById('importFile').value = '';
+        openModal('importModal');
+      };
+      window.downloadTemplate = function () {
+        showToast('模板下载已开始：脱贫户档案模板.xlsx', 'success');
+      };
+      window.confirmImport = function () {
+        var file = document.getElementById('importFile');
+        if (!file || !file.files || file.files.length === 0) {
+          showToast('请先选择要导入的 Excel 文件', 'warning');
+          return;
+        }
+        closeModal('importModal');
+        showToast('导入成功：共导入 1 个文件，新增脱贫户记录', 'success');
+      };
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () {
+        openModal('exportModal');
+      };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '脱贫户列表';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+
+      /* ---- 追加 19 条 Mock 数据（共 25 条，验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var names = ['王德旺', '李秀芝', '刘永福', '陈春花', '杨光明', '黄志远', '周福贵', '吴桂兰', '郑丰收', '何家旺', '高建国', '林玉梅', '徐世友', '孙长富', '冯小翠', '韩宝山', '秦桂英', '朱永刚', '蒋玉兰'];
+        var types = ['稳定脱贫', '脱贫不稳定', '边缘易致贫'];
+        var helpers = ['李建国', '周小敏', '陈丽华'];
+        for (var i = 0; i < 19; i++) {
+          var type = types[i % 3];
+          var status = type === '稳定脱贫' ? '已脱贫' : '监测中';
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-type', type);
+          tr.setAttribute('data-status', status);
+          tr.innerHTML =
+            '<td class="town-name">' + names[i % names.length] + '</td>' +
+            '<td class="nums">' + ((i % 2 === 0) ? 'XF-0' : 'TP-1') + (10 + i) + '</td>' +
+            '<td class="nums">' + (2018 + (i % 5)) + '</td>' +
+            '<td><span class="tag ' + (type === '稳定脱贫' ? 'tag-green' : type === '脱贫不稳定' ? 'tag-orange' : 'tag-yellow') + '">' + type + '</span></td>' +
+            '<td class="nums">' + (1 + (i % 6)) + '</td>' +
+            '<td class="nums">' + (20000 + ((i * 7000) % 50000)) + ' 元</td>' +
+            '<td>' + helpers[i % helpers.length] + '</td>' +
+            '<td><span class="tag ' + (status === '已脱贫' ? 'tag-green' : 'tag-orange') + '">' + status + '</span></td>' +
+            '<td class="op-cell"></td>';
+          tbody.appendChild(tr);
+          renderOpCell(tr);
+        }
+      })();
+
+      /* 初始化静态行操作列并渲染 */
+      tbody.querySelectorAll('tr').forEach(function (row) {
+        if (!row.querySelector('.op-cell .btn-op')) renderOpCell(row);
+      });
+      renderRows();
+    })();
+  </script>
+</body>
+</html>

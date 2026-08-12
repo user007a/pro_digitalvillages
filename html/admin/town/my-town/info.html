@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>乡镇信息 - 乡级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <!-- 本页样式：对齐「南丰蜜桔监测数据页」——标题/副标题字号、Tab、表格、分页、页面边距，
+       并按需求去掉统计卡片、新增按钮下放各 Tab 列表头、美化弹窗、丰富乡镇概况。 -->
+  <style>
+    /* ========== 页面容器与页头（对齐监测数据页：padding 24px / h1 20px / p 14px） ========== */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; text-align: left; }
+    .dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; text-align: left; }
+
+    /* ========== Tab（对齐监测数据页：白卡圆角 + 轻阴影，激活绿色下划线） ========== */
+    .dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 8px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; text-align: left; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ========== 数据列表卡片：标题行（标题左 + 新增按钮右） + 表格 + 分页 ========== */
+    .table-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* ========== 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） ========== */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+
+    /* 表格图片缩略图 */
+    .thumb-img { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f3; display: inline-block; vertical-align: middle; background: #f9fafb; }
+    .thumb-img-lg { width: 96px; height: 64px; }
+
+    /* ========== 分页（对齐监测数据页：text-xs / 上分隔线） ========== */
+    .table-card .pagination { border: none; box-shadow: none; border-radius: 0 0 12px 12px; border-top: 1px solid #f0f2f5; margin: 0; padding: 12px 20px; }
+    .pagination.pg-pager .page-total { font-size: 12px; color: #6b7280; }
+    .pagination.pg-pager .page-size-select { height: 30px; font-size: 12px; }
+    .pagination.pg-pager .page-btn { height: 30px; font-size: 12px; }
+
+    /* ========== 乡镇概况：横幅 + 关键指标 + 基本信息 + 下辖行政村 ========== */
+    .survey-banner { position: relative; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; border: 1px solid #eef0f3; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); }
+    .survey-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .survey-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.38) 50%, rgba(22,163,74,0.16) 100%); }
+    .survey-banner-info { position: absolute; left: 32px; bottom: 26px; z-index: 2; color: #fff; }
+    .survey-banner-info h3 { font-size: 26px; font-weight: 700; margin: 0 0 6px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); text-align: left; }
+    .survey-banner-info p { font-size: 14px; margin: 0; opacity: 0.95; text-align: left; }
+    .survey-banner-tag { display: inline-block; margin-top: 10px; padding: 2px 12px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #166534; font-size: 12px; font-weight: 600; }
+
+    .survey-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+    .survey-kpi { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; padding: 16px 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); }
+    .survey-kpi-label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .survey-kpi-value { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.2; }
+    .survey-kpi-value em { font-style: normal; font-size: 12px; font-weight: 500; color: #6b7280; margin-left: 2px; }
+    @media (max-width: 1100px) { .survey-kpis { grid-template-columns: repeat(3, 1fr); } }
+
+    .survey-detail { padding: 0; margin-bottom: 16px; }
+    .survey-detail .detail-grid { padding: 8px 4px 8px; }
+
+    .survey-villages { padding: 0; }
+    .village-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 20px 20px; }
+    .village-item { border: 1px solid #eef0f3; border-radius: 12px; overflow: hidden; background: #fff; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .village-item:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+    .village-item img { width: 100%; height: 104px; object-fit: cover; display: block; }
+    .village-item-body { padding: 12px 14px 14px; }
+    .village-item-body h4 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #1f2937; text-align: left; }
+    .village-item-body p { margin: 0 0 8px; font-size: 12px; color: #6b7280; line-height: 1.6; }
+    .village-item-tag { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 11px; background: #f0fdf4; color: #16a34a; font-weight: 600; }
+    @media (max-width: 1100px) { .village-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ========== 弹窗美化（对齐监测数据页：圆角 12px / 头部图标 / footer 灰底） ========== */
+    .modal-overlay { padding: 16px; }
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    /* 详情弹窗（绿色渐变头）内部图标颜色 */
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    /* 确认删除弹窗 */
+    .confirm-modal .modal { max-width: 420px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    @media (max-width: 768px) {
+      .dv-page-header { flex-direction: column; align-items: flex-start; }
+      .survey-banner { height: 150px; }
+      .survey-banner-info { left: 20px; bottom: 18px; }
+      .survey-banner-info h3 { font-size: 20px; }
+    }
+  </style>
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../../shared/js/export-helper.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="乡镇信息" data-page-subtitle="乡镇基本信息、名片、发布与机构管理" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域：左标题+描述（新增按钮已下放各 Tab 列表头） -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>乡镇信息</h2>
+      <span class="text-muted">乡镇概况、名片、发布、机构与网格统一管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：乡镇概况 → 乡镇名片 → 乡镇发布 → 机构管理 → 乡镇网格 -->
+  <div class="tab-bar dv-tabbar" id="townTabs">
+    <div class="tab-item active" onclick="switchTownTab(this)" data-tab="survey">乡镇概况</div>
+    <div class="tab-item" onclick="switchTownTab(this)" data-tab="card">乡镇名片</div>
+    <div class="tab-item" onclick="switchTownTab(this)" data-tab="info">乡镇发布</div>
+    <div class="tab-item" onclick="switchTownTab(this)" data-tab="org">机构管理</div>
+    <div class="tab-item" onclick="switchTownTab(this)" data-tab="grid">乡镇网格</div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡镇概况 ==================== -->
+  <div class="tab-panel" id="tab-survey">
+
+    <!-- 概况横幅 -->
+    <div class="survey-banner">
+      <img src="../../../images/village-aerial.jpg" alt="益农镇全景">
+      <div class="survey-banner-info">
+        <h3>益农镇</h3>
+        <p>蜜桔之乡 · 乡村振兴示范镇 · 生态宜居小镇</p>
+        <span class="survey-banner-tag">镇情概览</span>
+      </div>
+    </div>
+
+    <!-- 关键指标 -->
+    <div class="survey-kpis">
+      <div class="survey-kpi"><span class="survey-kpi-label">行政面积</span><span class="survey-kpi-value">126.5<em>平方公里</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">下辖村</span><span class="survey-kpi-value">4<em>个</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">总人口</span><span class="survey-kpi-value">18620<em>人</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">总户数</span><span class="survey-kpi-value">5428<em>户</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">耕地面积</span><span class="survey-kpi-value">3.2<em>万亩</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">山林面积</span><span class="survey-kpi-value">6.8<em>万亩</em></span></div>
+    </div>
+
+    <!-- 基本信息详情 -->
+    <div class="card survey-detail">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:file-info-line"></iconify-icon>基本信息</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('editSurveyModal')"><iconify-icon icon="ri:edit-2-line"></iconify-icon> 编辑信息</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">乡镇名称</span><span class="detail-value">益农镇</span></div>
+        <div class="detail-item"><span class="detail-label">行政区划代码</span><span class="detail-value">361023-100</span></div>
+        <div class="detail-item"><span class="detail-label">面积</span><span class="detail-value">126.5 平方公里</span></div>
+        <div class="detail-item"><span class="detail-label">下辖村数</span><span class="detail-value">4</span></div>
+        <div class="detail-item"><span class="detail-label">总人口</span><span class="detail-value">18620</span></div>
+        <div class="detail-item"><span class="detail-label">总户数</span><span class="detail-value">5428</span></div>
+        <div class="detail-item"><span class="detail-label">常住人口</span><span class="detail-value">16230</span></div>
+        <div class="detail-item"><span class="detail-label">耕地面积</span><span class="detail-value">3.2 万亩</span></div>
+        <div class="detail-item"><span class="detail-label">山林面积</span><span class="detail-value">6.8 万亩</span></div>
+        <div class="detail-item"><span class="detail-label">主导产业</span><span class="detail-value">蜜桔种植、乡村旅游</span></div>
+        <div class="detail-item"><span class="detail-label">交通区位</span><span class="detail-value">县城南部，G206 国道、南桔高速穿境而过</span></div>
+        <div class="detail-item"><span class="detail-label">气候特点</span><span class="detail-value">亚热带季风气候，年均气温 18.2℃，年降雨量约 1600mm</span></div>
+        <div class="detail-item"><span class="detail-label">地形地貌</span><span class="detail-value">丘陵山地为主，沿河小平原，蜜桔果园成片分布</span></div>
+        <div class="detail-item"><span class="detail-label">历史沿革</span><span class="detail-value">明嘉靖年间设益农驿，清雍正年间建制立镇，历为县境南部商贸重镇</span></div>
+        <div class="detail-item"><span class="detail-label">荣誉称号</span><span class="detail-value">省级乡村振兴示范镇 · 蜜桔产业强镇 · 生态文明建设示范镇</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">乡镇简介</span><span class="detail-value">益农镇位于县域南部，辖幸福村、平安村、丰收村、金桔村 4 个行政村，以蜜桔种植与乡村旅游为特色主导产业，是全县乡村振兴示范镇。</span></div>
+      </div>
+    </div>
+
+    <!-- 下辖行政村 -->
+    <div class="card survey-villages">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:community-line"></iconify-icon>下辖行政村</h3>
+      </div>
+      <div class="village-grid">
+        <div class="village-item">
+          <img src="../../../images/village-card-1.jpg" alt="幸福村">
+          <div class="village-item-body">
+            <h4>幸福村</h4>
+            <p>人口 4860 人 · 蜜桔产业示范村，乡村旅游示范点，网格 2 个</p>
+            <span class="village-item-tag">蜜桔之乡</span>
+          </div>
+        </div>
+        <div class="village-item">
+          <img src="../../../images/village-card-2.jpg" alt="平安村">
+          <div class="village-item-body">
+            <h4>平安村</h4>
+            <p>人口 4620 人 · 基层治理示范村，矛盾纠纷化解先进村，网格 2 个</p>
+            <span class="village-item-tag">平安乡村</span>
+          </div>
+        </div>
+        <div class="village-item">
+          <img src="../../../images/village-card-3.jpg" alt="丰收村">
+          <div class="village-item-body">
+            <h4>丰收村</h4>
+            <p>人口 4680 人 · 粮食主产村，农业机械化示范村，网格 1 个</p>
+            <span class="village-item-tag">粮食丰产</span>
+          </div>
+        </div>
+        <div class="village-item">
+          <img src="../../../images/village-card-4.jpg" alt="金桔村">
+          <div class="village-item-body">
+            <h4>金桔村</h4>
+            <p>人口 4460 人 · 金桔特色产业村，特色水果种植专业村，网格 1 个</p>
+            <span class="village-item-tag">金桔特色</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡镇名片 ==================== -->
+  <div class="tab-panel" id="tab-card" style="display:none">
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:bookmark-line"></iconify-icon>名片列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('addCardModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增名片</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>名片标题</th>
+              <th>名片图片</th>
+              <th>名片介绍</th>
+              <th>特色亮点</th>
+              <th>联系方式</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>益农镇蜜桔之乡名片</td>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="益农镇蜜桔之乡名片"></td>
+              <td>金秋蜜桔，甜在心间</td>
+              <td>蜜桔种植3万亩，年产值过亿</td>
+              <td>0791-88888001</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCardModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCardModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该名片吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇乡村旅游名片</td>
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="益农镇乡村旅游名片"></td>
+              <td>山水田园，宜居宜游</td>
+              <td>4A级景区1个，农家乐36家</td>
+              <td>0791-88888002</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCardModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCardModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该名片吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇民俗文化名片</td>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="益农镇民俗文化名片"></td>
+              <td>古镇遗韵，民风淳朴</td>
+              <td>省级非遗2项，传统村落1处</td>
+              <td>0791-88888003</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCardModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCardModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该名片吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇特色产业名片</td>
+              <td><img class="thumb-img" src="../../../images/banner-village.jpg" alt="益农镇特色产业名片"></td>
+              <td>一村一品，多元发展</td>
+              <td>蜜桔、茶叶、竹笋三大主导产业</td>
+              <td>0791-88888004</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCardModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCardModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该名片吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 4 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡镇发布（原乡镇信息） ==================== -->
+  <div class="tab-panel" id="tab-info" style="display:none">
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:megaphone-line"></iconify-icon>发布列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('addInfoModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增发布</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>封面图</th>
+              <th>信息分类</th>
+              <th>发布时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>益农镇乡村振兴示范镇建设动态</td>
+              <td><img class="thumb-img" src="../../../images/village-aerial.jpg" alt="封面图"></td>
+              <td><span class="tag tag-blue">乡镇动态</span></td>
+              <td>2026-07-08</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>关于2026年涉农补贴政策解读</td>
+              <td><img class="thumb-img" src="../../../images/rural-bg-real.jpg" alt="封面图"></td>
+              <td><span class="tag tag-orange">政策解读</span></td>
+              <td>2026-07-12</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇政务服务中心便民服务指南</td>
+              <td><img class="thumb-img" src="../../../images/banner-village.jpg" alt="封面图"></td>
+              <td><span class="tag tag-purple">便民信息</span></td>
+              <td>2026-07-15</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇农旅融合发展动态</td>
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="封面图"></td>
+              <td><span class="tag tag-blue">乡镇动态</span></td>
+              <td>2026-08-02</td>
+              <td><span class="tag tag-gray">草稿</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>农村宅基地审批政策解读</td>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="封面图"></td>
+              <td><span class="tag tag-orange">政策解读</span></td>
+              <td>2026-07-25</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇防汛避险便民服务公告</td>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="封面图"></td>
+              <td><span class="tag tag-purple">便民信息</span></td>
+              <td>2026-08-06</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewInfoModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editInfoModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该信息吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：机构管理 ==================== -->
+  <div class="tab-panel" id="tab-org" style="display:none">
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:building-line"></iconify-icon>机构列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('addOrgModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增机构</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>机构名称</th>
+              <th>机构类型</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>地址</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>益农镇人民政府</td>
+              <td><span class="tag tag-blue">政府机关</span></td>
+              <td>李建国</td>
+              <td>0791-88888001</td>
+              <td>益农镇政府路1号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇农业服务中心</td>
+              <td><span class="tag tag-purple">事业单位</span></td>
+              <td>张明远</td>
+              <td>0791-88888002</td>
+              <td>益农镇政府路3号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇蜜桔产销合作社</td>
+              <td><span class="tag tag-green">企业</span></td>
+              <td>周大勇</td>
+              <td>138****5678</td>
+              <td>幸福村18号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇乡村旅游协会</td>
+              <td><span class="tag tag-orange">社会组织</span></td>
+              <td>黄春兰</td>
+              <td>136****8901</td>
+              <td>金桔村22号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇水利管理站</td>
+              <td><span class="tag tag-purple">事业单位</span></td>
+              <td>郑国良</td>
+              <td>0791-88888005</td>
+              <td>益农镇水利路5号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇综合执法队</td>
+              <td><span class="tag tag-blue">政府机关</span></td>
+              <td>孙志强</td>
+              <td>0791-88888006</td>
+              <td>益农镇执法路8号</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该机构吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡镇网格 ==================== -->
+  <div class="tab-panel" id="tab-grid" style="display:none">
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:grid-line"></iconify-icon>网格列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('addGridModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增网格</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>网格图片</th>
+              <th>网格名称</th>
+              <th>网格编号</th>
+              <th>所属村</th>
+              <th>网格员</th>
+              <th>网格范围</th>
+              <th>户数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="幸福村第一网格"></td>
+              <td>幸福村第一网格</td>
+              <td>WG-2026-001</td>
+              <td>幸福村</td>
+              <td>李建国</td>
+              <td>幸福村 1-30 号</td>
+              <td>86</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="幸福村第二网格"></td>
+              <td>幸福村第二网格</td>
+              <td>WG-2026-002</td>
+              <td>幸福村</td>
+              <td>赵卫国</td>
+              <td>幸福村 31-60 号</td>
+              <td>92</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="平安村第一网格"></td>
+              <td>平安村第一网格</td>
+              <td>WG-2026-003</td>
+              <td>平安村</td>
+              <td>王秀英</td>
+              <td>平安村 1-25 号</td>
+              <td>75</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="平安村第二网格"></td>
+              <td>平安村第二网格</td>
+              <td>WG-2026-004</td>
+              <td>平安村</td>
+              <td>孙志强</td>
+              <td>平安村 26-50 号</td>
+              <td>81</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="丰收村第一网格"></td>
+              <td>丰收村第一网格</td>
+              <td>WG-2026-005</td>
+              <td>丰收村</td>
+              <td>张明远</td>
+              <td>丰收村 1-35 号</td>
+              <td>105</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="金桔村第一网格"></td>
+              <td>金桔村第一网格</td>
+              <td>WG-2026-006</td>
+              <td>金桔村</td>
+              <td>陈丽华</td>
+              <td>金桔村 1-40 号</td>
+              <td>98</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewGridModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editGridModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该网格吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：乡镇网格 ==================== -->
+
+<!-- 新增网格弹窗 -->
+<div class="modal-overlay" id="addGridModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:grid-line"></iconify-icon>新增网格</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addGridModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gridName"><span class="req">*</span>网格名称</label>
+            <input type="text" id="gridName" class="form-input" placeholder="请输入网格名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="gridCode"><span class="req">*</span>网格编号</label>
+            <input type="text" id="gridCode" class="form-input" placeholder="如 WG-2026-001…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gridVillage"><span class="req">*</span>所属村</label>
+            <select id="gridVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="gridWorker"><span class="req">*</span>网格员</label>
+            <input type="text" id="gridWorker" class="form-input" placeholder="请输入网格员姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="gridRange">网格范围</label>
+          <textarea id="gridRange" class="form-input" rows="2" placeholder="请输入网格范围…" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="gridHouseholds">户数</label>
+          <input type="number" id="gridHouseholds" class="form-input" min="0" inputmode="numeric" placeholder="请输入户数…" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addGridModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addGridModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看网格弹窗 -->
+<div class="modal-overlay detail-modal" id="viewGridModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>网格详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewGridModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">网格名称</span><span class="detail-value">幸福村第一网格</span></div>
+        <div class="detail-item"><span class="detail-label">网格编号</span><span class="detail-value">WG-2026-001</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">网格员</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">户数</span><span class="detail-value">86</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">网格范围</span><span class="detail-value">幸福村 1-30 号</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">网格图片</span><span class="detail-value"><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="幸福村第一网格"></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewGridModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑网格弹窗 -->
+<div class="modal-overlay" id="editGridModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑网格</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editGridModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editGridName"><span class="req">*</span>网格名称</label>
+            <input type="text" id="editGridName" class="form-input" value="幸福村第一网格" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editGridCode"><span class="req">*</span>网格编号</label>
+            <input type="text" id="editGridCode" class="form-input" value="WG-2026-001" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editGridVillage"><span class="req">*</span>所属村</label>
+            <select id="editGridVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editGridWorker"><span class="req">*</span>网格员</label>
+            <input type="text" id="editGridWorker" class="form-input" value="李建国" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editGridRange">网格范围</label>
+          <textarea id="editGridRange" class="form-input" rows="2" autocomplete="off">幸福村 1-30 号</textarea>
+        </div>
+        <div class="form-group">
+          <label for="editGridHouseholds">户数</label>
+          <input type="number" id="editGridHouseholds" class="form-input" min="0" inputmode="numeric" value="86" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editGridModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editGridModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：乡镇概况 ==================== -->
+
+<!-- 编辑概况弹窗 -->
+<div class="modal-overlay" id="editSurveyModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑乡镇概况</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editSurveyModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="surveyArea"><span class="req">*</span>面积（平方公里）</label>
+            <input type="number" id="surveyArea" class="form-input" value="126.5" min="0" step="0.1" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="surveyVillage"><span class="req">*</span>下辖村数</label>
+            <input type="number" id="surveyVillage" class="form-input" value="4" min="0" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="surveyPopulation"><span class="req">*</span>总人口</label>
+            <input type="number" id="surveyPopulation" class="form-input" value="18620" min="0" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="surveyHouseholds"><span class="req">*</span>总户数</label>
+            <input type="number" id="surveyHouseholds" class="form-input" value="5428" min="0" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="surveyResident">常住人口</label>
+            <input type="number" id="surveyResident" class="form-input" value="16230" min="0" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="surveyFarmland">耕地面积（万亩）</label>
+            <input type="number" id="surveyFarmland" class="form-input" value="3.2" min="0" step="0.1" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="surveyForest">山林面积（万亩）</label>
+            <input type="number" id="surveyForest" class="form-input" value="6.8" min="0" step="0.1" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="surveyHonor">荣誉称号</label>
+            <input type="text" id="surveyHonor" class="form-input" value="省级乡村振兴示范镇 · 蜜桔产业强镇" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="surveyDesc"><span class="req">*</span>乡镇简介</label>
+          <textarea id="surveyDesc" class="form-input" rows="4" required>益农镇位于县域南部，辖幸福村、平安村、丰收村、金桔村 4 个行政村，以蜜桔种植与乡村旅游为特色主导产业，是全县乡村振兴示范镇。</textarea>
+        </div>
+        <div class="form-group">
+          <label for="surveyImage">乡镇图片</label>
+          <div class="upload-area" id="surveyImage">
+            <div class="upload-icon">+</div>
+            <div class="upload-text">点击或拖拽图片到此区域</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editSurveyModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editSurveyModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：乡镇名片 ==================== -->
+
+<!-- 新增名片弹窗 -->
+<div class="modal-overlay" id="addCardModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:bookmark-line"></iconify-icon>新增名片</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addCardModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="cardTitle"><span class="req">*</span>名片标题</label>
+          <input type="text" id="cardTitle" class="form-input" placeholder="请输入名片标题…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="cardImage"><span class="req">*</span>名片图片</label>
+          <div class="upload-area" id="cardImage">
+            <div class="upload-icon">+</div>
+            <div class="upload-text">点击或拖拽图片到此区域</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cardIntro"><span class="req">*</span>名片介绍</label>
+          <textarea id="cardIntro" class="form-input" rows="3" placeholder="请输入名片介绍…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="cardHighlight">特色亮点</label>
+          <textarea id="cardHighlight" class="form-input" rows="2" placeholder="请输入特色亮点…" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="cardContact">联系方式</label>
+          <input type="text" id="cardContact" class="form-input" placeholder="请输入联系方式…" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addCardModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addCardModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看名片弹窗 -->
+<div class="modal-overlay detail-modal" id="viewCardModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>名片详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewCardModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">名片标题</span><span class="detail-value">益农镇蜜桔之乡名片</span></div>
+        <div class="detail-item"><span class="detail-label">联系方式</span><span class="detail-value">0791-88888001</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">名片图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-card-1.jpg" alt="益农镇蜜桔之乡名片"></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">名片介绍</span><span class="detail-value">金秋蜜桔，甜在心间</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">特色亮点</span><span class="detail-value">蜜桔种植3万亩，年产值过亿</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewCardModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑名片弹窗 -->
+<div class="modal-overlay" id="editCardModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑名片</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editCardModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editCardTitle"><span class="req">*</span>名片标题</label>
+          <input type="text" id="editCardTitle" class="form-input" value="益农镇蜜桔之乡名片" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editCardImage"><span class="req">*</span>名片图片</label>
+          <div class="upload-area" id="editCardImage">
+            <div class="upload-icon">+</div>
+            <div class="upload-text">点击或拖拽图片到此区域</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editCardIntro"><span class="req">*</span>名片介绍</label>
+          <textarea id="editCardIntro" class="form-input" rows="3" required>金秋蜜桔，甜在心间</textarea>
+        </div>
+        <div class="form-group">
+          <label for="editCardHighlight">特色亮点</label>
+          <textarea id="editCardHighlight" class="form-input" rows="2" autocomplete="off">蜜桔种植3万亩，年产值过亿</textarea>
+        </div>
+        <div class="form-group">
+          <label for="editCardContact">联系方式</label>
+          <input type="text" id="editCardContact" class="form-input" value="0791-88888001" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editCardModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editCardModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：机构管理 ==================== -->
+
+<!-- 新增机构弹窗 -->
+<div class="modal-overlay" id="addOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:building-line"></iconify-icon>新增机构</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="orgName"><span class="req">*</span>机构名称</label>
+            <input type="text" id="orgName" class="form-input" placeholder="请输入机构名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="orgType"><span class="req">*</span>机构类型</label>
+            <select id="orgType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>政府机关</option>
+              <option>事业单位</option>
+              <option>企业</option>
+              <option>社会组织</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="orgLeader"><span class="req">*</span>负责人</label>
+            <input type="text" id="orgLeader" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="orgPhone">联系电话</label>
+            <input type="tel" id="orgPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="orgAddress">地址</label>
+          <input type="text" id="orgAddress" class="form-input" placeholder="请输入机构地址…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="orgDesc">简介</label>
+          <textarea id="orgDesc" class="form-input" rows="3" placeholder="请输入机构简介…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addOrgModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addOrgModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看机构弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>机构详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">机构名称</span><span class="detail-value">益农镇人民政府</span></div>
+        <div class="detail-item"><span class="detail-label">机构类型</span><span class="detail-value"><span class="tag tag-blue">政府机关</span></span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value">0791-88888001</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">地址</span><span class="detail-value">益农镇政府路1号</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">简介</span><span class="detail-value">乡级行政管理机关，统筹辖区经济社会发展与基层治理。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOrgModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑机构弹窗 -->
+<div class="modal-overlay" id="editOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑机构</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editOrgName"><span class="req">*</span>机构名称</label>
+            <input type="text" id="editOrgName" class="form-input" value="益农镇人民政府" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editOrgType"><span class="req">*</span>机构类型</label>
+            <select id="editOrgType" class="form-select" required>
+              <option selected>政府机关</option>
+              <option>事业单位</option>
+              <option>企业</option>
+              <option>社会组织</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editOrgLeader"><span class="req">*</span>负责人</label>
+            <input type="text" id="editOrgLeader" class="form-input" value="李建国" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editOrgPhone">联系电话</label>
+            <input type="tel" id="editOrgPhone" class="form-input" value="0791-88888001" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editOrgAddress">地址</label>
+          <input type="text" id="editOrgAddress" class="form-input" value="益农镇政府路1号" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editOrgDesc">简介</label>
+          <textarea id="editOrgDesc" class="form-input" rows="3" autocomplete="off">乡级行政管理机关，统筹辖区经济社会发展与基层治理。</textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editOrgModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editOrgModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：乡镇发布 ==================== -->
+
+<!-- 新增发布弹窗 -->
+<div class="modal-overlay" id="addInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:megaphone-line"></iconify-icon>新增发布</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="infoTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="infoTitle" class="form-input" placeholder="请输入信息标题…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="infoCategory"><span class="req">*</span>信息分类</label>
+          <select id="infoCategory" class="form-select" required>
+            <option value="">请选择…</option>
+            <option>乡镇动态</option>
+            <option>政策解读</option>
+            <option>便民信息</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="infoContent"><span class="req">*</span>内容</label>
+          <textarea id="infoContent" class="form-input" rows="4" placeholder="请输入信息内容…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="infoCover">封面图</label>
+          <div class="upload-area" id="infoCover">
+            <div class="upload-icon">+</div>
+            <div class="upload-text">点击或拖拽图片到此区域</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addInfoModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addInfoModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看发布弹窗 -->
+<div class="modal-overlay detail-modal" id="viewInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>发布详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">标题</span><span class="detail-value">益农镇乡村振兴示范镇建设动态</span></div>
+        <div class="detail-item"><span class="detail-label">信息分类</span><span class="detail-value"><span class="tag tag-blue">乡镇动态</span></span></div>
+        <div class="detail-item"><span class="detail-label">发布时间</span><span class="detail-value">2026-07-08</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag tag-green">已发布</span></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">封面图</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-aerial.jpg" alt="封面图"></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">内容</span><span class="detail-value">2026 年上半年，益农镇紧扣乡村振兴示范镇建设目标，推进蜜桔产业园升级、人居环境整治与农旅融合，示范带动效应持续显现。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewInfoModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑发布弹窗 -->
+<div class="modal-overlay" id="editInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑发布</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editInfoTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="editInfoTitle" class="form-input" value="益农镇乡村振兴示范镇建设动态" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editInfoCategory"><span class="req">*</span>信息分类</label>
+          <select id="editInfoCategory" class="form-select" required>
+            <option selected>乡镇动态</option>
+            <option>政策解读</option>
+            <option>便民信息</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editInfoContent"><span class="req">*</span>内容</label>
+          <textarea id="editInfoContent" class="form-input" rows="4" required>2026 年上半年，益农镇紧扣乡村振兴示范镇建设目标，推进蜜桔产业园升级、人居环境整治与农旅融合，示范带动效应持续显现。</textarea>
+        </div>
+        <div class="form-group">
+          <label for="editInfoCover">封面图</label>
+          <div class="upload-area" id="editInfoCover">
+            <div class="upload-icon">+</div>
+            <div class="upload-text">点击或拖拽图片到此区域</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editInfoModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editInfoModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    /* Tab 切换（样式在 nanfeng.css / 本页样式） */
+    function switchTownTab(tab) {
+      document.querySelectorAll('#townTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    }
+    (function () {
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#townTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchTownTab(t);
+      }
+    })();
+  </script>
+</body>
+</html>

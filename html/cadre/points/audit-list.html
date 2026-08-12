@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>积分审核</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="../index.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">积分审核</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- Tab切换 -->
+    <div class="tab-switch" role="tablist">
+      <div class="tab-btn active" role="tab" aria-selected="true">待审核(5)</div>
+      <a class="tab-btn" href="audit-history.html" role="tab">审核历史</a>
+    </div>
+
+    <!-- 待审核列表 -->
+    <div class="list-card" style="margin-top:0;">
+      <!-- 审核1 -->
+      <div class="list-item" style="padding-left:20px;" role="button" onclick="location.href='audit-detail.html?id=1'">
+        <div class="timeout-line"></div>
+        <div class="item-content">
+          <div class="item-title">
+            王明
+            <span class="tag tag-blue" style="margin-left:8px;">+20分</span>
+          </div>
+          <div class="item-desc">积分事项：参加义务劳动</div>
+          <div class="item-meta">
+            <span>申请时间：06-29 14:00</span>
+            <span class="text-red text-sm">超时未审核</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn btn-primary btn-sm">去审核</button>
+        </div>
+      </div>
+
+      <!-- 审核2 -->
+      <div class="list-item" role="button" onclick="location.href='audit-detail.html?id=2'">
+        <div class="item-content">
+          <div class="item-title">
+            李红
+            <span class="tag tag-blue" style="margin-left:8px;">+15分</span>
+          </div>
+          <div class="item-desc">积分事项：参加村民会议</div>
+          <div class="item-meta">
+            <span>申请时间：06-30 09:30</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn btn-primary btn-sm">去审核</button>
+        </div>
+      </div>
+
+      <!-- 审核3 -->
+      <div class="list-item" role="button" onclick="location.href='audit-detail.html?id=3'">
+        <div class="item-content">
+          <div class="item-title">
+            赵刚
+            <span class="tag tag-blue" style="margin-left:8px;">+10分</span>
+          </div>
+          <div class="item-desc">积分事项：义务植树（5棵）</div>
+          <div class="item-meta">
+            <span>申请时间：06-30 10:00</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn btn-primary btn-sm">去审核</button>
+        </div>
+      </div>
+
+      <!-- 审核4 -->
+      <div class="list-item" role="button" onclick="location.href='audit-detail.html?id=4'">
+        <div class="item-content">
+          <div class="item-title">
+            陈秀英
+            <span class="tag tag-blue" style="margin-left:8px;">+8分</span>
+          </div>
+          <div class="item-desc">积分事项：帮助孤寡老人打扫卫生</div>
+          <div class="item-meta">
+            <span>申请时间：06-30 11:00</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn btn-primary btn-sm">去审核</button>
+        </div>
+      </div>
+
+      <!-- 审核5 -->
+      <div class="list-item" role="button" onclick="location.href='audit-detail.html?id=5'">
+        <div class="item-content">
+          <div class="item-title">
+            刘强
+            <span class="tag tag-blue" style="margin-left:8px;">+5分</span>
+          </div>
+          <div class="item-desc">积分事项：举报违规排放</div>
+          <div class="item-meta">
+            <span>申请时间：06-30 15:00</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn btn-primary btn-sm">去审核</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据中心 · 数字大屏 | 数字乡村大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    /* 本页特有：数据资产目录 + 环形质量指标 */
+    .data-domain-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .data-domain-card {
+      position: relative;
+      padding: 10px 12px 11px;
+      background: linear-gradient(135deg, var(--color-primary-50), rgba(240, 253, 244, 0.55));
+      border: 1px solid var(--color-dashboard-grid-line);
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--color-primary-500);
+      overflow: hidden;
+      transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .data-domain-card:hover {
+      background: linear-gradient(135deg, var(--color-primary-100), rgba(240, 253, 244, 0.8));
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.14);
+    }
+    .data-domain-card .ddc-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-dashboard-title);
+    }
+    .data-domain-card .ddc-ico {
+      width: 22px; height: 22px;
+      border-radius: 7px;
+      background: rgba(22, 163, 74, 0.12);
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .data-domain-card .ddc-ico iconify-icon { font-size: 13px; color: var(--color-primary-500); }
+    .data-domain-card .ddc-count {
+      display: flex; align-items: baseline; gap: 4px;
+      font-family: var(--font-family-numeric);
+      font-variant-numeric: var(--font-variant-numeric);
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--color-primary-600);
+      margin-top: 6px;
+      line-height: 1.1;
+    }
+    .data-domain-card .ddc-count .unit {
+      font-size: var(--font-size-xs);
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+    .data-domain-card .ddc-count .pct {
+      margin-left: auto;
+      font-size: var(--font-size-xs);
+      color: var(--color-accent-500);
+      font-weight: 600;
+    }
+    .data-domain-card .ddc-bar {
+      margin-top: 6px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--color-dashboard-grid-line);
+      overflow: hidden;
+    }
+    .data-domain-card .ddc-bar i {
+      display: block;
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #bbf7d0, var(--color-primary-500));
+    }
+    .data-domain-card .ddc-update {
+      font-size: var(--font-size-xs);
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+    .quality-rings {
+      display: flex;
+      gap: var(--space-2);
+      flex: none;
+      height: 118px;
+      margin-bottom: 10px;
+    }
+    .quality-ring-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--color-primary-50);
+      border: 1px solid var(--color-dashboard-grid-line);
+      border-radius: var(--radius-md);
+      padding: 8px 4px;
+      gap: 4px;
+    }
+    .quality-ring-chart { width: 100%; height: 100px; }
+    .quality-ring-label {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .chart-box.chart-asset {
+      flex: 1;
+      min-height: 150px;
+    }
+  </style>
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码由 CSS 治理统一处理，本页先行覆盖关键蓝系伪元素/光晕/悬浮 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .tab-btn:hover { transform: none; }
+    .tab-btn.active { background: linear-gradient(180deg, var(--color-primary-50), var(--color-primary-100)); }
+    .tab-btn.active::after { background: var(--color-primary-500); box-shadow: none; }
+    .data-card:hover, .stat-mini:hover { transform: none; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .dash-header::before { display: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12); color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-300); }
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <div class="dash-logo"><iconify-icon icon="ri:database-2-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">数据中心 · 数字大屏</h1>
+          <span class="dash-subtitle">幸福村数据资源总览</span>
+        </div>
+        <div class="dash-header-center">
+          <a href="../index.html" class="dash-entry-btn" aria-label="返回总览">
+            <iconify-icon icon="ri:arrow-left-line"></iconify-icon>返回总览
+          </a>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月09日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Tab Bar (48px) ======== -->
+    <nav class="dash-tabbar" role="tablist" aria-label="数据面板切换">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="0"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据中心</button>
+    </nav>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+
+      <div class="tab-content active" data-tab="0">
+        <!-- Hero + KPI -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>数据中心</h2>
+              <p>数据总量 12.6 万条 · 数据源 28 个</p>
+              <span class="tab-hero-tag">幸福村 · 数据资源</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:database-2-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">数据总量</span>
+                  <span><span class="kpi-item-value">12.6</span><span class="kpi-item-unit">万条</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:server-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">数据源</span>
+                  <span><span class="kpi-item-value">28</span><span class="kpi-item-unit">个</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:exchange-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">接口调用</span>
+                  <span><span class="kpi-item-value">8.6</span><span class="kpi-item-unit">万次/月</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:refresh-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">数据更新</span>
+                  <span><span class="kpi-item-value">5</span><span class="kpi-item-unit">分钟</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>数据源分类</div>
+              <div class="panel-body"><div id="chart-source-pie" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:line-chart-line"></iconify-icon>接口调用趋势<span class="panel-title-extra">近7天 · 次</span></div>
+              <div class="panel-body"><div id="chart-api-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <!-- Center: Data Asset Catalog + Quality Rings -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up" style="flex: 3;">
+              <div class="panel-title"><iconify-icon icon="ri:apps-line"></iconify-icon>数据资产目录<span class="panel-title-extra">8 个数据域</span></div>
+              <div class="panel-body" style="padding: 16px;">
+                <div class="data-domain-grid">
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:group-line"></iconify-icon></span>人口数据</div>
+                    <div class="ddc-count">3.2<span class="unit">万条</span><span class="pct">25.4%</span></div>
+                    <div class="ddc-bar"><i style="width: 25.4%"></i></div>
+                    <div class="ddc-update">更新于 5分钟前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:map-2-line"></iconify-icon></span>土地数据</div>
+                    <div class="ddc-count">1.8<span class="unit">万条</span><span class="pct">14.3%</span></div>
+                    <div class="ddc-bar"><i style="width: 14.3%"></i></div>
+                    <div class="ddc-update">更新于 1小时前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:plant-line"></iconify-icon></span>产业数据</div>
+                    <div class="ddc-count">2.1<span class="unit">万条</span><span class="pct">16.7%</span></div>
+                    <div class="ddc-bar"><i style="width: 16.7%"></i></div>
+                    <div class="ddc-update">更新于 30分钟前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:flag-line"></iconify-icon></span>党建数据</div>
+                    <div class="ddc-count">0.6<span class="unit">万条</span><span class="pct">4.8%</span></div>
+                    <div class="ddc-bar"><i style="width: 4.8%"></i></div>
+                    <div class="ddc-update">更新于 2小时前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:shield-check-line"></iconify-icon></span>治理数据</div>
+                    <div class="ddc-count">1.5<span class="unit">万条</span><span class="pct">11.9%</span></div>
+                    <div class="ddc-bar"><i style="width: 11.9%"></i></div>
+                    <div class="ddc-update">更新于 10分钟前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:hand-heart-line"></iconify-icon></span>民生数据</div>
+                    <div class="ddc-count">2.4<span class="unit">万条</span><span class="pct">19.0%</span></div>
+                    <div class="ddc-bar"><i style="width: 19.0%"></i></div>
+                    <div class="ddc-update">更新于 15分钟前</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:device-line"></iconify-icon></span>设备数据</div>
+                    <div class="ddc-count">0.8<span class="unit">万条</span><span class="pct">6.3%</span></div>
+                    <div class="ddc-bar"><i style="width: 6.3%"></i></div>
+                    <div class="ddc-update">更新于 刚刚</div>
+                  </div>
+                  <div class="data-domain-card">
+                    <div class="ddc-name"><span class="ddc-ico"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></span>表单数据</div>
+                    <div class="ddc-count">0.2<span class="unit">万条</span><span class="pct">1.6%</span></div>
+                    <div class="ddc-bar"><i style="width: 1.6%"></i></div>
+                    <div class="ddc-update">更新于 1天前</div>
+                  </div>
+                </div>
+                <div class="quality-rings">
+                  <div class="quality-ring-item">
+                    <div id="ring-completeness" class="quality-ring-chart"></div>
+                    <div class="quality-ring-label">完整性 96%</div>
+                  </div>
+                  <div class="quality-ring-item">
+                    <div id="ring-accuracy" class="quality-ring-chart"></div>
+                    <div class="quality-ring-label">准确性 98%</div>
+                  </div>
+                  <div class="quality-ring-item">
+                    <div id="ring-timeliness" class="quality-ring-chart"></div>
+                    <div class="quality-ring-label">及时性 94%</div>
+                  </div>
+                </div>
+                <!-- 数据资产图表：各数据域数据量横向条形图，填充下方空白 -->
+                <div id="chart-asset-bar" class="chart-box chart-asset"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:device-line"></iconify-icon>设备在线率<span class="panel-title-extra">在线/总数</span></div>
+              <div class="panel-body"><div id="chart-device-online" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据指标</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:database-2-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12.6万</span><span class="data-card-label">数据总量</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:server-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">28</span><span class="data-card-label">数据源</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:exchange-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8.6万</span><span class="data-card-label">接口调用</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:refresh-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">5min</span><span class="data-card-label">更新频率</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：村级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 30s 自动轮播</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+  /* 本页 ECharts 初始化 — 数据中心 */
+  (function () {
+    'use strict';
+
+    var chartColors = ['#16a34a', '#0f766e', '#f59e0b', '#92400e', '#10b981', '#ef4444', '#22c55e'];
+
+    var baseTooltip = {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: 'rgba(22,163,74,0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#14532d', fontSize: 13 },
+      extraCssText: 'box-shadow: 0 4px 12px rgba(22,163,74,0.15); border-radius: 8px;'
+    };
+    var baseLegend = { right: 10, top: 10, textStyle: { color: '#57534e', fontSize: 12 }, itemWidth: 12, itemHeight: 12, itemGap: 10 };
+    var baseAxisLabel = { color: '#78716c', fontSize: 12 };
+    var baseAxisLine = { lineStyle: { color: 'rgba(22,163,74,0.15)' } };
+    var baseSplitLine = { lineStyle: { color: 'rgba(22,163,74,0.06)' } };
+
+    var charts = {};
+    function initChart(id, option) {
+      var el = document.getElementById(id);
+      if (!el || typeof echarts === 'undefined') return null;
+      var chart = echarts.init(el);
+      chart.setOption(option);
+      charts[id] = chart;
+      return chart;
+    }
+
+    // 1. 数据源分类饼图（业务系统/物联网设备/手工录入/第三方接口）
+    initChart('chart-source-pie', {
+      color: chartColors,
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'item', formatter: '{b}: {c}个 ({d}%)' }),
+      legend: Object.assign({}, baseLegend, { orient: 'vertical', right: 10, top: 'center', itemGap: 8 }),
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 600, color: '#14532d' },
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(22,163,74,0.2)' }
+        },
+        data: [
+          { value: 10, name: '业务系统' },
+          { value: 8, name: '物联网设备' },
+          { value: 5, name: '手工录入' },
+          { value: 5, name: '第三方接口' }
+        ]
+      }]
+    });
+
+    // 2. 接口调用趋势折线图（近7天 · mock 数据：总调用/成功/失败 三序列）
+    var apiDays = [], apiTotal = [], apiSuccess = [], apiFailed = [];
+    (function () {
+      // —— mock 生成参数（排查异常时先检查此段）——
+      var BASE = 3100;         // 基准日调用量
+      var TREND_STEP = 85;     // 每日递增趋势量
+      var WAVE_AMP = 260;      // 正弦波动幅度
+      var NOISE_MIN = -65, NOISE_MAX = 65; // 固定噪声区间
+      var RATE_MIN = 0.95, RATE_SPAN = 0.03; // 成功率 95.0%~98.0%
+      var FLOOR = 2400;        // 日调用量下限（防溢出/负值）
+
+      console.log(
+        '[接口调用趋势·mock] 生成参数: base=' + BASE + ', 趋势步长=' + TREND_STEP + '/日, ' +
+        '正弦波幅=' + WAVE_AMP + ', 噪声区间=[' + NOISE_MIN + ',' + NOISE_MAX + '], ' +
+        '成功率区间=[' + (RATE_MIN * 100).toFixed(1) + '%,' + ((RATE_MIN + RATE_SPAN) * 100).toFixed(1) + '%], ' +
+        '日调用量下限=' + FLOOR
+      );
+
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date(2026, 7, 9 - i); // 8月3日 → 8月9日
+        var day = (d.getMonth() + 1) + '月' + d.getDate() + '日';
+        apiDays.push(day);
+
+        // —— 每点生成逻辑（确定性伪随机，刷新稳定）——
+        var trendUp = (6 - i) * TREND_STEP;                    // 趋势递增分量
+        var sinWave = Math.sin((6 - i) / 1.6) * WAVE_AMP;      // 正弦起伏分量
+        var noise = (i * 7919) % (NOISE_MAX - NOISE_MIN + 1) + NOISE_MIN; // 固定噪声分量
+        var wave = sinWave + noise;
+        var total = Math.max(FLOOR, Math.round(BASE + wave + trendUp));
+        var rate = RATE_MIN + ((i * 3571) % Math.round(RATE_SPAN * 1000)) / 1000; // 成功率
+        var success = Math.round(total * rate);
+        var failed = total - success;
+
+        apiTotal.push(total);
+        apiSuccess.push(success);
+        apiFailed.push(failed);
+
+        // —— 数据点日志（排查异常时核对各分量与范围）——
+        console.log(
+          '[接口调用趋势·mock] ' + day +
+          ' | 分量: 趋势+' + trendUp + ', 正弦' + sinWave.toFixed(1) + ', 噪声' + noise +
+          ' (wave=' + wave.toFixed(1) + ')' +
+          ' | 总调用: ' + total + '次 (下限' + FLOOR + ')' +
+          ' | 成功率: ' + (rate * 100).toFixed(2) + '%' +
+          ' | 成功: ' + success + '次, 失败: ' + failed + '次 (失败率' + (failed / total * 100).toFixed(2) + '%)'
+        );
+      }
+
+      // —— 汇总日志（便于整体对比）——
+      console.log(
+        '[接口调用趋势·mock] 序列汇总 | 总调用=[' + apiTotal.join(',') + '] | ' +
+        '成功=[' + apiSuccess.join(',') + '] | 失败=[' + apiFailed.join(',') + '] | ' +
+        '总调用范围: ' + Math.min.apply(null, apiTotal) + '~' + Math.max.apply(null, apiTotal) + '次, ' +
+        '失败率范围: ' + (Math.min.apply(null, apiFailed) / Math.max.apply(null, apiTotal) * 100).toFixed(2) +
+        '%~' + (Math.max.apply(null, apiFailed) / Math.min.apply(null, apiTotal) * 100).toFixed(2) + '%'
+      );
+    })();
+    initChart('chart-api-trend', {
+      color: [chartColors[0], chartColors[1], '#f59e0b'],
+      tooltip: Object.assign({}, baseTooltip, {
+        trigger: 'axis',
+        formatter: function (params) {
+          var html = params[0].axisValue + '<br/>';
+          params.forEach(function (p) {
+            html += p.marker + p.seriesName + '：' + p.value + '次<br/>';
+          });
+          return html;
+        }
+      }),
+      legend: Object.assign({}, baseLegend, { data: ['总调用', '成功', '失败'] }),
+      grid: { left: 45, right: 16, top: 34, bottom: 28 },
+      xAxis: {
+        type: 'category',
+        data: apiDays,
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 10 }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value', name: '次',
+        nameTextStyle: { color: '#78716c', fontSize: 11 },
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        name: '总调用', type: 'line', smooth: true,
+        data: apiTotal,
+        lineStyle: { width: 2.5, color: chartColors[0] },
+        itemStyle: { color: chartColors[0] },
+        symbol: 'circle', symbolSize: 6,
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(22,163,74,0.25)' },
+            { offset: 1, color: 'rgba(22,163,74,0)' }
+          ])
+        }
+      }, {
+        name: '成功', type: 'line', smooth: true,
+        data: apiSuccess,
+        lineStyle: { width: 2, color: chartColors[1] },
+        itemStyle: { color: chartColors[1] },
+        symbol: 'circle', symbolSize: 5
+      }, {
+        name: '失败', type: 'line', smooth: true,
+        data: apiFailed,
+        lineStyle: { width: 2, color: '#f59e0b' },
+        itemStyle: { color: '#f59e0b' },
+        symbol: 'diamond', symbolSize: 5
+      }]
+    });
+
+    // 3. 设备在线率横向柱状图（沃家云视/雁飞/小喇叭/萤石云/乐橙云 在线数/总数）
+    var deviceTotal = [24, 20, 16, 18, 14];
+    initChart('chart-device-online', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, {
+        trigger: 'axis', axisPointer: { type: 'shadow' },
+        formatter: function (params) {
+          var p = params[0];
+          return p.name + '<br/>在线: ' + p.value + ' / ' + deviceTotal[p.dataIndex] + '台';
+        }
+      }),
+      legend: Object.assign({}, baseLegend, { data: ['在线数'] }),
+      grid: { left: 70, right: 50, top: 20, bottom: 30 },
+      xAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'category',
+        data: ['沃家云视', '雁飞', '小喇叭', '萤石云', '乐橙云'],
+        axisLabel: baseAxisLabel,
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      series: [{
+        name: '在线数', type: 'bar', barWidth: '50%',
+        data: [22, 18, 14, 16, 12],
+        itemStyle: {
+          borderRadius: [0, 6, 6, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#bbf7d0' }, { offset: 1, color: '#16a34a' }
+          ])
+        },
+        label: {
+          show: true, position: 'right',
+          formatter: function (p) { return p.value + '/' + deviceTotal[p.dataIndex]; },
+          color: '#14532d', fontSize: 11, fontWeight: 600
+        }
+      }]
+    });
+
+    // 4-6. 三个数据质量环形进度条
+    function buildRingOption(value, color, label) {
+      return {
+        color: [color, '#e7e5e4'],
+        tooltip: { show: false },
+        legend: { show: false },
+        series: [{
+          type: 'pie',
+          radius: ['62%', '82%'],
+          center: ['50%', '50%'],
+          silent: true,
+          label: { show: false },
+          labelLine: { show: false },
+          data: [
+            { value: value, name: label, itemStyle: { color: color } },
+            { value: 100 - value, name: '剩余', itemStyle: { color: '#e7e5e4' } }
+          ]
+        }],
+        graphic: [{
+          type: 'text', left: 'center', top: '42%',
+          style: { text: value + '%', fontSize: 20, fontWeight: 700, fill: color, fontFamily: 'DIN Alternate, Inter, sans-serif' }
+        }, {
+          type: 'text', left: 'center', top: '62%',
+          style: { text: label, fontSize: 11, fill: '#78716c' }
+        }]
+      };
+    }
+    initChart('ring-completeness', buildRingOption(96, '#16a34a', '完整性'));
+    initChart('ring-accuracy', buildRingOption(98, '#10b981', '准确性'));
+    initChart('ring-timeliness', buildRingOption(94, '#f59e0b', '及时性'));
+
+    // 7. 数据资产图表：各数据域数据量横向条形图（填充中列下方空白）
+    initChart('chart-asset-bar', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, {
+        trigger: 'axis', axisPointer: { type: 'shadow' },
+        formatter: '{b}：{c} 万条'
+      }),
+      grid: { left: 68, right: 48, top: 8, bottom: 6 },
+      xAxis: {
+        type: 'value',
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 11 }),
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'category',
+        data: ['人口数据', '民生数据', '产业数据', '土地数据', '治理数据', '设备数据', '党建数据', '表单数据'],
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 13, fontWeight: 600, color: '#44403c' }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '55%',
+        data: [3.2, 2.4, 2.1, 1.8, 1.5, 0.8, 0.6, 0.2],
+        itemStyle: {
+          borderRadius: [0, 5, 5, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#d1fae5' }, { offset: 1, color: '#16a34a' }
+          ])
+        },
+        label: {
+          show: true, position: 'right',
+          formatter: function (p) { return p.value + '万'; },
+          color: '#14532d', fontSize: 12, fontWeight: 600
+        }
+      }]
+    });
+
+    // 响应窗口缩放
+    window.addEventListener('resize', function () {
+      setTimeout(function () {
+        Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+      }, 100);
+    });
+    setTimeout(function () {
+      Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+    }, 250);
+  })();
+  </script>
+</body>
+</html>

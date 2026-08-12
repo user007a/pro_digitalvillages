@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字乡村 - 随手拍</title>
+<link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+<header>
+  <div class="nav-bar">
+    <a class="nav-back" href="../index.html" aria-label="返回">&#8249;</a>
+    <h1 class="nav-title">随手拍</h1>
+    <div class="nav-right">
+      <a href="report-form.html" style="font-size:14px;color:var(--color-primary-600);text-decoration:none;">+ 上报</a>
+    </div>
+  </div>
+</header>
+<main class="page-content"><div class="page-body">
+  <a href="report-form.html" style="text-decoration:none;">
+    <div class="report-entry">
+      <div class="report-entry-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div>
+        <div class="report-entry-text">拍照上报</div>
+        <div class="report-entry-desc">立即上报身边问题</div>
+      </div>
+    </div>
+  </a>
+  <div class="stat-card">
+    <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">上报总数</div></div>
+    <div class="stat-item"><div class="stat-num orange">2</div><div class="stat-label">待处理</div></div>
+    <div class="stat-item"><div class="stat-num blue">3</div><div class="stat-label">处理中</div></div>
+    <div class="stat-item"><div class="stat-num green">3</div><div class="stat-label">已完成</div></div>
+  </div>
+  <div class="tab-group" data-filter-target=".page-body .list-item">
+    <div class="tab-btn active" role="tab" data-filter="all">全部</div>
+    <div class="tab-btn" role="tab" data-filter="pending">待处理</div>
+    <div class="tab-btn" role="tab" data-filter="processing">处理中</div>
+    <div class="tab-btn" role="tab" data-filter="completed">已完成</div>
+  </div>
+  <div style="padding-top:8px;">
+    <a class="list-item" href="../../villager/report/report-detail.html?id=1" data-status="pending" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">村东头垃圾堆积问题</div>
+        <span class="tag tag-orange">待处理</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">村东路口处有大量生活垃圾堆积，已持续一周，气味难闻，影响村民出行和环境卫生。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-07-01 · 李小红上报</div>
+    </a>
+    <a class="list-item" href="../../villager/report/report-detail.html?id=2" data-status="processing" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">村口路灯损坏</div>
+        <span class="tag tag-blue">处理中</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">村口主路两盏路灯不亮，夜间出行不便，存在安全隐患。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-06-28 · 王大明上报</div>
+    </a>
+    <a class="list-item" href="../../villager/report/report-detail.html?id=3" data-status="processing" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">排水沟堵塞</div>
+        <span class="tag tag-blue">处理中</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">三组排水沟被淤泥和杂物堵塞，雨季来临需要尽快疏通。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-06-27 · 李秀兰上报</div>
+    </a>
+    <a class="list-item" href="../../villager/report/report-detail.html?id=4" data-status="completed" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">健身器材损坏</div>
+        <span class="tag tag-green">已完成</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">村文化广场健身器材有两件损坏，已报修并更换完毕。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-06-20 · 赵阿姨上报</div>
+    </a>
+    <a class="list-item" href="../../villager/report/report-detail.html?id=5" data-status="completed" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">道路塌陷修复</div>
+        <span class="tag tag-green">已完成</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">村南路有一处路面塌陷，已由村委会协调修复完毕。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-06-15 · 刘强上报</div>
+    </a>
+    <a class="list-item" href="../../villager/report/report-detail.html?id=6" data-status="pending" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <div style="font-size:14px;font-weight:500;">私搭乱建问题</div>
+        <span class="tag tag-orange">待处理</span>
+      </div>
+      <div style="font-size:13px;color:#666;margin-top:4px;">五组有人私自搭建棚屋，占用公共通道，影响通行。</div>
+      <div style="font-size:12px;color:#999;margin-top:4px;">2026-06-12 · 陈大叔上报</div>
+    </a>
+  </div>
+</div></main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

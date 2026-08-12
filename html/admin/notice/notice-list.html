@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公告管理 - 村级管理</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「运营人员」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 分页：默认 10 条/页 + 页码数字；弹窗：白底圆角、标题 18px
+       ============================================ */
+    body { background: #f0f2f5; }
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .date-range-group { display: flex; align-items: center; gap: 8px; min-width: 250px; }
+    .filter-panel .date-range-group .form-input { flex: 1; min-width: 0; }
+    .filter-panel .date-range-group span { font-size: 13px; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-actions-header .header-actions { display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-page-title="公告管理" data-page-subtitle="公告发布、推送与已读统计管理" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>公告管理</h2>
+        <p>村务公告发布与阅读情况管理，支持按标题、推送状态与推送范围筛选</p>
+      </div>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fTitle">公告标题</label>
+        <input type="text" id="fTitle" class="form-input" placeholder="请输入公告标题…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">推送状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>草稿</option>
+          <option>已推送</option>
+          <option>已撤回</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fRange">推送范围</label>
+        <select id="fRange" class="form-select">
+          <option value="">全部</option>
+          <option>全村</option>
+          <option>指定组</option>
+          <option>指定人</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fPushBegin">推送时间</label>
+        <div class="date-range-group">
+          <input type="date" id="fPushBegin" class="form-input">
+          <span>至</span>
+          <input type="date" id="fPushEnd" class="form-input">
+        </div>
+      </div>
+      <div class="filter-item">
+        <label for="fAuthor">发布人</label>
+        <select id="fAuthor" class="form-select">
+          <option value="">全部</option>
+          <option>张国平</option>
+          <option>李卫东</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="renderNoticeRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetNoticeFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 新增按钮 -->
+      <div class="table-actions-header">
+        <h3>公告列表</h3>
+        <div class="header-actions">
+          <button type="button" class="btn btn-primary" onclick="openModal('addNoticeModal')">
+            <iconify-icon icon="ri:add-circle-line"></iconify-icon> 新增公告
+          </button>
+          <button type="button" class="btn btn-export" onclick="openExportModal()">
+            <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+          </button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>推送范围</th>
+              <th>推送人数</th>
+              <th>已读人数</th>
+              <th>已读率</th>
+              <th>推送时间</th>
+              <th>推送状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="noticeTbody">
+            <tr data-title="关于缴纳2026年度城乡居民医保的通知" data-range="全村" data-count="892人" data-read="756人" data-rate="84.8%" data-time="2026-06-28" data-status="已推送" data-author="张国平" data-content="各位村民：根据上级文件精神，2026年度城乡居民基本医疗保险缴费工作现已开始。缴费标准为每人每年380元，缴费截止日期为2026年12月31日。请各位村民及时到村委会或通过线上渠道完成缴费。如有疑问，请咨询村委会。">
+              <td class="town-name">关于缴纳2026年度城乡居民医保的通知</td>
+              <td><span class="tag tag-blue">全村</span></td>
+              <td>892人</td>
+              <td>756人</td>
+              <td>84.8%</td>
+              <td>2026-06-28</td>
+              <td><span class="tag tag-green">已推送</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该公告吗？已读用户将无法再次查看。',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:send-plane-line"></iconify-icon>撤回</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-title="关于开展村庄清洁行动的通知" data-range="全村" data-count="892人" data-read="810人" data-rate="90.8%" data-time="2026-06-25" data-status="已推送" data-author="李卫东" data-content="为改善村庄人居环境，提升村容村貌，决定在全村范围内开展村庄清洁行动。请各组组长组织本组村民积极参与，重点清理公共区域垃圾、疏通沟渠、整理房前屋后。">
+              <td class="town-name">关于开展村庄清洁行动的通知</td>
+              <td><span class="tag tag-blue">全村</span></td>
+              <td>892人</td>
+              <td>810人</td>
+              <td>90.8%</td>
+              <td>2026-06-25</td>
+              <td><span class="tag tag-green">已推送</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该公告吗？已读用户将无法再次查看。',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:send-plane-line"></iconify-icon>撤回</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-title="第三组道路维修施工通知" data-range="指定组" data-count="156人" data-read="72人" data-rate="46.2%" data-time="2026-06-23" data-status="已推送" data-author="张国平" data-content="因第三组主干道路面损坏严重，经村委研究决定，将于近期对第三组主干道进行维修施工。施工期间部分路段将实行半封闭通行，请各位村民注意安全，绕行其他路线。施工预计持续两周。">
+              <td class="town-name">第三组道路维修施工通知</td>
+              <td><span class="tag tag-green">指定组</span></td>
+              <td>156人</td>
+              <td>72人</td>
+              <td class="text-orange fw-bold">46.2%</td>
+              <td>2026-06-23</td>
+              <td><span class="tag tag-green">已推送</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该公告吗？已读用户将无法再次查看。',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:send-plane-line"></iconify-icon>撤回</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-title="7月主题党日活动安排" data-range="指定人" data-count="35人" data-read="28人" data-rate="80.0%" data-time="2026-06-20" data-status="已推送" data-author="张国平" data-content="经党支部研究决定，7月份主题党日活动安排如下：时间：7月1日下午2:00；地点：村党员活动室；主题：不忘初心、牢记使命——庆祝建党105周年。请全体党员准时参加，如有特殊情况请提前请假。">
+              <td class="town-name">7月主题党日活动安排</td>
+              <td><span class="tag tag-orange">指定人</span></td>
+              <td>35人</td>
+              <td>28人</td>
+              <td>80.0%</td>
+              <td>2026-06-20</td>
+              <td><span class="tag tag-green">已推送</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该公告吗？已读用户将无法再次查看。',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:send-plane-line"></iconify-icon>撤回</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-title="关于规范宅基地审批流程的通知" data-range="全村" data-count="" data-read="" data-rate="" data-time="" data-status="草稿" data-author="李卫东" data-content="为进一步规范宅基地审批流程，保障村民合法权益，现将有关事项通知如下：">
+              <td class="town-name">关于规范宅基地审批流程的通知</td>
+              <td><span class="tag tag-blue">全村</span></td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="tag tag-gray">草稿</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-edit" onclick="openModal('editNoticeModal');fillNoticeEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-title="2025年度村级财务审计结果公示" data-range="全村" data-count="892人" data-read="680人" data-rate="76.2%" data-time="2026-06-15" data-status="已撤回" data-author="张国平" data-content="根据上级审计部门要求，现将2025年度村级财务审计结果予以公示。公示期为7天，如对审计结果有异议，请于公示期内向村委会提出书面申诉。">
+              <td class="town-name">2025年度村级财务审计结果公示</td>
+              <td><span class="tag tag-blue">全村</span></td>
+              <td>892人</td>
+              <td>680人</td>
+              <td>76.2%</td>
+              <td>2026-06-15</td>
+              <td><span class="tag tag-red">已撤回</span></td>
+              <td class="op-cell">
+                <button class="btn-op" onclick="openModal('viewNoticeModal');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-edit" onclick="openModal('editNoticeModal');fillNoticeEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该公告吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">6</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增公告弹窗 -->
+  <div class="modal-overlay" id="addNoticeModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:add-circle-line"></iconify-icon> 新增公告</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addNoticeModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>标题 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="请输入公告标题…">
+        </div>
+        <div class="form-group">
+          <label>推送范围</label>
+          <select class="form-select">
+            <option>全村</option>
+            <option>指定组</option>
+            <option>指定人</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>内容</label>
+          <textarea class="form-textarea" style="min-height:160px;" placeholder="请输入公告内容…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>推送方式</label>
+          <div class="checkbox" style="display:flex;gap:16px;">
+            <label><input type="checkbox" checked> 站内通知</label>
+            <label><input type="checkbox"> 短信通知</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('addNoticeModal')">取消</button>
+        <button class="btn btn-primary" onclick="closeModal('addNoticeModal');showToast('新增成功','success')">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑公告弹窗 -->
+  <div class="modal-overlay" id="editNoticeModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑公告</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editNoticeModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>标题 <span class="required">*</span></label>
+          <input type="text" class="form-input" value="关于规范宅基地审批流程的通知">
+        </div>
+        <div class="form-group">
+          <label>推送范围</label>
+          <select class="form-select">
+            <option selected>全村</option>
+            <option>指定组</option>
+            <option>指定人</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>内容</label>
+          <textarea class="form-textarea" style="min-height:160px;">为进一步规范宅基地审批流程，保障村民合法权益，现将有关事项通知如下：</textarea>
+        </div>
+        <div class="form-group">
+          <label>推送方式</label>
+          <div class="checkbox" style="display:flex;gap:16px;">
+            <label><input type="checkbox" checked> 站内通知</label>
+            <label><input type="checkbox"> 短信通知</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('editNoticeModal')">取消</button>
+        <button class="btn btn-primary" onclick="closeModal('editNoticeModal');showToast('保存成功','success')">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看公告详情弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewNoticeModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-text-line"></iconify-icon> 公告详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewNoticeModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item detail-full">
+            <span class="detail-label">标题</span>
+            <span class="detail-value">关于缴纳2026年度城乡居民医保的通知</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">推送范围</span>
+            <span class="detail-value"><span class="tag tag-blue">全村</span></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">推送人数</span>
+            <span class="detail-value">892人</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">已读人数</span>
+            <span class="detail-value">756人</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">已读率</span>
+            <span class="detail-value fw-bold">84.8%</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">推送时间</span>
+            <span class="detail-value">2026-06-28</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">推送状态</span>
+            <span class="detail-value"><span class="tag tag-green">已推送</span></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">发布人</span>
+            <span class="detail-value">张国平</span>
+          </div>
+          <div class="detail-item detail-full">
+            <span class="detail-label">内容</span>
+            <div class="detail-value detail-content-box">各位村民：根据上级文件精神，2026年度城乡居民基本医疗保险缴费工作现已开始。缴费标准为每人每年380元，缴费截止日期为2026年12月31日。请各位村民及时到村委会或通过线上渠道完成缴费。如有疑问，请咨询村委会。</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('viewNoticeModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出公告数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前筛选结果导出公告列表。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="公告列表" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- 搜索筛选：标题 / 推送状态 / 推送范围 / 发布人 + 分页（默认 10 条/页） ---- */
+      var tbody = document.getElementById('noticeTbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+      var pageSize = 10;
+      var currentPage = 1;
+
+      function getVisibleRows() {
+        var title = document.getElementById('fTitle').value.trim().toLowerCase();
+        var status = document.getElementById('fStatus').value;
+        var range = document.getElementById('fRange').value;
+        var author = document.getElementById('fAuthor').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var show = true;
+          if (title && row.getAttribute('data-title').toLowerCase().indexOf(title) === -1) show = false;
+          if (show && status && row.getAttribute('data-status') !== status) show = false;
+          if (show && range && row.getAttribute('data-range') !== range) show = false;
+          if (show && author && row.getAttribute('data-author') !== author) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); renderRows(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; renderRows(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      window.renderNoticeRows = function () { currentPage = 1; renderRows(); };
+      window.resetNoticeFilter = function () {
+        document.getElementById('fTitle').value = '';
+        document.getElementById('fStatus').value = '';
+        document.getElementById('fRange').value = '';
+        document.getElementById('fPushBegin').value = '';
+        document.getElementById('fPushEnd').value = '';
+        document.getElementById('fAuthor').value = '';
+        renderNoticeRows();
+      };
+
+      /* ---- 追加 19 条 Mock 数据（共 25 条，验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var titles = ['关于开展防溺水安全教育工作的通知','关于疫苗接种工作安排的通知','蜜桔采摘季交通安全提示','村文化广场修缮募捐公示','关于养老保险待遇资格认证的通知','预防电信诈骗宣传告知书','8月人居环境整治评比结果公示','关于农田灌溉设施检修的通知','幸福村农家书屋开放时间调整通知','关于农机安全操作培训的通知','夏季用电安全温馨提示','关于村级卫生室服务时间调整的通知','蜜桔病虫害防治技术培训通知','关于独生子女奖励扶助申报的公告','幸福村池塘清淤施工通知','关于禁止露天焚烧秸秆的通知','村规民约修订征求意见公告','关于燃气安全入户检查的通知','2026年度征兵政策宣传公告'];
+        var ranges = ['全村','指定组','指定人'];
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+        function fmtDate(m, d) { return '2026-' + pad(m) + '-' + pad(d); }
+        function buildOpCell(status) {
+          var html =
+            '<button class="btn-op" onclick="openModal(\'viewNoticeModal\');fillNoticeDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+            '<span class="op-divider"></span>';
+          if (status === '已推送') {
+            html +=
+              '<button class="btn-op btn-op-warning" onclick="showConfirm({title:\'撤回确认\',message:\'确定撤回该公告吗？已读用户将无法再次查看。\',onConfirm:function(){showToast(\'已撤回\',\'success\')}})"><iconify-icon icon="ri:send-plane-line"></iconify-icon>撤回</button>' +
+              '<span class="op-divider"></span>';
+          } else {
+            html +=
+              '<button class="btn-op btn-op-edit" onclick="openModal(\'editNoticeModal\');fillNoticeEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+              '<span class="op-divider"></span>';
+          }
+          html +=
+            '<button class="btn-op btn-op-danger" onclick="showConfirm({title:\'删除确认\',message:\'确定删除该公告吗？删除后不可恢复。\',onConfirm:function(){showToast(\'删除成功\',\'success\')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+          return html;
+        }
+        for (var i = 0; i < 19; i++) {
+          var status = (i % 7 === 6) ? '已撤回' : (i % 7 === 5) ? '草稿' : '已推送';
+          var range = ranges[i % ranges.length];
+          var time = fmtDate(6 + (i % 3), 1 + ((i * 5) % 27));
+          var count = status === '草稿' ? '' : (300 + ((i * 37) % 500)) + '人';
+          var read = count ? Math.floor(parseInt(count, 10) * (0.4 + (i % 5) / 10)) + '人' : '';
+          var rate = read ? parseFloat((parseInt(read, 10) / parseInt(count, 10) * 100).toFixed(1)) + '%' : '';
+          var author = i % 2 === 0 ? '张国平' : '李卫东';
+          var rangeClass = range === '全村' ? 'blue' : range === '指定组' ? 'green' : 'orange';
+          var statusClass = status === '已推送' ? 'green' : status === '已撤回' ? 'red' : 'gray';
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-title', titles[i % titles.length]);
+          tr.setAttribute('data-range', range);
+          tr.setAttribute('data-count', count);
+          tr.setAttribute('data-read', read);
+          tr.setAttribute('data-rate', rate);
+          tr.setAttribute('data-time', status === '草稿' ? '' : time);
+          tr.setAttribute('data-status', status);
+          tr.setAttribute('data-author', author);
+          tr.setAttribute('data-content', '「' + titles[i % titles.length] + '」相关通知内容：请各位村民相互转告，如有疑问请咨询村委会。');
+          tr.innerHTML =
+            '<td class="town-name">' + titles[i % titles.length] + '</td>' +
+            '<td><span class="tag tag-' + rangeClass + '">' + range + '</span></td>' +
+            '<td>' + (count || '—') + '</td>' +
+            '<td>' + (read || '—') + '</td>' +
+            '<td>' + (rate || '—') + '</td>' +
+            '<td>' + (status === '草稿' ? '—' : time) + '</td>' +
+            '<td><span class="tag tag-' + statusClass + '">' + status + '</span></td>' +
+            '<td class="op-cell">' + buildOpCell(status) + '</td>';
+          tbody.appendChild(tr);
+        }
+      })();
+
+      renderRows();
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () { openModal('exportModal'); };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '公告列表';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+    })();
+  </script>
+
+  <script>
+  function fillNoticeDetail(btn) {
+    var row = btn.closest('tr');
+    var modal = document.getElementById('viewNoticeModal');
+    if (!row || !modal) return;
+    var d = row.dataset;
+    var values = modal.querySelectorAll('.detail-value');
+    if (values[0]) values[0].textContent = d.title || '';
+    var rangeClass = d.range === '全村' ? 'blue' : d.range === '指定组' ? 'green' : 'orange';
+    if (values[1]) values[1].innerHTML = '<span class="tag tag-' + rangeClass + '">' + (d.range || '') + '</span>';
+    if (values[2]) values[2].textContent = d.count || '—';
+    if (values[3]) values[3].textContent = d.read || '—';
+    if (values[4]) values[4].textContent = d.rate || '—';
+    if (values[5]) values[5].textContent = d.time || '—';
+    var statusClass = d.status === '已推送' ? 'green' : d.status === '已撤回' ? 'red' : 'gray';
+    if (values[6]) values[6].innerHTML = '<span class="tag tag-' + statusClass + '">' + (d.status || '') + '</span>';
+    if (values[7]) values[7].textContent = d.author || '';
+    if (values[8]) values[8].textContent = d.content || '';
+  }
+  function fillNoticeEdit(btn) {
+    var row = btn.closest('tr');
+    var modal = document.getElementById('editNoticeModal');
+    if (!row || !modal) return;
+    var d = row.dataset;
+    var inputs = modal.querySelectorAll('.form-input');
+    var textareas = modal.querySelectorAll('.form-textarea');
+    var selects = modal.querySelectorAll('.form-select');
+    if (inputs[0]) inputs[0].value = d.title || '';
+    if (selects[0]) {
+      for (var i = 0; i < selects[0].options.length; i++) {
+        selects[0].options[i].selected = (selects[0].options[i].text === (d.range || '全村'));
+      }
+    }
+    if (textareas[0]) textareas[0].value = d.content || '';
+  }
+  </script>
+
+</body>
+</html>

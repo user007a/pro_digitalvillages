@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>审核管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>审核管理</h2>
+      <span class="text-muted">村级业务申请审核处理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：农产品审核 → 产品集市审核 -->
+  <div class="tab-bar dv-tabbar" id="auditTabs">
+    <div class="tab-item active" onclick="switchAuditTab(this)" data-tab="farm">农产品审核</div>
+    <div class="tab-item" onclick="switchAuditTab(this)" data-tab="market">产品集市审核</div>
+  </div>
+
+  <!-- ==================== Tab 面板：农产品审核 ==================== -->
+  <div class="tab-panel" id="tab-farm">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fFarmProductName">产品名称</label>
+        <input type="text" id="fFarmProductName" class="form-input" placeholder="请输入产品名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fFarmApplicant">申请人</label>
+        <input type="text" id="fFarmApplicant" class="form-input" placeholder="请输入申请人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fFarmCategory">产品分类</label>
+        <select id="fFarmCategory" class="form-select">
+          <option value="">全部</option>
+          <option>蜜桔</option>
+          <option>蔬菜</option>
+          <option>家禽</option>
+          <option>水产</option>
+          <option>加工品</option>
+          <option>粮食</option>
+          <option>茶叶</option>
+          <option>蜂产品</option>
+          <option>水果</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fFarmStatus">审核状态</label>
+        <select id="fFarmStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFarmRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFarmFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:leaf-line"></iconify-icon>农产品审核列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('农产品审核')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>产品名称</th>
+              <th>申请人</th>
+              <th>手机号</th>
+              <th>产品分类</th>
+              <th>产量(斤)</th>
+              <th>单价(元/斤)</th>
+              <th>申请时间</th>
+              <th>审核状态</th>
+              <th>审核人</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="farmTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="farmRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：产品集市审核 ==================== -->
+  <div class="tab-panel" id="tab-market" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fMarketGoodsName">商品名称</label>
+        <input type="text" id="fMarketGoodsName" class="form-input" placeholder="请输入商品名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fMarketSubmitter">提交人</label>
+        <input type="text" id="fMarketSubmitter" class="form-input" placeholder="请输入提交人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fMarketCategory">商品分类</label>
+        <select id="fMarketCategory" class="form-select">
+          <option value="">全部</option>
+          <option>农副产品</option>
+          <option>手工艺品</option>
+          <option>土特产</option>
+          <option>坚果</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fMarketStatus">审核状态</label>
+        <select id="fMarketStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待审核</option>
+          <option>已通过</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryMarketRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetMarketFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:shopping-bag-3-line"></iconify-icon>产品集市审核列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('产品集市审核')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>商品名称</th>
+              <th>提交人</th>
+              <th>手机号</th>
+              <th>商品分类</th>
+              <th>价格(元)</th>
+              <th>库存</th>
+              <th>提交时间</th>
+              <th>审核状态</th>
+              <th>审核人</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="marketTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="marketRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：查看 ==================== -->
+
+<!-- 查看弹窗：农产品审核 -->
+<div class="modal-overlay detail-modal" id="viewFarmModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>农产品直销申请详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewFarmModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">产品名称</span><span class="detail-value" id="viewFarmName">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请人</span><span class="detail-value" id="viewFarmApplicant">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewFarmPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">产品分类</span><span class="detail-value" id="viewFarmCategory">—</span></div>
+        <div class="detail-item"><span class="detail-label">产量</span><span class="detail-value" id="viewFarmYield">—</span></div>
+        <div class="detail-item"><span class="detail-label">单价</span><span class="detail-value" id="viewFarmPrice">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value" id="viewFarmTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核状态</span><span class="detail-value" id="viewFarmStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">产品描述</span><span class="detail-value" id="viewFarmDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewFarmModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：产品集市审核 -->
+<div class="modal-overlay detail-modal" id="viewMarketModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>商品审核详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewMarketModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">商品名称</span><span class="detail-value" id="viewMarketName">—</span></div>
+        <div class="detail-item"><span class="detail-label">提交人</span><span class="detail-value" id="viewMarketSubmitter">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewMarketPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">商品分类</span><span class="detail-value" id="viewMarketCategory">—</span></div>
+        <div class="detail-item"><span class="detail-label">价格</span><span class="detail-value" id="viewMarketPrice">—</span></div>
+        <div class="detail-item"><span class="detail-label">库存</span><span class="detail-value" id="viewMarketStock">—</span></div>
+        <div class="detail-item"><span class="detail-label">提交时间</span><span class="detail-value" id="viewMarketTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核状态</span><span class="detail-value" id="viewMarketStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">商品描述</span><span class="detail-value" id="viewMarketDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewMarketModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：驳回 ==================== -->
+
+<!-- 驳回弹窗：农产品审核 -->
+<div class="modal-overlay" id="rejectFarmModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:forbid-line"></iconify-icon>驳回申请</h3>
+      <button type="button" class="modal-close" onclick="closeModal('rejectFarmModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="rejectFarmForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="rejectFarmReason"><span class="req">*</span>驳回原因</label>
+          <textarea id="rejectFarmReason" name="rejectFarmReason" class="form-input" rows="4" placeholder="请输入驳回原因…" required autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('rejectFarmModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitRejectFarm()">确认驳回</button>
+    </div>
+  </div>
+</div>
+
+<!-- 驳回弹窗：产品集市审核 -->
+<div class="modal-overlay" id="rejectMarketModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:forbid-line"></iconify-icon>驳回商品</h3>
+      <button type="button" class="modal-close" onclick="closeModal('rejectMarketModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="rejectMarketForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="rejectMarketReason"><span class="req">*</span>驳回原因</label>
+          <textarea id="rejectMarketReason" name="rejectMarketReason" class="form-input" rows="4" placeholder="请输入驳回原因…" required autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('rejectMarketModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitRejectMarket()">确认驳回</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出审核数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出审核记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="审核记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 ---- */
+  function switchAuditTab(tab) {
+    document.querySelectorAll('#auditTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 农产品审核：筛选 + 分页 ==================== */
+    var farmTbody = document.getElementById('farmTbody');
+    var farmPager = makePager(farmTbody, document.getElementById('farmRowCount'), pagerRefs('#tab-farm'), function () {
+      var name = document.getElementById('fFarmProductName').value.trim().toLowerCase();
+      var applicant = document.getElementById('fFarmApplicant').value.trim().toLowerCase();
+      var category = document.getElementById('fFarmCategory').value;
+      var status = document.getElementById('fFarmStatus').value;
+      var out = [];
+      farmTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && applicant && row.getAttribute('data-applicant').toLowerCase().indexOf(applicant) === -1) show = false;
+        if (show && category && row.getAttribute('data-category') !== category) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryFarmRows = function () { farmPager.reset(); };
+    window.resetFarmFilter = function () {
+      document.getElementById('fFarmProductName').value = '';
+      document.getElementById('fFarmApplicant').value = '';
+      document.getElementById('fFarmCategory').value = '';
+      document.getElementById('fFarmStatus').value = '';
+      queryFarmRows();
+    };
+
+    /* ==================== 产品集市审核：筛选 + 分页 ==================== */
+    var marketTbody = document.getElementById('marketTbody');
+    var marketPager = makePager(marketTbody, document.getElementById('marketRowCount'), pagerRefs('#tab-market'), function () {
+      var name = document.getElementById('fMarketGoodsName').value.trim().toLowerCase();
+      var submitter = document.getElementById('fMarketSubmitter').value.trim().toLowerCase();
+      var category = document.getElementById('fMarketCategory').value;
+      var status = document.getElementById('fMarketStatus').value;
+      var out = [];
+      marketTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && submitter && row.getAttribute('data-submitter').toLowerCase().indexOf(submitter) === -1) show = false;
+        if (show && category && row.getAttribute('data-category') !== category) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryMarketRows = function () { marketPager.reset(); };
+    window.resetMarketFilter = function () {
+      document.getElementById('fMarketGoodsName').value = '';
+      document.getElementById('fMarketSubmitter').value = '';
+      document.getElementById('fMarketCategory').value = '';
+      document.getElementById('fMarketStatus').value = '';
+      queryMarketRows();
+    };
+
+    /* ==================== 通用渲染辅助 ==================== */
+    function statusTag(status) {
+      return '<span class="tag ' + (status === '已通过' ? 'tag-green' : status === '待审核' ? 'tag-orange' : 'tag-red') + '">' + status + '</span>';
+    }
+    function farmCatTag(cat) {
+      var cls = cat === '蜜桔' ? 'tag-orange' : cat === '蔬菜' ? 'tag-green' : cat === '家禽' ? 'tag-cyan' : cat === '水产' ? 'tag-blue' : cat === '粮食' ? 'tag-yellow' : cat === '茶叶' ? 'tag-green' : cat === '蜂产品' ? 'tag-orange' : cat === '水果' ? 'tag-red' : 'tag-gray';
+      return '<span class="tag ' + cls + '">' + cat + '</span>';
+    }
+    function marketCatTag(cat) {
+      var cls = cat === '农副产品' ? 'tag-green' : cat === '手工艺品' ? 'tag-cyan' : cat === '土特产' ? 'tag-orange' : cat === '坚果' ? 'tag-yellow' : 'tag-gray';
+      return '<span class="tag ' + cls + '">' + cat + '</span>';
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function renderAuditOp(row, kind) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="view' + kind + '(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '待审核') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="approve' + kind + '(this)"><iconify-icon icon="ri:check-line"></iconify-icon>通过</button>';
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="openReject' + kind + '(this)"><iconify-icon icon="ri:close-line"></iconify-icon>驳回</button>';
+      }
+      cell.innerHTML = html;
+    }
+
+    /* ==================== 操作：通过（回写行状态） ==================== */
+    window.approveFarm = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '通过确认',
+        message: '确定通过「' + name + '」的农产品直销申请吗？',
+        confirmText: '确认通过',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已通过');
+          row.cells[7].innerHTML = statusTag('已通过');
+          row.cells[8].textContent = '周小敏';
+          renderAuditOp(row, 'Farm');
+          farmPager.render();
+          showToast('已通过该申请', 'success');
+        }
+      });
+    };
+    window.approveMarket = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '通过确认',
+        message: '确定通过「' + name + '」的商品审核吗？',
+        confirmText: '确认通过',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已通过');
+          row.cells[7].innerHTML = statusTag('已通过');
+          row.cells[8].textContent = '周小敏';
+          renderAuditOp(row, 'Market');
+          marketPager.render();
+          showToast('已通过该商品', 'success');
+        }
+      });
+    };
+
+    /* ==================== 操作：驳回（回写行状态） ==================== */
+    window.openRejectFarm = function (btn) {
+      window._rejectFarmRow = btn.closest('tr');
+      document.getElementById('rejectFarmReason').value = '';
+      openModal('rejectFarmModal');
+    };
+    window.submitRejectFarm = function () {
+      var reason = document.getElementById('rejectFarmReason').value.trim();
+      if (!reason) { showToast('请填写驳回原因', 'warning'); return; }
+      var row = window._rejectFarmRow;
+      if (row) {
+        row.setAttribute('data-status', '已驳回');
+        row.cells[7].innerHTML = statusTag('已驳回');
+        row.cells[8].textContent = '周小敏';
+        renderAuditOp(row, 'Farm');
+        farmPager.render();
+      }
+      closeModal('rejectFarmModal');
+      showToast('已驳回该申请', 'success');
+    };
+    window.openRejectMarket = function (btn) {
+      window._rejectMarketRow = btn.closest('tr');
+      document.getElementById('rejectMarketReason').value = '';
+      openModal('rejectMarketModal');
+    };
+    window.submitRejectMarket = function () {
+      var reason = document.getElementById('rejectMarketReason').value.trim();
+      if (!reason) { showToast('请填写驳回原因', 'warning'); return; }
+      var row = window._rejectMarketRow;
+      if (row) {
+        row.setAttribute('data-status', '已驳回');
+        row.cells[7].innerHTML = statusTag('已驳回');
+        row.cells[8].textContent = '周小敏';
+        renderAuditOp(row, 'Market');
+        marketPager.render();
+      }
+      closeModal('rejectMarketModal');
+      showToast('已驳回该商品', 'success');
+    };
+
+    /* ==================== 操作：查看（按行填充） ==================== */
+    window.viewFarm = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewFarmName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewFarmApplicant').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewFarmPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewFarmCategory').innerHTML = row.cells[3].innerHTML;
+      document.getElementById('viewFarmYield').textContent = row.cells[4].textContent.trim() + ' 斤';
+      document.getElementById('viewFarmPrice').textContent = row.cells[5].textContent.trim() + ' 元/斤';
+      document.getElementById('viewFarmTime').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewFarmStatus').innerHTML = row.cells[7].innerHTML;
+      document.getElementById('viewFarmDesc').textContent = row.getAttribute('data-desc') || '暂无产品描述。';
+      openModal('viewFarmModal');
+    };
+    window.viewMarket = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewMarketName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewMarketSubmitter').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewMarketPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewMarketCategory').innerHTML = row.cells[3].innerHTML;
+      document.getElementById('viewMarketPrice').textContent = row.cells[4].textContent.trim() + ' 元';
+      document.getElementById('viewMarketStock').textContent = row.cells[5].textContent.trim() + ' 件';
+      document.getElementById('viewMarketTime').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewMarketStatus').innerHTML = row.cells[7].innerHTML;
+      document.getElementById('viewMarketDesc').textContent = row.getAttribute('data-desc') || '暂无商品描述。';
+      openModal('viewMarketModal');
+    };
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '审核') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '审核记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，验证分页） ==================== */
+    function fmtDateTime(offset, seed) {
+      var d = new Date(2026, 7, 11 - offset);
+      var hh = 8 + ((seed * 5) % 10);
+      var mm = (seed * 13) % 60;
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+    }
+
+    function buildFarmRow(name, applicant, phone, category, yieldNum, price, time, status, desc) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-applicant', applicant);
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-status', status);
+      tr.setAttribute('data-desc', desc || '');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(applicant) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td>' + farmCatTag(category) + '</td>' +
+        '<td class="nums">' + yieldNum + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td>' + (status === '待审核' ? '—' : '周小敏') + '</td>' +
+        '<td class="op-cell"></td>';
+      farmTbody.appendChild(tr);
+      renderAuditOp(tr, 'Farm');
+    }
+    function buildMarketRow(name, submitter, phone, category, price, stock, time, status, desc) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-submitter', submitter);
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-status', status);
+      tr.setAttribute('data-desc', desc || '');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(submitter) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td>' + marketCatTag(category) + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td class="nums">' + stock + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td>' + (status === '待审核' ? '—' : '周小敏') + '</td>' +
+        '<td class="op-cell"></td>';
+      marketTbody.appendChild(tr);
+      renderAuditOp(tr, 'Market');
+    }
+
+    /* ---- 农产品审核：6 条基础静态行 + 19 条追加 = 25 条 ---- */
+    var farmBase = [
+      ['益农蜜桔（精品）', '李建国', '138****5678', '蜜桔', 2000, '4.5', '2026-07-28 09:20', '待审核', '幸福村益农蜜桔，皮薄汁多，甜度可达 13 度，产地直供，欢迎订购。'],
+      ['有机青菜', '王桂花', '138****2233', '蔬菜', 500, '3.0', '2026-07-29 10:40', '已通过', '本地有机种植，无农药残留，新鲜采摘配送。'],
+      ['散养土鸡', '赵铁柱', '138****4455', '家禽', 300, '25.0', '2026-07-30 14:15', '已通过', '高山散养土鸡，天然谷物喂养，肉质紧实鲜美。'],
+      ['淡水鲈鱼', '孙富贵', '138****6677', '水产', 400, '18.0', '2026-08-01 11:00', '待审核', '清水养殖鲈鱼，鲜活直供，肉质细嫩少刺。'],
+      ['手工红薯粉丝', '吴德发', '138****8899', '加工品', 800, '12.0', '2026-08-02 15:30', '已驳回', '传统手工制作红薯粉丝，久煮不烂，口感爽滑。'],
+      ['益农蜜桔（普通）', '李大壮', '138****1010', '蜜桔', 1500, '3.8', '2026-08-03 09:50', '已通过', '益农蜜桔批量上市，果肉饱满，酸甜适中。']
+    ];
+    var farmNames = ['富硒生态大米', '高山云雾茶', '清水生态草鱼', '农家土蜂蜜', '有机红番茄', '本地小籽花生', '红心猕猴桃', '古法压榨山茶油', '竹荪干货礼盒', '洪湖精品藕带', '香辣萝卜干', '野生黑木耳', '迁西板栗', '高山放养腊鸭', '新鲜莲藕', '农家菜籽油', '手工糯米糍粑', '野生葛根粉', '土鸡蛋礼盒'];
+    var farmApplicants = ['钱有财', '黄国庆', '周淑芬', '张明远', '陈大勇', '刘秀英', '杨春梅', '郑家兴'];
+    var farmPhones = ['139****1122', '138****3344', '137****5566', '136****7788', '135****9900', '139****2233', '138****4455', '137****6677'];
+    // 产品分类与产品名一一对应：大米→粮食、茶叶→茶叶、草鱼→水产、蜂蜜→蜂产品等
+    var farmCats = ['粮食', '茶叶', '水产', '蜂产品', '蔬菜', '粮食', '水果', '加工品', '蔬菜', '蔬菜', '加工品', '蔬菜', '其他', '家禽', '蔬菜', '加工品', '加工品', '加工品', '家禽'];
+    var farmStatuses = ['已通过', '待审核', '已驳回'];
+    var farmDescs = ['本地种植，绿色无公害，源头直供，欢迎批量订购。', '散养生态，天然喂养，品质有保障，产地可溯源。', '传统工艺制作，口味地道，真空包装，耐储存。', '农户自产直销，新鲜采摘，下单后当日打包发货。', '精选优质原材料，手工加工，无添加，健康安全。'];
+    farmBase.forEach(function (r) { buildFarmRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var fi = 0; fi < 19; fi++) {
+      buildFarmRow(
+        farmNames[fi % farmNames.length],
+        farmApplicants[fi % farmApplicants.length],
+        farmPhones[fi % farmPhones.length],
+        farmCats[fi],
+        300 + ((fi * 173) % 2200),
+        ((30 + (fi * 23) % 260) / 10).toFixed(1),
+        fmtDateTime(4 + fi, fi),
+        farmStatuses[fi % 3],
+        farmDescs[fi % farmDescs.length]
+      );
+    }
+
+    /* ---- 产品集市审核：6 条基础静态行 + 19 条追加 = 25 条 ---- */
+    var marketBase = [
+      ['手工竹编篮', '王桂花', '138****2233', '手工艺品', 38, 20, '2026-07-29 10:00', '待审核', '手工编织竹篮，采用本地竹材，结实耐用，适合收纳与装饰。'],
+      ['土法红糖', '赵铁柱', '138****4455', '土特产', 25, 50, '2026-07-30 14:30', '已通过', '传统工艺熬制红糖，色泽金黄，香甜可口，营养丰富。'],
+      ['农家土鸡蛋', '孙富贵', '138****6677', '农副产品', 2, 200, '2026-08-01 09:15', '已通过', '农家散养土鸡蛋，蛋香浓郁，新鲜直达。'],
+      ['手工布鞋', '李大壮', '138****1010', '手工艺品', 68, 15, '2026-08-02 11:40', '待审核', '一针一线手工纳制布鞋，舒适透气，经久耐穿。'],
+      ['腊肉礼盒', '吴德发', '138****8899', '土特产', 88, 30, '2026-08-03 16:20', '已驳回', '土法腌制晾晒腊肉，风味独特，礼盒包装适合馈赠。'],
+      ['农家干笋', '李建国', '138****5678', '农副产品', 35, 80, '2026-08-04 09:00', '已通过', '天然竹笋晒制，色泽自然，泡发后鲜嫩爽脆。']
+    ];
+    var marketNames = ['竹制茶具套装', '野生山核桃', '红薯干', '手工豆腐乳', '桂花米酒', '笋干礼盒', '土法榨菜油', '农家辣酱', '手工粉丝', '腊鸭礼盒', '老母鸡', '土蜂蜜礼盒', '手工红灯笼', '腊肠礼盒', '干香菇', '艾草青团', '手工糍粑', '农家腌菜', '山茶油礼盒'];
+    var marketSubmitters = ['钱有财', '黄国庆', '周淑芬', '张明远', '陈大勇', '刘秀英', '杨春梅', '郑家兴', '李大壮'];
+    var marketPhones = ['139****1122', '138****3344', '137****5566', '136****7788', '135****9900', '139****2233', '138****4455', '137****6677'];
+    // 商品分类与商品名一一对应：茶具→手工艺品、山核桃→坚果等
+    var marketCats = ['手工艺品', '坚果', '土特产', '农副产品', '农副产品', '土特产', '土特产', '农副产品', '农副产品', '土特产', '农副产品', '农副产品', '手工艺品', '土特产', '农副产品', '其他', '农副产品', '农副产品', '土特产'];
+    var marketStatuses = ['已通过', '待审核', '已驳回'];
+    var marketDescs = ['纯手工制作，本地特色好物，物美价廉，欢迎选购。', '传统工艺，品质保证，包装精美，适合自用与送礼。', '产地直供，新鲜安全，一件也发，售后无忧。', '农家自制，干净卫生，无添加防腐剂，吃得放心。'];
+    marketBase.forEach(function (r) { buildMarketRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var mi = 0; mi < 19; mi++) {
+      buildMarketRow(
+        marketNames[mi % marketNames.length],
+        marketSubmitters[mi % marketSubmitters.length],
+        marketPhones[mi % marketPhones.length],
+        marketCats[mi],
+        10 + ((mi * 47) % 90),
+        10 + ((mi * 37) % 200),
+        fmtDateTime(4 + mi, mi + 2),
+        marketStatuses[mi % 3],
+        marketDescs[mi % marketDescs.length]
+      );
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    farmPager.render();
+    marketPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#auditTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchAuditTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

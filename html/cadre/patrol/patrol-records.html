@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>巡查记录</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="patrol-plan.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">巡查记录</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content">
+    <div class="list-card" style="margin-top:0;">
+      <div class="list-item" role="button" onclick="location.href='patrol-checkin.html'">
+        <div class="item-content">
+          <div class="item-title">
+            2026-07-01 日常巡查
+            <span class="tag tag-blue" style="margin-left:8px;">待巡查</span>
+          </div>
+          <div class="item-desc">第一网格（村东片区） - 计划检查河道卫生、垃圾清运、路面状况</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">GPS定位</span>
+            <span>今日待巡查</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <div class="list-item" role="button" onclick="location.href='patrol-detail.html?id=1'">
+        <div class="item-content">
+          <div class="item-title">
+            2026-06-30 卫生检查
+            <span class="tag tag-green" style="margin-left:8px;">已完成</span>
+          </div>
+          <div class="item-desc">第一网格（村东片区） - 发现1处问题：河道东侧有少量垃圾堆积，已通知保洁清理</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">GPS定位</span>
+            <span>09:30</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <div class="list-item" role="button" onclick="location.href='patrol-detail.html?id=2'">
+        <div class="item-content">
+          <div class="item-title">
+            2026-06-28 安全排查
+            <span class="tag tag-green" style="margin-left:8px;">已完成</span>
+          </div>
+          <div class="item-desc">第三网格（村南片区） - 发现乱堆放杂物3处已通知清理，发现2处路面破损已记录上报</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">GPS定位</span>
+            <span>10:00</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <div class="list-item" role="button" onclick="location.href='patrol-detail.html?id=3'">
+        <div class="item-content">
+          <div class="item-title">
+            2026-06-25 道路检查
+            <span class="tag tag-green" style="margin-left:8px;">已完成</span>
+          </div>
+          <div class="item-desc">第二网格（村西片区） - 道路安全正常，路灯照明正常，无问题</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">GPS定位</span>
+            <span>14:15</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <div class="list-item" role="button" onclick="location.href='patrol-detail.html?id=4'">
+        <div class="item-content">
+          <div class="item-title">
+            2026-06-20 补打卡
+            <span class="tag tag-orange" style="margin-left:8px;">补打卡</span>
+          </div>
+          <div class="item-desc">第四网格（村北片区） - 道路状况正常，公共设施完好</div>
+          <div class="item-meta">
+            <span class="tag tag-blue">GPS定位</span>
+            <span>08:45</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- TabBar -->
+  <nav>
+    <div class="tab-bar">
+      <a class="tab-item" href="../index.html">
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        <span>工作台</span>
+      </a>
+      <a class="tab-item active" href="patrol-plan.html" aria-current="page">
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+        <span>巡查</span>
+      </a>
+      <a class="tab-item" href="../notice/notice-sent.html">
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+        <span>通知</span>
+      </a>
+      <a class="tab-item" href="../profile/profile.html">
+        <span class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span>我的</span>
+      </a>
+    </div>
+  </nav>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

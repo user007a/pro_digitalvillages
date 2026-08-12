@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡风文明 · 数字大屏 | 数字乡村大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码由 CSS 治理统一处理，本页先行覆盖关键蓝系伪元素/光晕/悬浮 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .tab-btn:hover { transform: none; }
+    .tab-btn.active { background: linear-gradient(180deg, var(--color-primary-50), var(--color-primary-100)); }
+    .tab-btn.active::after { background: var(--color-primary-500); box-shadow: none; }
+    .data-card:hover, .stat-mini:hover { transform: none; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .dash-header::before { display: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12); color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-300); }
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <div class="dash-logo"><iconify-icon icon="ri:medal-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">乡风文明 · 数字大屏</h1>
+          <span class="dash-subtitle">幸福村乡风文明数据总览</span>
+        </div>
+        <div class="dash-header-center">
+          <a href="../index.html" class="dash-entry-btn" aria-label="返回总览">
+            <iconify-icon icon="ri:arrow-left-line"></iconify-icon>返回总览
+          </a>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月09日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Tab Bar (48px) ======== -->
+    <nav class="dash-tabbar" role="tablist" aria-label="数据面板切换">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="0"><iconify-icon icon="ri:medal-line"></iconify-icon>乡风文明</button>
+    </nav>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+
+      <div class="tab-content active" data-tab="0">
+        <!-- Hero + KPI -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>乡风文明</h2>
+              <p>文化活动 56 场 · 志愿者 142 人</p>
+              <span class="tab-hero-tag">幸福村 · 乡风文明数据</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:calendar-event-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">文化活动</span>
+                  <span><span class="kpi-item-value">56</span><span class="kpi-item-unit">场</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:heart-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">志愿者</span>
+                  <span><span class="kpi-item-value">142</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:exchange-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">积分兑换</span>
+                  <span><span class="kpi-item-value">860</span><span class="kpi-item-unit">次</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:medal-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">文明户</span>
+                  <span><span class="kpi-item-value">68</span><span class="kpi-item-unit">户</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>文化活动类型</div>
+              <div class="panel-body"><div id="chart-culture-type" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>积分兑换趋势<span class="panel-title-extra">近6月 · 次</span></div>
+              <div class="panel-body"><div id="chart-points-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <!-- Center: Culture Facilities Map -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up" style="flex: 3;">
+              <div class="panel-title"><iconify-icon icon="ri:map-2-line"></iconify-icon>文化设施地图<span class="panel-title-extra">幸福村全域</span></div>
+              <div class="panel-body" style="padding: 12px;">
+                <div class="village-gis">
+                  <svg aria-hidden="true" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                      <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(22,163,74,0.06)" stroke-width="1"/>
+                      </pattern>
+                      <linearGradient id="river-grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#dcfce7" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#bbf7d0" stop-opacity="0.4"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="600" height="400" fill="url(#grid-pattern)"/>
+
+                    <!-- River -->
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="url(#river-grad)" stroke-width="28" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+
+                    <!-- Culture zone -->
+                    <rect x="180" y="100" width="160" height="90" rx="8" fill="rgba(217,119,6,0.08)" stroke="rgba(217,119,6,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="260" y="150" text-anchor="middle" fill="#92400e" font-size="13" font-weight="600">文化活动区</text>
+
+                    <rect x="60" y="240" width="180" height="120" rx="8" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="150" y="305" text-anchor="middle" fill="#047857" font-size="13" font-weight="600">休闲健身区</text>
+
+                    <rect x="400" y="80" width="140" height="100" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="470" y="135" text-anchor="middle" fill="#b45309" font-size="13" font-weight="600">教育传承区</text>
+
+                    <!-- Roads -->
+                    <line x1="0" y1="200" x2="600" y2="200" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+                    <line x1="300" y1="0" x2="300" y2="400" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+
+                    <!-- Markers: 文化礼堂/农家书屋/健身广场/村史馆/广播站 -->
+                    <g class="gis-marker">
+                      <circle cx="260" cy="125" r="9" fill="#92400e" stroke="#fff" stroke-width="2"/>
+                      <text x="260" y="113" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">文化礼堂</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="340" cy="160" r="9" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+                      <text x="358" y="158" fill="#14532d" font-size="11" font-weight="600">农家书屋</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="150" cy="290" r="9" fill="#10b981" stroke="#fff" stroke-width="2"/>
+                      <text x="150" y="320" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">健身广场</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="470" cy="115" r="9" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+                      <text x="470" y="103" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">村史馆</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="200" cy="140" r="9" fill="#16a34a" stroke="#fff" stroke-width="2"/>
+                      <text x="200" y="178" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">广播站</text>
+                    </g>
+
+                    <!-- 设施定位点 -->
+                    <circle cx="260" cy="125" r="6" fill="#92400e" opacity="0.3"></circle>
+                    <circle cx="150" cy="290" r="6" fill="#10b981" opacity="0.3"></circle>
+                  </svg>
+                  <div class="gis-legend">
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#92400e;"></span>文化礼堂</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#f59e0b;"></span>农家书屋</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#10b981;"></span>健身广场</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#ef4444;"></span>村史馆</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#16a34a;"></span>广播站</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-card animate-dash-fade-up" style="flex: 2;">
+              <div class="panel-title"><iconify-icon icon="ri:trophy-line"></iconify-icon>文明户榜单<span class="panel-title-extra">前五名 · 积分</span></div>
+              <div class="panel-body">
+                <div class="rank-list">
+                  <div class="rank-item"><span class="rank-num">1</span><span class="rank-name">张永强家庭</span><span class="rank-value">986分</span></div>
+                  <div class="rank-item"><span class="rank-num">2</span><span class="rank-name">李秀兰家庭</span><span class="rank-value">952分</span></div>
+                  <div class="rank-item"><span class="rank-num">3</span><span class="rank-name">王福来家庭</span><span class="rank-value">928分</span></div>
+                  <div class="rank-item"><span class="rank-num">4</span><span class="rank-name">赵桂芳家庭</span><span class="rank-value">901分</span></div>
+                  <div class="rank-item"><span class="rank-num">5</span><span class="rank-name">钱学明家庭</span><span class="rank-value">875分</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>志愿者统计<span class="panel-title-extra">单位：人</span></div>
+              <div class="panel-body"><div id="chart-volunteer-bar" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:shield-star-line"></iconify-icon>文明指标</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:medal-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">68</span><span class="data-card-label">文明户</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:heart-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">56</span><span class="data-card-label">志愿活动</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:exchange-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">860</span><span class="data-card-label">积分兑换</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:book-open-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">95%</span><span class="data-card-label">村规知晓率</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：村级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 30s 自动轮播</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+  /* 本页 ECharts 初始化 — 乡风文明 */
+  (function () {
+    'use strict';
+
+    var chartColors = ['#16a34a', '#0f766e', '#f59e0b', '#92400e', '#10b981', '#ef4444', '#22c55e'];
+
+    var baseTooltip = {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: 'rgba(22,163,74,0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#14532d', fontSize: 13 },
+      extraCssText: 'box-shadow: 0 4px 12px rgba(22,163,74,0.15); border-radius: 8px;'
+    };
+    var baseLegend = { right: 10, top: 10, textStyle: { color: '#57534e', fontSize: 12 }, itemWidth: 12, itemHeight: 12, itemGap: 10 };
+    var baseAxisLabel = { color: '#78716c', fontSize: 12 };
+    var baseAxisLine = { lineStyle: { color: 'rgba(22,163,74,0.15)' } };
+    var baseSplitLine = { lineStyle: { color: 'rgba(22,163,74,0.06)' } };
+
+    var charts = {};
+    function initChart(id, option) {
+      var el = document.getElementById(id);
+      if (!el || typeof echarts === 'undefined') return null;
+      var chart = echarts.init(el);
+      chart.setOption(option);
+      charts[id] = chart;
+      return chart;
+    }
+
+    // 1. 文化活动类型饼图（节庆活动/体育赛事/培训讲座/文艺演出/其他）
+    initChart('chart-culture-type', {
+      color: chartColors,
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'item', formatter: '{b}: {c}场 ({d}%)' }),
+      legend: Object.assign({}, baseLegend, { orient: 'vertical', right: 10, top: 'center', itemGap: 8 }),
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 600, color: '#14532d' },
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(22,163,74,0.2)' }
+        },
+        data: [
+          { value: 18, name: '节庆活动' },
+          { value: 12, name: '体育赛事' },
+          { value: 10, name: '培训讲座' },
+          { value: 9, name: '文艺演出' },
+          { value: 7, name: '其他' }
+        ]
+      }]
+    });
+
+    // 2. 积分兑换趋势柱状图（近6月）
+    initChart('chart-points-trend', {
+      color: [chartColors[2]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c}次' }),
+      grid: { left: 40, right: 20, top: 20, bottom: 30 },
+      xAxis: {
+        type: 'category',
+        data: ['3月', '4月', '5月', '6月', '7月', '8月'],
+        axisLabel: baseAxisLabel,
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '45%',
+        data: [120, 138, 142, 156, 168, 136],
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fcd34d' }
+          ])
+        },
+        label: { show: true, position: 'top', color: '#14532d', fontSize: 11, fontWeight: 600 }
+      }]
+    });
+
+    // 3. 志愿者统计柱状图（党员/村民/青年/妇女）
+    initChart('chart-volunteer-bar', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c}人' }),
+      grid: { left: 50, right: 20, top: 20, bottom: 35 },
+      xAxis: {
+        type: 'category',
+        data: ['党员', '村民', '青年', '妇女'],
+        axisLabel: baseAxisLabel,
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value', name: '人',
+        nameTextStyle: { color: '#78716c', fontSize: 11 },
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '45%',
+        data: [42, 38, 36, 26],
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: function (params) {
+            var colorList = [
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#ef4444' }, { offset: 1, color: '#fca5a5' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#16a34a' }, { offset: 1, color: '#bbf7d0' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#6ee7b7' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#92400e' }, { offset: 1, color: '#f59e0b' }])
+            ];
+            return colorList[params.dataIndex];
+          }
+        },
+        label: { show: true, position: 'top', color: '#14532d', fontSize: 12, fontWeight: 600 }
+      }]
+    });
+
+    // 响应窗口缩放
+    window.addEventListener('resize', function () {
+      setTimeout(function () {
+        Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+      }, 100);
+    });
+    setTimeout(function () {
+      Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+    }, 250);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>诉求详情</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="appeal-list.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">诉求详情</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-full" style="padding-top:44px;padding-bottom:56px;">
+    <!-- 诉求信息 -->
+    <div class="card">
+      <div class="card-title">诉求信息</div>
+      <div class="info-row">
+        <div class="info-label">诉求标题</div>
+        <div class="info-value text-bold">村口道路坑洼影响出行</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">诉求类型</div>
+        <div class="info-value"><span class="tag tag-blue">随手拍</span></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">诉求人</div>
+        <div class="info-value">张大爷 - 3组12号</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">提交时间</div>
+        <div class="info-value">2026-06-30 09:00</div>
+      </div>
+    </div>
+
+    <!-- 内容描述+图片 -->
+    <div class="card">
+      <div class="card-title">诉求内容</div>
+      <p style="font-size:14px;color:#333;line-height:1.8;margin-bottom:12px;">
+        村口主道路面有两处较大坑洼，一处位于村口牌坊往西约50米处，直径约40cm，深约10cm；另一处位于村卫生室门口，直径约30cm。每到下雨天，坑洼处积水严重，附近老人和小孩出行不便，存在较大安全隐患。希望村委尽快安排修补。
+      </p>
+      <div class="photo-grid">
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=potholes%20on%20village%20road%20entrance%20rural%20China%20panoramic%20realistic%20photo&image_size=landscape_4_3" alt="坑洼处全景" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=close%20up%20view%20of%20pothole%20damaged%20road%20surface%20rural%20village%20realistic%20photo&image_size=landscape_4_3" alt="坑洼近景" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+      </div>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="card">
+      <div class="card-title">处理进度</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#e6a23c;box-shadow:0 0 0 2px #e6a23c;"></div>
+          <div class="timeline-time">2026-06-30 09:00</div>
+          <div class="timeline-content">村民张大爷提交诉求「村口道路坑洼影响出行」</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#909399;box-shadow:0 0 0 2px #909399;"></div>
+          <div class="timeline-time">待处理</div>
+          <div class="timeline-content">等待村干部处理中，建议联系镇公路养护站安排修补</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部回复栏 -->
+  <div class="reply-bar">
+    <input type="text" placeholder="输入回复内容…" id="replyInput">
+    <button class="reply-btn" onclick="var v=document.getElementById('replyInput').value;if(v){showToast('回复成功');document.getElementById('replyInput').value='';}else{showToast('请输入回复内容');}">回复</button>
+  </div>
+</div>
+<script src="../js/cadre.js"></script>
+<script>
+(function(){var p=new URLSearchParams(window.location.search);var id=p.get('id')||'1';var hint=document.createElement('div');hint.style.cssText='text-align:center;font-size:12px;color:#9CA3AF;padding:8px;background:#F3F4F6;margin:12px 16px;border-radius:8px;';hint.textContent='当前查看：第 '+id+' 条记录';var main=document.querySelector('.page-content')||document.querySelector('main');if(main)main.insertBefore(hint,main.firstChild);})();
+</script>
+</body>
+</html>

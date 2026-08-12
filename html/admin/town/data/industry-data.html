@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>产业数据 - 乡级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <!-- 本页样式：对齐「南丰蜜桔监测数据页」——标题/副标题字号、Tab、表格、分页、页面边距，
+       并美化弹窗、各产业数据列表加入内容图片。 -->
+  <style>
+    /* ========== 页面容器与页头（对齐监测数据页：padding 24px / h1 20px / p 14px） ========== */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; text-align: left; }
+    .dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; text-align: left; }
+
+    /* ========== Tab（对齐监测数据页：白卡圆角 + 轻阴影，激活绿色下划线） ========== */
+    .dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 8px; margin-bottom: 16px; overflow-x: auto; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; text-align: left; white-space: nowrap; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ========== 搜索筛选区（白卡 + 紧凑控件，对齐监测数据页） ========== */
+    .dv-filter { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 14px 20px; margin-bottom: 16px; }
+
+    /* ========== 数据列表卡片：标题行（标题左 + 新增按钮右） + 表格 + 分页 ========== */
+    .table-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* ========== 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） ========== */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+
+    /* 表格图片缩略图 */
+    .thumb-img { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f3; display: inline-block; vertical-align: middle; background: #f9fafb; }
+    .thumb-img-lg { width: 96px; height: 64px; }
+
+    /* ========== 分页（对齐监测数据页：text-xs / 上分隔线） ========== */
+    .table-card .pagination { border: none; box-shadow: none; border-radius: 0 0 12px 12px; border-top: 1px solid #f0f2f5; margin: 0; padding: 12px 20px; }
+    .pagination.pg-pager .page-total { font-size: 12px; color: #6b7280; }
+    .pagination.pg-pager .page-size-select { height: 30px; font-size: 12px; }
+    .pagination.pg-pager .page-btn { height: 30px; font-size: 12px; }
+
+    /* ========== 弹窗美化（对齐监测数据页：圆角 12px / 头部图标 / footer 灰底） ========== */
+    .modal-overlay { padding: 16px; }
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    /* 详情弹窗（绿色渐变头）内部图标颜色 */
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    /* 确认删除弹窗 */
+    .confirm-modal .modal { max-width: 420px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+    /* 弹窗内的 Tab（企业详情多标签页） */
+    .modal-body .tab-bar { background: #fff; border: 1px solid #eef0f3; border-radius: 10px; padding: 0 8px; margin-bottom: 16px; }
+    .modal-body .tab-item { padding: 12px 16px; font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../../shared/js/export-helper.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="产业数据" data-page-subtitle="乡镇产业结构与各类产业数据管理">
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>产业数据</h2>
+      <span class="text-muted">种植业、畜牧业、渔业、加工业、旅游业与企业经营管理数据总览</span>
+    </div>
+  </div>
+
+  <!-- 分类 Tab：产业结构 → 种植业 → 畜牧业 → 渔业 → 加工业 → 旅游业 → 企业管理 -->
+  <div class="tab-bar dv-tabbar" id="industryTabs">
+    <div class="tab-item active" onclick="switchIndustryTab(this)" data-tab="structure">产业结构</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="plant">种植业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="livestock">畜牧业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="fishery">渔业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="processing">加工业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="tourism">旅游业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="enterprise">企业管理</div>
+  </div>
+
+  <!-- ==================== Tab 面板：产业结构 ==================== -->
+  <div class="tab-panel" id="tab-structure">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="structureFCategory">产业分类</label>
+        <select id="structureFCategory" name="category" class="form-select" style="width:160px">
+          <option value="">全部</option>
+          <option>畜牧业</option>
+          <option>种植业</option>
+          <option>旅游业</option>
+          <option>渔业</option>
+          <option>农产品加工业</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>产业结构列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addStructureModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button class="btn btn-outline" onclick="openModal('structureCategoryModal')"><iconify-icon icon="ri:settings-3-line"></iconify-icon> 分类管理</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>产业分类</th>
+              <th>产业名称</th>
+              <th>占比(%)</th>
+              <th>年产值(万元)</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-green">种植业</span></td>
+              <td>益农蜜桔种植</td>
+              <td>42.5</td>
+              <td>1280</td>
+              <td>蜜桔核心产区</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-orange">畜牧业</span></td>
+              <td>生猪与家禽养殖</td>
+              <td>18.6</td>
+              <td>560</td>
+              <td>规模化养殖为主</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-purple">旅游业</span></td>
+              <td>乡村休闲旅游</td>
+              <td>12.8</td>
+              <td>386</td>
+              <td>采摘与农家乐</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">渔业</span></td>
+              <td>淡水水产养殖</td>
+              <td>8.2</td>
+              <td>246</td>
+              <td>鱼虾蟹综合养殖</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-cyan">农产品加工业</span></td>
+              <td>柑橘深加工</td>
+              <td>14.5</td>
+              <td>432</td>
+              <td>蜜桔产业链延伸</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gray">其他</span></td>
+              <td>林业与服务</td>
+              <td>3.4</td>
+              <td>102</td>
+              <td>配套产业</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('structureEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该产业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：种植业 ==================== -->
+  <div class="tab-panel" id="tab-plant" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="plantFName">种植场名称</label>
+        <input type="text" id="plantFName" name="name" class="form-input" placeholder="请输入种植场名称…" style="width:160px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="plantFKind">种植种类</label>
+        <select id="plantFKind" name="kind" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>粮食</option>
+          <option>蔬菜</option>
+          <option>水果</option>
+          <option>经济作物</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="plantFVillage">所属村</label>
+        <select id="plantFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:plant-line"></iconify-icon>种植业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addPlantModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button class="btn btn-outline" onclick="openModal('plantKindModal')"><iconify-icon icon="ri:settings-3-line"></iconify-icon> 种类管理</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>种植场名称</th>
+              <th>种植种类</th>
+              <th>种植面积(亩)</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>年产量</th>
+              <th>年产值(万元)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="幸福村益农蜜桔园"></td>
+              <td>幸福村益农蜜桔园</td>
+              <td><span class="tag tag-orange">水果</span></td>
+              <td>850</td>
+              <td>幸福村</td>
+              <td>陈果园</td>
+              <td>3200吨</td>
+              <td>680</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/rural-bg-real.jpg" alt="平安村蔬菜基地"></td>
+              <td>平安村蔬菜基地</td>
+              <td><span class="tag tag-green">蔬菜</span></td>
+              <td>320</td>
+              <td>平安村</td>
+              <td>刘菜农</td>
+              <td>1800吨</td>
+              <td>260</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="丰收村水稻种植区"></td>
+              <td>丰收村水稻种植区</td>
+              <td><span class="tag tag-blue">粮食</span></td>
+              <td>560</td>
+              <td>丰收村</td>
+              <td>杨稻香</td>
+              <td>450吨</td>
+              <td>135</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="金桔村精品柑橘园"></td>
+              <td>金桔村精品柑橘园</td>
+              <td><span class="tag tag-orange">水果</span></td>
+              <td>420</td>
+              <td>金桔村</td>
+              <td>黄柑橘</td>
+              <td>2100吨</td>
+              <td>520</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="幸福村中药材基地"></td>
+              <td>幸福村中药材基地</td>
+              <td><span class="tag tag-purple">经济作物</span></td>
+              <td>150</td>
+              <td>幸福村</td>
+              <td>林药农</td>
+              <td>85吨</td>
+              <td>180</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="平安村茶园"></td>
+              <td>平安村茶园</td>
+              <td><span class="tag tag-purple">经济作物</span></td>
+              <td>280</td>
+              <td>平安村</td>
+              <td>郑茶香</td>
+              <td>42吨</td>
+              <td>160</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('plantViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('plantEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种植场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：畜牧业 ==================== -->
+  <div class="tab-panel" id="tab-livestock" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="livestockFName">养殖场名称</label>
+        <input type="text" id="livestockFName" name="name" class="form-input" placeholder="请输入养殖场名称…" style="width:160px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="livestockFKind">养殖种类</label>
+        <select id="livestockFKind" name="kind" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>猪</option>
+          <option>牛</option>
+          <option>羊</option>
+          <option>禽</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="livestockFVillage">所属村</label>
+        <select id="livestockFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:store-line"></iconify-icon>畜牧业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addLivestockModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>养殖场名称</th>
+              <th>养殖种类</th>
+              <th>养殖规模</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年产值(万元)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/banner-village.jpg" alt="幸福村生猪养殖场"></td>
+              <td>幸福村生猪养殖场</td>
+              <td><span class="tag tag-orange">猪</span></td>
+              <td>1200头</td>
+              <td>幸福村</td>
+              <td>李大壮</td>
+              <td>138****5678</td>
+              <td>280</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="平安村蛋鸡场"></td>
+              <td>平安村蛋鸡场</td>
+              <td><span class="tag tag-blue">禽</span></td>
+              <td>5000羽</td>
+              <td>平安村</td>
+              <td>王桂花</td>
+              <td>138****6789</td>
+              <td>150</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="丰收村肉牛场"></td>
+              <td>丰收村肉牛场</td>
+              <td><span class="tag tag-green">牛</span></td>
+              <td>180头</td>
+              <td>丰收村</td>
+              <td>赵铁柱</td>
+              <td>138****7890</td>
+              <td>320</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="金桔村山羊场"></td>
+              <td>金桔村山羊场</td>
+              <td><span class="tag tag-yellow">羊</span></td>
+              <td>260只</td>
+              <td>金桔村</td>
+              <td>孙富贵</td>
+              <td>138****8901</td>
+              <td>95</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="幸福村生态鸭场"></td>
+              <td>幸福村生态鸭场</td>
+              <td><span class="tag tag-blue">禽</span></td>
+              <td>3200羽</td>
+              <td>幸福村</td>
+              <td>周小敏</td>
+              <td>138****9012</td>
+              <td>110</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="平安村生猪合作社"></td>
+              <td>平安村生猪合作社</td>
+              <td><span class="tag tag-orange">猪</span></td>
+              <td>800头</td>
+              <td>平安村</td>
+              <td>吴德发</td>
+              <td>138****2345</td>
+              <td>210</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('livestockViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('livestockEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：渔业 ==================== -->
+  <div class="tab-panel" id="tab-fishery" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="fisheryFName">养殖场名称</label>
+        <input type="text" id="fisheryFName" name="name" class="form-input" placeholder="请输入养殖场名称…" style="width:160px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fisheryFKind">养殖种类</label>
+        <select id="fisheryFKind" name="kind" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>鱼</option>
+          <option>虾</option>
+          <option>蟹</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fisheryFVillage">所属村</label>
+        <select id="fisheryFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:water-line"></iconify-icon>渔业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addFisheryModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>养殖场名称</th>
+              <th>养殖种类</th>
+              <th>养殖面积(亩)</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>年产量</th>
+              <th>年产值(万元)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/rural-bg-real.jpg" alt="幸福村水产养殖场"></td>
+              <td>幸福村水产养殖场</td>
+              <td><span class="tag tag-blue">鱼</span></td>
+              <td>120</td>
+              <td>幸福村</td>
+              <td>李渔夫</td>
+              <td>85吨</td>
+              <td>120</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('fisheryViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('fisheryEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-aerial.jpg" alt="平安村龙虾养殖基地"></td>
+              <td>平安村龙虾养殖基地</td>
+              <td><span class="tag tag-orange">虾</span></td>
+              <td>80</td>
+              <td>平安村</td>
+              <td>王虾农</td>
+              <td>32吨</td>
+              <td>95</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('fisheryViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('fisheryEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/banner-village.jpg" alt="丰收村鱼塘"></td>
+              <td>丰收村鱼塘</td>
+              <td><span class="tag tag-blue">鱼</span></td>
+              <td>65</td>
+              <td>丰收村</td>
+              <td>赵塘主</td>
+              <td>56吨</td>
+              <td>78</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('fisheryViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('fisheryEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="金桔村生态蟹塘"></td>
+              <td>金桔村生态蟹塘</td>
+              <td><span class="tag tag-green">蟹</span></td>
+              <td>45</td>
+              <td>金桔村</td>
+              <td>孙蟹农</td>
+              <td>18吨</td>
+              <td>68</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('fisheryViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('fisheryEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="幸福村藕鱼共生池"></td>
+              <td>幸福村藕鱼共生池</td>
+              <td><span class="tag tag-gray">其他</span></td>
+              <td>50</td>
+              <td>幸福村</td>
+              <td>周藕农</td>
+              <td>28吨</td>
+              <td>42</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('fisheryViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('fisheryEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该养殖场记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 5 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：加工业 ==================== -->
+  <div class="tab-panel" id="tab-processing" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="processingFName">企业名称</label>
+        <input type="text" id="processingFName" name="name" class="form-input" placeholder="请输入企业名称…" style="width:180px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="processingFVillage">所属村</label>
+        <select id="processingFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:factory-line"></iconify-icon>加工业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addProcessingModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>企业名称</th>
+              <th>加工类型</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>年加工量</th>
+              <th>年产值(万元)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="益农蜜桔加工厂"></td>
+              <td>益农蜜桔加工厂</td>
+              <td><span class="tag tag-orange">深加工</span></td>
+              <td>幸福村</td>
+              <td>陈厂长</td>
+              <td>3500吨</td>
+              <td>860</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('processingViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('processingEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="幸福村果蔬保鲜库"></td>
+              <td>幸福村果蔬保鲜库</td>
+              <td><span class="tag tag-blue">冷藏保鲜</span></td>
+              <td>幸福村</td>
+              <td>林库管</td>
+              <td>2800吨</td>
+              <td>320</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('processingViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('processingEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="平安村粮食加工厂"></td>
+              <td>平安村粮食加工厂</td>
+              <td><span class="tag tag-orange">深加工</span></td>
+              <td>平安村</td>
+              <td>刘厂长</td>
+              <td>5200吨</td>
+              <td>480</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('processingViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('processingEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="丰收村茶叶精制厂"></td>
+              <td>丰收村茶叶精制厂</td>
+              <td><span class="tag tag-orange">深加工</span></td>
+              <td>丰收村</td>
+              <td>杨厂长</td>
+              <td>120吨</td>
+              <td>260</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('processingViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('processingEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="金桔村柑橘分拣中心"></td>
+              <td>金桔村柑橘分拣中心</td>
+              <td><span class="tag tag-green">分拣包装</span></td>
+              <td>金桔村</td>
+              <td>黄主管</td>
+              <td>4200吨</td>
+              <td>180</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('processingViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('processingEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 5 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：旅游业 ==================== -->
+  <div class="tab-panel" id="tab-tourism" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="tourismFName">项目名称</label>
+        <input type="text" id="tourismFName" name="name" class="form-input" placeholder="请输入项目名称…" style="width:160px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="tourismFType">项目类型</label>
+        <select id="tourismFType" name="type" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>景区</option>
+          <option>农家乐</option>
+          <option>民宿</option>
+          <option>采摘园</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="tourismFVillage">所属村</label>
+        <select id="tourismFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:hotel-line"></iconify-icon>旅游业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addTourismModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>旅游项目名称</th>
+              <th>项目类型</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>年接待量(人次)</th>
+              <th>年收入(万元)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="幸福村蜜桔采摘园"></td>
+              <td>幸福村蜜桔采摘园</td>
+              <td><span class="tag tag-orange">采摘园</span></td>
+              <td>幸福村</td>
+              <td>陈果园</td>
+              <td>12500</td>
+              <td>86</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="平安村农家乐"></td>
+              <td>平安村农家乐</td>
+              <td><span class="tag tag-green">农家乐</span></td>
+              <td>平安村</td>
+              <td>刘老板</td>
+              <td>8600</td>
+              <td>65</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="丰收村田园民宿"></td>
+              <td>丰收村田园民宿</td>
+              <td><span class="tag tag-purple">民宿</span></td>
+              <td>丰收村</td>
+              <td>杨管家</td>
+              <td>4200</td>
+              <td>58</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-aerial.jpg" alt="金桔村观光景区"></td>
+              <td>金桔村观光景区</td>
+              <td><span class="tag tag-blue">景区</span></td>
+              <td>金桔村</td>
+              <td>黄经理</td>
+              <td>15600</td>
+              <td>120</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="幸福村生态农庄"></td>
+              <td>幸福村生态农庄</td>
+              <td><span class="tag tag-green">农家乐</span></td>
+              <td>幸福村</td>
+              <td>林庄主</td>
+              <td>6800</td>
+              <td>48</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/rural-bg-real.jpg" alt="平安村垂钓中心"></td>
+              <td>平安村垂钓中心</td>
+              <td><span class="tag tag-green">农家乐</span></td>
+              <td>平安村</td>
+              <td>郑钓主</td>
+              <td>3500</td>
+              <td>32</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('tourismViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('tourismEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该旅游项目吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：企业管理 ==================== -->
+  <div class="tab-panel" id="tab-enterprise" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="enterpriseFName">企业名称</label>
+        <input type="text" id="enterpriseFName" name="name" class="form-input" placeholder="请输入企业名称…" style="width:180px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="enterpriseFType">企业类型</label>
+        <select id="enterpriseFType" name="type" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>国有</option>
+          <option>集体</option>
+          <option>私营</option>
+          <option>合资</option>
+          <option>外资</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="enterpriseFVillage">所属村</label>
+        <select id="enterpriseFVillage" name="village" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>幸福村</option>
+          <option>平安村</option>
+          <option>丰收村</option>
+          <option>金桔村</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:building-line"></iconify-icon>企业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addEnterpriseModal')"><iconify-icon icon="ri:building-2-line"></iconify-icon> 新增企业</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>企业名称</th>
+              <th>统一社会信用代码</th>
+              <th>企业类型</th>
+              <th>所属村</th>
+              <th>法人代表</th>
+              <th>注册资本(万元)</th>
+              <th>成立日期</th>
+              <th>联系电话</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-1.jpg" alt="益农蜜桔农业科技有限公司"></td>
+              <td>益农蜜桔农业科技有限公司</td>
+              <td>91550102MA6X8K7X9H</td>
+              <td><span class="tag tag-orange">私营</span></td>
+              <td>幸福村</td>
+              <td>陈科技</td>
+              <td>500</td>
+              <td>2018-05-12</td>
+              <td>138****5678</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="平安现代农业发展有限公司"></td>
+              <td>平安现代农业发展有限公司</td>
+              <td>91550103MA6X9L8Y2K</td>
+              <td><span class="tag tag-green">集体</span></td>
+              <td>平安村</td>
+              <td>刘发展</td>
+              <td>300</td>
+              <td>2016-09-20</td>
+              <td>138****6789</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="丰收粮油加工厂"></td>
+              <td>丰收粮油加工厂</td>
+              <td>91550104MA5Y7J6Z1L</td>
+              <td><span class="tag tag-orange">私营</span></td>
+              <td>丰收村</td>
+              <td>杨粮油</td>
+              <td>150</td>
+              <td>2019-03-15</td>
+              <td>138****7890</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="金桔果业专业合作社"></td>
+              <td>金桔果业专业合作社</td>
+              <td>91550105MA7Z1K2N3P</td>
+              <td><span class="tag tag-green">集体</span></td>
+              <td>金桔村</td>
+              <td>黄果业</td>
+              <td>200</td>
+              <td>2017-11-08</td>
+              <td>138****8901</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="益农乡村旅游服务公司"></td>
+              <td>益农乡村旅游服务公司</td>
+              <td>91550106MA8W2M4Q5R</td>
+              <td><span class="tag tag-blue">国有</span></td>
+              <td>幸福村</td>
+              <td>林旅游</td>
+              <td>800</td>
+              <td>2015-06-01</td>
+              <td>138****9012</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="鑫农水产养殖有限公司"></td>
+              <td>鑫农水产养殖有限公司</td>
+              <td>91550107MA9X3N6S7T</td>
+              <td><span class="tag tag-purple">合资</span></td>
+              <td>平安村</td>
+              <td>郑水产</td>
+              <td>600</td>
+              <td>2020-01-10</td>
+              <td>138****2345</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="thumb-img" src="../../../images/banner-village.jpg" alt="桔乡电商服务有限公司"></td>
+              <td>桔乡电商服务有限公司</td>
+              <td>91550108MA4Y5P8U9V</td>
+              <td><span class="tag tag-cyan">外资</span></td>
+              <td>金桔村</td>
+              <td>吴电商</td>
+              <td>1000</td>
+              <td>2021-08-25</td>
+              <td>188****3456</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('enterpriseViewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('enterpriseEditModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该企业记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 7 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 弹窗统一放 body 末尾、所有面板之外（面板 display:none 会连带隐藏 fixed 弹窗） -->
+
+<!-- ==================== 弹窗：产业结构 ==================== -->
+
+<!-- 新增产业弹窗 -->
+<div class="modal-overlay" id="addStructureModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:pie-chart-line"></iconify-icon>新增产业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addStructureModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="structureAddCategory"><span class="req">*</span>产业分类</label>
+            <select id="structureAddCategory" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>畜牧业</option>
+              <option>种植业</option>
+              <option>旅游业</option>
+              <option>渔业</option>
+              <option>农产品加工业</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="structureAddName"><span class="req">*</span>产业名称</label>
+            <input type="text" id="structureAddName" class="form-input" placeholder="请输入产业名称…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="structureAddRatio"><span class="req">*</span>占比(%)</label>
+            <input type="number" id="structureAddRatio" class="form-input" placeholder="请输入占比…" required inputmode="numeric" min="0" max="100" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="structureAddOutput">年产值(万元)</label>
+            <input type="number" id="structureAddOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="structureAddRemark">备注</label>
+          <textarea id="structureAddRemark" class="form-input" rows="2" placeholder="请输入备注…"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addStructureModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addStructureModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分类管理弹窗：产业结构 -->
+<div class="modal-overlay" id="structureCategoryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:settings-3-line"></iconify-icon>分类管理</h3>
+      <button type="button" class="modal-close" onclick="closeModal('structureCategoryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="card" style="padding:0;margin-bottom:16px;overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>分类名称</th>
+              <th style="width:100px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>畜牧业</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该分类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>种植业</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该分类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>旅游业</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该分类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>渔业</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该分类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>农产品加工业</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该分类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-group">
+        <label for="structureNewCategory">新增分类</label>
+        <input type="text" id="structureNewCategory" class="form-input" placeholder="请输入分类名称…" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('structureCategoryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('添加成功','success')">添加分类</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑产业弹窗 -->
+<div class="modal-overlay" id="structureEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑产业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('structureEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="structureEditCategory"><span class="req">*</span>产业分类</label>
+            <select id="structureEditCategory" class="form-select" required>
+              <option>畜牧业</option>
+              <option selected>种植业</option>
+              <option>旅游业</option>
+              <option>渔业</option>
+              <option>农产品加工业</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="structureEditName"><span class="req">*</span>产业名称</label>
+            <input type="text" id="structureEditName" class="form-input" value="益农蜜桔种植" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="structureEditRatio"><span class="req">*</span>占比(%)</label>
+            <input type="number" id="structureEditRatio" class="form-input" value="42.5" required inputmode="numeric" min="0" max="100" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="structureEditOutput">年产值(万元)</label>
+            <input type="number" id="structureEditOutput" class="form-input" value="1280" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="structureEditRemark">备注</label>
+          <textarea id="structureEditRemark" class="form-input" rows="2" placeholder="请输入备注…">蜜桔核心产区</textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('structureEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('structureEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：种植业 ==================== -->
+
+<!-- 新增弹窗：种植业 -->
+<div class="modal-overlay" id="addPlantModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:plant-line"></iconify-icon>新增种植场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addPlantModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantAddName"><span class="req">*</span>种植场名称</label>
+            <input type="text" id="plantAddName" class="form-input" placeholder="请输入种植场名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantAddKind"><span class="req">*</span>种植种类</label>
+            <select id="plantAddKind" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>粮食</option>
+              <option>蔬菜</option>
+              <option>水果</option>
+              <option>经济作物</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantAddArea"><span class="req">*</span>种植面积(亩)</label>
+            <input type="number" id="plantAddArea" class="form-input" placeholder="请输入种植面积…" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantAddVillage"><span class="req">*</span>所属村</label>
+            <select id="plantAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantAddManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="plantAddManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantAddYield">年产量</label>
+            <input type="text" id="plantAddYield" class="form-input" placeholder="请输入年产量…" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="plantAddOutput">年产值(万元)</label>
+          <input type="number" id="plantAddOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addPlantModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addPlantModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 种类管理弹窗：种植业 -->
+<div class="modal-overlay" id="plantKindModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:settings-3-line"></iconify-icon>种类管理</h3>
+      <button type="button" class="modal-close" onclick="closeModal('plantKindModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="card" style="padding:0;margin-bottom:16px;overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>种类名称</th>
+              <th style="width:100px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>粮食</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>蔬菜</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>水果</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+            <tr>
+              <td>经济作物</td>
+              <td class="op-cell"><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该种类吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-group">
+        <label for="plantNewKind">新增种类</label>
+        <input type="text" id="plantNewKind" class="form-input" placeholder="请输入种类名称…" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('plantKindModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('添加成功','success')">添加种类</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：种植业 -->
+<div class="modal-overlay detail-modal" id="plantViewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>种植场详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('plantViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-card-1.jpg" alt="幸福村益农蜜桔园"></span></div>
+        <div class="detail-item"><span class="detail-label">种植场名称</span><span class="detail-value">幸福村益农蜜桔园</span></div>
+        <div class="detail-item"><span class="detail-label">种植种类</span><span class="detail-value"><span class="tag tag-orange">水果</span></span></div>
+        <div class="detail-item"><span class="detail-label">种植面积(亩)</span><span class="detail-value">850</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">陈果园</span></div>
+        <div class="detail-item"><span class="detail-label">年产量</span><span class="detail-value">3200吨</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value">680</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('plantViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：种植业 -->
+<div class="modal-overlay" id="plantEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑种植场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('plantEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantEditName"><span class="req">*</span>种植场名称</label>
+            <input type="text" id="plantEditName" class="form-input" value="幸福村益农蜜桔园" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantEditKind"><span class="req">*</span>种植种类</label>
+            <select id="plantEditKind" class="form-select" required>
+              <option>粮食</option>
+              <option>蔬菜</option>
+              <option selected>水果</option>
+              <option>经济作物</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantEditArea"><span class="req">*</span>种植面积(亩)</label>
+            <input type="number" id="plantEditArea" class="form-input" value="850" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantEditVillage"><span class="req">*</span>所属村</label>
+            <select id="plantEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="plantEditManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="plantEditManager" class="form-input" value="陈果园" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="plantEditYield">年产量</label>
+            <input type="text" id="plantEditYield" class="form-input" value="3200吨" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="plantEditOutput">年产值(万元)</label>
+          <input type="number" id="plantEditOutput" class="form-input" value="680" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('plantEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('plantEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：畜牧业 ==================== -->
+
+<!-- 新增弹窗：畜牧业 -->
+<div class="modal-overlay" id="addLivestockModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:store-line"></iconify-icon>新增养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addLivestockModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockAddName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="livestockAddName" class="form-input" placeholder="请输入养殖场名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockAddKind"><span class="req">*</span>养殖种类</label>
+            <select id="livestockAddKind" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>猪</option>
+              <option>牛</option>
+              <option>羊</option>
+              <option>禽</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockAddScale"><span class="req">*</span>养殖规模</label>
+            <input type="number" id="livestockAddScale" class="form-input" placeholder="请输入养殖规模…" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockAddVillage"><span class="req">*</span>所属村</label>
+            <select id="livestockAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockAddManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="livestockAddManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockAddPhone">联系电话</label>
+            <input type="tel" id="livestockAddPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="livestockAddOutput">年产值(万元)</label>
+          <input type="number" id="livestockAddOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addLivestockModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addLivestockModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：畜牧业 -->
+<div class="modal-overlay detail-modal" id="livestockViewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>养殖场详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('livestockViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/banner-village.jpg" alt="幸福村生猪养殖场"></span></div>
+        <div class="detail-item"><span class="detail-label">养殖场名称</span><span class="detail-value">幸福村生猪养殖场</span></div>
+        <div class="detail-item"><span class="detail-label">养殖种类</span><span class="detail-value"><span class="tag tag-orange">猪</span></span></div>
+        <div class="detail-item"><span class="detail-label">养殖规模</span><span class="detail-value">1200头</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">李大壮</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value">138****5678</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value">280</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('livestockViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：畜牧业 -->
+<div class="modal-overlay" id="livestockEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('livestockEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockEditName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="livestockEditName" class="form-input" value="幸福村生猪养殖场" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockEditKind"><span class="req">*</span>养殖种类</label>
+            <select id="livestockEditKind" class="form-select" required>
+              <option selected>猪</option>
+              <option>牛</option>
+              <option>羊</option>
+              <option>禽</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockEditScale"><span class="req">*</span>养殖规模</label>
+            <input type="number" id="livestockEditScale" class="form-input" value="1200" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockEditVillage"><span class="req">*</span>所属村</label>
+            <select id="livestockEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="livestockEditManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="livestockEditManager" class="form-input" value="李大壮" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="livestockEditPhone">联系电话</label>
+            <input type="tel" id="livestockEditPhone" class="form-input" value="138****5678" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="livestockEditOutput">年产值(万元)</label>
+          <input type="number" id="livestockEditOutput" class="form-input" value="280" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('livestockEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('livestockEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：渔业 ==================== -->
+
+<!-- 新增弹窗：渔业 -->
+<div class="modal-overlay" id="addFisheryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:water-line"></iconify-icon>新增养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addFisheryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryAddName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="fisheryAddName" class="form-input" placeholder="请输入养殖场名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryAddKind"><span class="req">*</span>养殖种类</label>
+            <select id="fisheryAddKind" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>鱼</option>
+              <option>虾</option>
+              <option>蟹</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryAddArea"><span class="req">*</span>养殖面积(亩)</label>
+            <input type="number" id="fisheryAddArea" class="form-input" placeholder="请输入养殖面积…" required inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryAddVillage"><span class="req">*</span>所属村</label>
+            <select id="fisheryAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryAddManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="fisheryAddManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryAddYield">年产量</label>
+            <input type="text" id="fisheryAddYield" class="form-input" placeholder="请输入年产量…" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fisheryAddOutput">年产值(万元)</label>
+          <input type="number" id="fisheryAddOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addFisheryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addFisheryModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：渔业 -->
+<div class="modal-overlay detail-modal" id="fisheryViewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>养殖场详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('fisheryViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/rural-bg-real.jpg" alt="幸福村水产养殖场"></span></div>
+        <div class="detail-item"><span class="detail-label">养殖场名称</span><span class="detail-value">幸福村水产养殖场</span></div>
+        <div class="detail-item"><span class="detail-label">养殖种类</span><span class="detail-value"><span class="tag tag-blue">鱼</span></span></div>
+        <div class="detail-item"><span class="detail-label">养殖面积(亩)</span><span class="detail-value">120</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">李渔夫</span></div>
+        <div class="detail-item"><span class="detail-label">年产量</span><span class="detail-value">85吨</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value">120</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('fisheryViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：渔业 -->
+<div class="modal-overlay" id="fisheryEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('fisheryEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryEditName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="fisheryEditName" class="form-input" value="幸福村水产养殖场" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryEditKind"><span class="req">*</span>养殖种类</label>
+            <select id="fisheryEditKind" class="form-select" required>
+              <option selected>鱼</option>
+              <option>虾</option>
+              <option>蟹</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryEditArea"><span class="req">*</span>养殖面积(亩)</label>
+            <input type="number" id="fisheryEditArea" class="form-input" value="120" required inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryEditVillage"><span class="req">*</span>所属村</label>
+            <select id="fisheryEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fisheryEditManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="fisheryEditManager" class="form-input" value="李渔夫" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fisheryEditYield">年产量</label>
+            <input type="text" id="fisheryEditYield" class="form-input" value="85吨" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fisheryEditOutput">年产值(万元)</label>
+          <input type="number" id="fisheryEditOutput" class="form-input" value="120" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('fisheryEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('fisheryEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：加工业 ==================== -->
+
+<!-- 新增弹窗：加工业 -->
+<div class="modal-overlay" id="addProcessingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:factory-line"></iconify-icon>新增加工企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addProcessingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingAddName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="processingAddName" class="form-input" placeholder="请输入企业名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="processingAddType"><span class="req">*</span>加工类型</label>
+            <select id="processingAddType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>分拣包装</option>
+              <option>深加工</option>
+              <option>冷藏保鲜</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingAddVillage"><span class="req">*</span>所属村</label>
+            <select id="processingAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="processingAddManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="processingAddManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingAddYield">年加工量</label>
+            <input type="number" id="processingAddYield" class="form-input" placeholder="请输入年加工量…" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="processingAddOutput">年产值(万元)</label>
+            <input type="number" id="processingAddOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addProcessingModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addProcessingModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：加工业 -->
+<div class="modal-overlay detail-modal" id="processingViewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>企业详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('processingViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-card-1.jpg" alt="益农蜜桔加工厂"></span></div>
+        <div class="detail-item"><span class="detail-label">企业名称</span><span class="detail-value">益农蜜桔加工厂</span></div>
+        <div class="detail-item"><span class="detail-label">加工类型</span><span class="detail-value"><span class="tag tag-orange">深加工</span></span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">陈厂长</span></div>
+        <div class="detail-item"><span class="detail-label">年加工量</span><span class="detail-value">3500吨</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value">860</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('processingViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：加工业 -->
+<div class="modal-overlay" id="processingEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑加工企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('processingEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingEditName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="processingEditName" class="form-input" value="益农蜜桔加工厂" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="processingEditType"><span class="req">*</span>加工类型</label>
+            <select id="processingEditType" class="form-select" required>
+              <option>分拣包装</option>
+              <option selected>深加工</option>
+              <option>冷藏保鲜</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingEditVillage"><span class="req">*</span>所属村</label>
+            <select id="processingEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="processingEditManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="processingEditManager" class="form-input" value="陈厂长" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="processingEditYield">年加工量</label>
+            <input type="number" id="processingEditYield" class="form-input" value="3500" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="processingEditOutput">年产值(万元)</label>
+            <input type="number" id="processingEditOutput" class="form-input" value="860" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('processingEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('processingEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：旅游业 ==================== -->
+
+<!-- 新增弹窗：旅游业 -->
+<div class="modal-overlay" id="addTourismModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:hotel-line"></iconify-icon>新增旅游项目</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addTourismModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismAddName"><span class="req">*</span>项目名称</label>
+            <input type="text" id="tourismAddName" class="form-input" placeholder="请输入项目名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="tourismAddType"><span class="req">*</span>项目类型</label>
+            <select id="tourismAddType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>景区</option>
+              <option>农家乐</option>
+              <option>民宿</option>
+              <option>采摘园</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismAddVillage"><span class="req">*</span>所属村</label>
+            <select id="tourismAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tourismAddManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="tourismAddManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismAddVisitors">年接待量(人次)</label>
+            <input type="number" id="tourismAddVisitors" class="form-input" placeholder="请输入年接待量…" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="tourismAddIncome">年收入(万元)</label>
+            <input type="number" id="tourismAddIncome" class="form-input" placeholder="请输入年收入…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addTourismModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addTourismModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗：旅游业 -->
+<div class="modal-overlay detail-modal" id="tourismViewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>旅游项目详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('tourismViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-card-1.jpg" alt="幸福村蜜桔采摘园"></span></div>
+        <div class="detail-item"><span class="detail-label">旅游项目名称</span><span class="detail-value">幸福村蜜桔采摘园</span></div>
+        <div class="detail-item"><span class="detail-label">项目类型</span><span class="detail-value"><span class="tag tag-orange">采摘园</span></span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">陈果园</span></div>
+        <div class="detail-item"><span class="detail-label">年接待量(人次)</span><span class="detail-value">12500</span></div>
+        <div class="detail-item"><span class="detail-label">年收入(万元)</span><span class="detail-value">86</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('tourismViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：旅游业 -->
+<div class="modal-overlay" id="tourismEditModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑旅游项目</h3>
+      <button type="button" class="modal-close" onclick="closeModal('tourismEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismEditName"><span class="req">*</span>项目名称</label>
+            <input type="text" id="tourismEditName" class="form-input" value="幸福村蜜桔采摘园" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="tourismEditType"><span class="req">*</span>项目类型</label>
+            <select id="tourismEditType" class="form-select" required>
+              <option>景区</option>
+              <option>农家乐</option>
+              <option>民宿</option>
+              <option selected>采摘园</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismEditVillage"><span class="req">*</span>所属村</label>
+            <select id="tourismEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tourismEditManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="tourismEditManager" class="form-input" value="陈果园" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tourismEditVisitors">年接待量(人次)</label>
+            <input type="number" id="tourismEditVisitors" class="form-input" value="12500" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="tourismEditIncome">年收入(万元)</label>
+            <input type="number" id="tourismEditIncome" class="form-input" value="86" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('tourismEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('tourismEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：企业管理 ==================== -->
+
+<!-- 新增弹窗：企业管理 -->
+<div class="modal-overlay" id="addEnterpriseModal" aria-hidden="true">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:building-line"></iconify-icon>新增企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addEnterpriseModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseAddName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="enterpriseAddName" class="form-input" placeholder="请输入企业名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="enterpriseAddCode"><span class="req">*</span>统一社会信用代码</label>
+            <input type="text" id="enterpriseAddCode" class="form-input" placeholder="请输入统一社会信用代码…" required autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseAddType"><span class="req">*</span>企业类型</label>
+            <select id="enterpriseAddType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>国有</option>
+              <option>集体</option>
+              <option>私营</option>
+              <option>合资</option>
+              <option>外资</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="enterpriseAddVillage"><span class="req">*</span>所属村</label>
+            <select id="enterpriseAddVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseAddLegal"><span class="req">*</span>法人代表</label>
+            <input type="text" id="enterpriseAddLegal" class="form-input" placeholder="请输入法人代表姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="enterpriseAddCapital">注册资本(万元)</label>
+            <input type="number" id="enterpriseAddCapital" class="form-input" placeholder="请输入注册资本…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseAddDate"><span class="req">*</span>成立日期</label>
+            <input type="date" id="enterpriseAddDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="enterpriseAddPhone">联系电话</label>
+            <input type="tel" id="enterpriseAddPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="enterpriseAddAddress"><span class="req">*</span>地址</label>
+          <input type="text" id="enterpriseAddAddress" class="form-input" placeholder="请输入企业地址…" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addEnterpriseModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addEnterpriseModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看弹窗（含三tab）：企业管理 -->
+<div class="modal-overlay detail-modal" id="enterpriseViewModal" aria-hidden="true">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>企业详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('enterpriseViewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body" id="viewTabs">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">企业图片</span><span class="detail-value"><img class="thumb-img thumb-img-lg" src="../../../images/village-card-1.jpg" alt="益农蜜桔农业科技有限公司"></span></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active" data-tab="basic">基本信息</div>
+        <div class="tab-item" data-tab="business">商业扩展信息</div>
+        <div class="tab-item" data-tab="production">生产扩展信息</div>
+      </div>
+      <div data-tab-panel="basic">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">企业名称</span><span class="detail-value">益农蜜桔农业科技有限公司</span></div>
+          <div class="detail-item"><span class="detail-label">统一社会信用代码</span><span class="detail-value">91550102MA6X8K7X9H</span></div>
+          <div class="detail-item"><span class="detail-label">企业类型</span><span class="detail-value"><span class="tag tag-orange">私营</span></span></div>
+          <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+          <div class="detail-item"><span class="detail-label">法人代表</span><span class="detail-value">陈科技</span></div>
+          <div class="detail-item"><span class="detail-label">注册资本(万元)</span><span class="detail-value">500</span></div>
+          <div class="detail-item"><span class="detail-label">成立日期</span><span class="detail-value">2018-05-12</span></div>
+          <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value">138****5678</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">地址</span><span class="detail-value">幸福村蜜桔路1号</span></div>
+        </div>
+      </div>
+      <div data-tab-panel="business" style="display:none">
+        <div class="detail-grid">
+          <div class="detail-item detail-full"><span class="detail-label">经营范围</span><span class="detail-value">蜜桔种植、加工、销售；农产品技术开发；农业观光服务</span></div>
+          <div class="detail-item"><span class="detail-label">主营产品</span><span class="detail-value">益农蜜桔、蜜桔果汁、蜜桔果脯</span></div>
+          <div class="detail-item"><span class="detail-label">年销售额(万元)</span><span class="detail-value">1280</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">销售渠道</span><span class="detail-value">线下批发、电商平台、商超直供、社区团购</span></div>
+        </div>
+      </div>
+      <div data-tab-panel="production" style="display:none">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">生产规模</span><span class="detail-value">大型</span></div>
+          <div class="detail-item"><span class="detail-label">产能(吨/年)</span><span class="detail-value">3500</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">主要设备</span><span class="detail-value">自动化分拣线2条、冷库3座、果汁压榨设备1套</span></div>
+          <div class="detail-item"><span class="detail-label">员工数(人)</span><span class="detail-value">86</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('enterpriseViewModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗：企业管理 -->
+<div class="modal-overlay" id="enterpriseEditModal" aria-hidden="true">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('enterpriseEditModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseEditName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="enterpriseEditName" class="form-input" value="益农蜜桔农业科技有限公司" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="enterpriseEditCode"><span class="req">*</span>统一社会信用代码</label>
+            <input type="text" id="enterpriseEditCode" class="form-input" value="91550102MA6X8K7X9H" required autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseEditType"><span class="req">*</span>企业类型</label>
+            <select id="enterpriseEditType" class="form-select" required>
+              <option>国有</option>
+              <option>集体</option>
+              <option selected>私营</option>
+              <option>合资</option>
+              <option>外资</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="enterpriseEditVillage"><span class="req">*</span>所属村</label>
+            <select id="enterpriseEditVillage" class="form-select" required>
+              <option selected>幸福村</option>
+              <option>平安村</option>
+              <option>丰收村</option>
+              <option>金桔村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseEditLegal"><span class="req">*</span>法人代表</label>
+            <input type="text" id="enterpriseEditLegal" class="form-input" value="陈科技" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="enterpriseEditCapital">注册资本(万元)</label>
+            <input type="number" id="enterpriseEditCapital" class="form-input" value="500" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enterpriseEditDate"><span class="req">*</span>成立日期</label>
+            <input type="date" id="enterpriseEditDate" class="form-input" value="2018-05-12" required>
+          </div>
+          <div class="form-group">
+            <label for="enterpriseEditPhone">联系电话</label>
+            <input type="tel" id="enterpriseEditPhone" class="form-input" value="138****5678" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="enterpriseEditAddress"><span class="req">*</span>地址</label>
+          <input type="text" id="enterpriseEditAddress" class="form-input" value="幸福村蜜桔路1号" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('enterpriseEditModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('enterpriseEditModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    function switchIndustryTab(tab) {
+      document.querySelectorAll('#industryTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    }
+    (function () {
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#industryTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchIndustryTab(t);
+      }
+    })();
+    initTabs('#viewTabs');
+  </script>
+</body>
+</html>

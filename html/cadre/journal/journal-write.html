@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>填写工作日志</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="journal-list.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">填写工作日志</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <form data-validate onsubmit="return false">
+    <!-- 日期 -->
+    <div class="form-group">
+      <div class="form-label">日期</div>
+      <input type="date" name="date" class="form-input" value="2026-07-01" autocomplete="off">
+    </div>
+
+    <!-- 工作内容 -->
+    <div class="form-group">
+      <div class="form-label">工作内容</div>
+      <textarea name="content" class="form-textarea" placeholder="请填写今日工作内容…" rows="8" required autocomplete="off"></textarea>
+    </div>
+
+    <!-- 照片上传 -->
+    <div class="form-group">
+      <div class="form-label">工作照片</div>
+      <div class="upload-area">
+        <div class="upload-add" onclick="showToast('选择照片')">
+          <span class="upload-icon">+</span>
+          <span>添加照片</span>
+        </div>
+      </div>
+      <div class="text-sm text-gray mt-8">最多上传9张照片</div>
+    </div>
+    </form>
+
+    <!-- 提交按钮 -->
+    <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="showModal('提交确认', '确认提交工作日志？', function(){ showToast('提交成功'); })">提交</button>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

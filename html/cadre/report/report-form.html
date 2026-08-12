@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字乡村 - 事件上报</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+  <style>
+    /* ===== 事件上报页美化 ===== */
+    .page-body { padding: 16px; }
+    .form-head { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 0 4px; }
+    .form-head-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--color-primary-50); color: var(--color-primary-600); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .form-head-title { font-size: 17px; font-weight: 700; color: #1F2937; }
+    .form-head-sub { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+    .form-group {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #E5E7EB;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-group .form-label { font-size: 14px; font-weight: 600; color: #1F2937; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .form-group .form-label::before { content: ''; width: 3px; height: 14px; border-radius: 2px; background: var(--color-primary-500); }
+    /* 上传虚线按钮 */
+    .upload-add-box {
+      width: 96px; height: 96px;
+      border: 1.5px dashed #B5E0C4;
+      border-radius: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      color: var(--color-primary-600); cursor: pointer;
+      background: var(--color-primary-50);
+      transition: transform .2s ease, background-color .2s ease;
+    }
+    .upload-add-box:active { transform: scale(0.96); }
+    .upload-add-plus { font-size: 30px; font-weight: 300; line-height: 1; }
+    .upload-add-hint { font-size: 11px; }
+    .upload-tip { font-size: 12px; color: #9CA3AF; margin: 10px 2px 0; }
+    /* 紧急程度分段选择 */
+    .level-row { display: flex; gap: 10px; }
+    .level-pill {
+      flex: 1; text-align: center; padding: 10px 0; border-radius: 10px;
+      border: 1px solid #E5E7EB; background: #F9FAFB; font-size: 13px; color: #6B7280; cursor: pointer;
+      transition: all .2s ease;
+    }
+    .level-pill.active { background: var(--color-primary-500); color: #fff; border-color: var(--color-primary-500); font-weight: 600; box-shadow: var(--shadow-green-sm); }
+    /* 提交按钮 */
+    .btn-submit {
+      width: 100%; padding: 14px 0; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 600; color: #fff;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+      box-shadow: var(--shadow-green-md); cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .btn-submit:active { transform: scale(0.98); box-shadow: var(--shadow-green-sm); }
+  </style>
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+<header>
+  <div class="nav-bar">
+    <div class="nav-back" aria-label="返回" href="report-home.html"></div>
+    <h1 class="nav-title">事件上报</h1>
+    <div class="nav-right"></div>
+  </div>
+</header>
+<main class="page-content"><div class="page-body">
+  <div class="form-head">
+    <div class="form-head-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+    <div>
+      <div class="form-head-title">事件上报</div>
+      <div class="form-head-sub">填写事件信息，提交后由村委会及时跟进处理</div>
+    </div>
+  </div>
+  <form data-validate onsubmit="return false">
+    <div class="form-group">
+      <label class="form-label">照片上传</label>
+      <div class="upload-area">
+        <div class="upload-add-box" onclick="showToast('选择照片')">
+          <span class="upload-add-plus">+</span>
+          <span class="upload-add-hint">最多9张</span>
+        </div>
+      </div>
+      <div class="upload-tip">至少上传 1 张现场照片，支持拍照或从相册选择</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">事件分类</label>
+      <select class="form-select" required>
+        <option value="">请选择事件分类</option>
+        <option>垃圾乱堆</option>
+        <option>污水直排</option>
+        <option>道路损坏</option>
+        <option>设施损坏</option>
+        <option>违章建筑</option>
+        <option>安全隐患</option>
+        <option>环境卫生</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">事件描述</label>
+      <textarea name="description" class="form-textarea" placeholder="请详细描述事件情况，如发生时间、具体位置、影响范围等…" required autocomplete="off"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">事发地点</label>
+      <div class="location-info">
+        <span class="location-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </span>
+        <span class="location-text">自动定位中...</span>
+        <span class="location-btn" onclick="showModal('手动定位', '<input class=&quot;form-input&quot; id=&quot;manualLoc&quot; placeholder=&quot;请输入事发地点，如：幸福村二组路口&quot; autocomplete=&quot;off&quot; style=&quot;margin:8px 0;&quot;>', function(){ var v=document.getElementById('manualLoc').value.trim(); if(v){ document.querySelector('.location-text').textContent=v; showToast('定位已更新'); } else { showToast('请输入事发地点'); } })">手动调整</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">紧急程度</label>
+      <div class="level-row">
+        <div class="level-pill" onclick="selectLevel(this)">一般</div>
+        <div class="level-pill" onclick="selectLevel(this)">较急</div>
+        <div class="level-pill" onclick="selectLevel(this)">紧急</div>
+      </div>
+    </div>
+  </form>
+  <button type="button" class="btn-submit" onclick="submitReport()">提交上报</button>
+</div></main>
+<script>
+function selectLevel(el) {
+  var pills = el.parentNode.querySelectorAll('.level-pill');
+  for (var i = 0; i < pills.length; i++) pills[i].classList.remove('active');
+  el.classList.add('active');
+}
+function submitReport() {
+  var cat = document.querySelector('.form-select').value;
+  var desc = document.querySelector('[name=description]').value.trim();
+  if (!cat) { showToast('请选择事件分类'); return; }
+  if (!desc) { showToast('请填写事件描述'); return; }
+  window.location.href = 'report-success.html';
+}
+</script>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

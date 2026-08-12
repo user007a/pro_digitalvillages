@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>运营人员 - 县级运营平台</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「南丰蜜桔·病虫害模型·监测数据」页面规范（同乡村开通）：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 弹窗：白底圆角、标题 18px、表单标签 13px
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧），导出（右侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>运营人员</h2>
+        <p>管理平台运营人员账号、角色与负责区域，支持新增、编辑与启用停用</p>
+      </div>
+      <button type="button" class="btn btn-export" onclick="openExportModal()">
+        <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+      </button>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fName">姓名</label>
+        <input type="text" id="fName" class="form-input" placeholder="请输入姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fRole">角色</label>
+        <select id="fRole" class="form-select">
+          <option value="">全部</option>
+          <option>管理员</option>
+          <option>操作员</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="renderOperatorRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetOperatorFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 新增按钮 -->
+      <div class="table-actions-header">
+        <h3>运营人员列表</h3>
+        <button type="button" class="btn btn-primary" onclick="openModal('operatorForm')">
+          <iconify-icon icon="ri:user-add-line"></iconify-icon> 新增运营人员
+        </button>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>账号</th>
+              <th>手机号</th>
+              <th>角色</th>
+              <th>负责区域</th>
+              <th>状态</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="operatorTbody">
+            <tr data-role="管理员" data-status="启用" data-last-login="2026-08-08 14:22">
+              <td class="town-name">李建国</td>
+              <td class="nums">admin001</td>
+              <td class="nums">138****5678</td>
+              <td><span class="tag tag-blue">管理员</span></td>
+              <td>益农镇 / 幸福村</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-03-15</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-07 09:10">
+              <td class="town-name">王秀英</td>
+              <td class="nums">op001</td>
+              <td class="nums">139****6789</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>蜜桔镇</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-04-20</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-06 17:45">
+              <td class="town-name">张明远</td>
+              <td class="nums">op002</td>
+              <td class="nums">137****7890</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>益农镇</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-05-10</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="管理员" data-status="启用" data-last-login="2026-08-08 10:05">
+              <td class="town-name">陈丽华</td>
+              <td class="nums">admin002</td>
+              <td class="nums">136****8901</td>
+              <td><span class="tag tag-blue">管理员</span></td>
+              <td>青松乡</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-03-22</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="停用" data-last-login="2026-07-28 15:30">
+              <td class="town-name">赵卫国</td>
+              <td class="nums">op003</td>
+              <td class="nums">135****9012</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>蜜桔镇</td>
+              <td><span class="tag tag-red">停用</span></td>
+              <td class="nums">2026-06-01</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="toggleOperator(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>启用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-05 11:20">
+              <td class="town-name">孙志强</td>
+              <td class="nums">op004</td>
+              <td class="nums">188****2345</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>青松乡</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-07-05</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="管理员" data-status="启用" data-last-login="2026-08-09 08:55">
+              <td class="town-name">周慧敏</td>
+              <td class="nums">admin003</td>
+              <td class="nums">139****1111</td>
+              <td><span class="tag tag-blue">管理员</span></td>
+              <td>益农镇</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-07-18</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="停用" data-last-login="2026-08-01 16:40">
+              <td class="town-name">吴建军</td>
+              <td class="nums">op005</td>
+              <td class="nums">138****2222</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>蜜桔镇</td>
+              <td><span class="tag tag-red">停用</span></td>
+              <td class="nums">2026-08-01</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="toggleOperator(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>启用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-04 13:12">
+              <td class="town-name">刘桂芳</td>
+              <td class="nums">op006</td>
+              <td class="nums">136****3333</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>益农镇</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-07-22</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-02 09:38">
+              <td class="town-name">赵国强</td>
+              <td class="nums">op007</td>
+              <td class="nums">137****4444</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>青松乡</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-07-28</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="管理员" data-status="停用" data-last-login="2026-08-03 14:05">
+              <td class="town-name">孙丽华</td>
+              <td class="nums">admin004</td>
+              <td class="nums">139****5555</td>
+              <td><span class="tag tag-blue">管理员</span></td>
+              <td>蜜桔镇</td>
+              <td><span class="tag tag-red">停用</span></td>
+              <td class="nums">2026-08-03</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="toggleOperator(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>启用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+            <tr data-role="操作员" data-status="启用" data-last-login="2026-08-07 10:48">
+              <td class="town-name">郑海燕</td>
+              <td class="nums">op008</td>
+              <td class="nums">138****6666</td>
+              <td><span class="tag tag-gray">操作员</span></td>
+              <td>益农镇</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="nums">2026-08-07</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">12</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增运营人员弹窗 -->
+  <div class="modal-overlay" id="operatorForm" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:user-add-line"></iconify-icon> 新增运营人员</h3>
+        <button type="button" class="modal-close" onclick="closeModal('operatorForm')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="opName"><span class="req">*</span>姓名</label>
+              <input type="text" id="opName" class="form-input" placeholder="请输入姓名…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="opAccount"><span class="req">*</span>账号</label>
+              <input type="text" id="opAccount" class="form-input" placeholder="请输入登录账号…" required autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="opPhone"><span class="req">*</span>手机号</label>
+              <input type="tel" id="opPhone" class="form-input" placeholder="请输入手机号…" required autocomplete="tel" inputmode="tel">
+            </div>
+            <div class="form-group">
+              <label for="opRole"><span class="req">*</span>角色</label>
+              <select id="opRole" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>管理员</option>
+                <option>操作员</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="opTown">负责区域（乡镇）</label>
+              <select id="opTown" class="form-select">
+                <option value="">请选择…</option>
+                <option>益农镇</option>
+                <option>蜜桔镇</option>
+                <option>青松乡</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="opVillage">负责区域（村）</label>
+              <select id="opVillage" class="form-select">
+                <option value="">请选择…</option>
+                <option>幸福村</option>
+                <option>平安村</option>
+                <option>金桔村</option>
+                <option>丰收村</option>
+                <option>松林村</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="opStatus"><span class="req">*</span>状态</label>
+            <select id="opStatus" class="form-select" required>
+              <option value="启用">启用</option>
+              <option value="停用">停用</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('operatorForm')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAddOperator()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看运营人员弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewOperatorModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-user-line"></iconify-icon> 运营人员详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewOperatorModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">姓名</span><span class="detail-value" id="viewOpName">—</span></div>
+          <div class="detail-item"><span class="detail-label">账号</span><span class="detail-value" id="viewOpAccount">—</span></div>
+          <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewOpPhone">—</span></div>
+          <div class="detail-item"><span class="detail-label">角色</span><span class="detail-value" id="viewOpRole">—</span></div>
+          <div class="detail-item"><span class="detail-label">负责区域</span><span class="detail-value" id="viewOpArea">—</span></div>
+          <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewOpStatus">—</span></div>
+          <div class="detail-item"><span class="detail-label">创建时间</span><span class="detail-value" id="viewOpCreated">—</span></div>
+          <div class="detail-item"><span class="detail-label">最近登录</span><span class="detail-value" id="viewOpLogin">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewOperatorModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑运营人员弹窗 -->
+  <div class="modal-overlay" id="editOperatorModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑运营人员</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editOperatorModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editOpName"><span class="req">*</span>姓名</label>
+              <input type="text" id="editOpName" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editOpAccount"><span class="req">*</span>账号</label>
+              <input type="text" id="editOpAccount" class="form-input" required autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editOpPhone"><span class="req">*</span>手机号</label>
+              <input type="tel" id="editOpPhone" class="form-input" required autocomplete="tel" inputmode="tel">
+            </div>
+            <div class="form-group">
+              <label for="editOpRole"><span class="req">*</span>角色</label>
+              <select id="editOpRole" class="form-select" required>
+                <option>管理员</option>
+                <option>操作员</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editOpTown">负责区域（乡镇）</label>
+              <select id="editOpTown" class="form-select">
+                <option value="">请选择…</option>
+                <option>益农镇</option>
+                <option>蜜桔镇</option>
+                <option>青松乡</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editOpVillage">负责区域（村）</label>
+              <select id="editOpVillage" class="form-select">
+                <option value="">请选择…</option>
+                <option>幸福村</option>
+                <option>平安村</option>
+                <option>金桔村</option>
+                <option>丰收村</option>
+                <option>松林村</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editOpStatus"><span class="req">*</span>状态</label>
+            <select id="editOpStatus" class="form-select" required>
+              <option>启用</option>
+              <option>停用</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editOperatorModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditOperator()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出人员数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前筛选结果导出运营人员列表。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="运营人员列表" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- 搜索筛选：姓名 / 角色 / 状态 + 分页（默认 10 条/页） ---- */
+      var tbody = document.getElementById('operatorTbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+      var pageSize = 10;
+      var currentPage = 1;
+
+      /* 获取当前筛选条件下应显示的行集合（未分页） */
+      function getVisibleRows() {
+        var name = document.getElementById('fName').value.trim().toLowerCase();
+        var role = document.getElementById('fRole').value;
+        var status = document.getElementById('fStatus').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var show = true;
+          if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+          if (show && role && row.getAttribute('data-role') !== role) show = false;
+          if (show && status && row.getAttribute('data-status') !== status) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      /* 统一渲染：筛选 + 分页 */
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      /* 分页条事件（事件委托） */
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) {
+          currentPage = parseInt(numBtn.getAttribute('data-page'), 10);
+          renderRows();
+          return;
+        }
+        if (e.target.closest('.pager-prev')) {
+          if (currentPage > 1) { currentPage--; renderRows(); }
+          return;
+        }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      window.renderOperatorRows = function () { currentPage = 1; renderRows(); };
+      window.resetOperatorFilter = function () {
+        document.getElementById('fName').value = '';
+        document.getElementById('fRole').value = '';
+        document.getElementById('fStatus').value = '';
+        renderOperatorRows();
+      };
+
+      /* ---- 追加 13 条 Mock 数据（共 25 条，验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var towns = ['益农镇', '蜜桔镇', '青松乡', '临江镇', '白云镇', '绿野乡', '红星镇'];
+        // 动态姓名与静态行不重复
+        var names = ['王建国', '李秀兰', '陈志远', '王丽', '周建军', '吴秀英', '冯志刚', '褚桂兰', '何志刚', '钱进', '罗玉凤', '孙晓红', '郭大庆'];
+        var villages = ['幸福村', '金桔村', '松林村'];
+        // 村与乡镇归属关系：幸福村→益农镇、金桔村→蜜桔镇、松林村→青松乡
+        var villageTowns = { '幸福村': '益农镇', '金桔村': '蜜桔镇', '松林村': '青松乡' };
+        function fmtDate(offset) {
+          var d = new Date(2026, 7, 11 - offset);
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function maskPhone(i) {
+          var prefix = ['138', '139', '137', '136', '135', '188', '186', '187', '150', '159'][i % 10];
+          return prefix + '****' + String(1000 + ((i * 791) % 9000));
+        }
+        var opCount = 8, adminCount = 4; // 接续静态行 op001~op008、admin001~admin004
+        for (var i = 0; i < 13; i++) {
+          var role = (i % 6 === 5) ? '管理员' : '操作员';
+          var account;
+          if (role === '管理员') { adminCount++; account = 'admin' + String(adminCount).padStart(3, '0'); }
+          else { opCount++; account = 'op' + String(opCount).padStart(3, '0'); }
+          var status = (i % 5 === 4) ? '停用' : '启用';
+          var area;
+          if (i % 3 === 0) {
+            var v = villages[Math.floor(i / 3) % villages.length];
+            area = villageTowns[v] + ' / ' + v;
+          } else {
+            area = towns[i % towns.length];
+          }
+          var lastLogin = '2026-08-' + String(1 + (i % 9)).padStart(2, '0') + ' ' + String(8 + (i % 12)).padStart(2, '0') + ':' + String((i * 17) % 60).padStart(2, '0');
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-role', role);
+          tr.setAttribute('data-status', status);
+          tr.setAttribute('data-last-login', lastLogin);
+          tr.innerHTML =
+            '<td class="town-name">' + names[i % names.length] + '</td>' +
+            '<td class="nums">' + account + '</td>' +
+            '<td class="nums">' + maskPhone(i) + '</td>' +
+            '<td><span class="tag ' + (role === '管理员' ? 'tag-blue' : 'tag-gray') + '">' + role + '</span></td>' +
+            '<td>' + area + '</td>' +
+            '<td><span class="tag ' + (status === '启用' ? 'tag-green' : 'tag-red') + '">' + status + '</span></td>' +
+            '<td class="nums">' + fmtDate(30 - i * 2) + '</td>' +
+            '<td class="op-cell"></td>';
+          tbody.appendChild(tr);
+          renderOpCell(tr);
+        }
+      })();
+
+      renderRows();
+
+      /* ---- 查看详情 ---- */
+      window.viewOperator = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewOpName').textContent = td[0].textContent.trim();
+        document.getElementById('viewOpAccount').textContent = td[1].textContent.trim();
+        document.getElementById('viewOpPhone').textContent = td[2].textContent.trim();
+        document.getElementById('viewOpRole').innerHTML = td[3].innerHTML;
+        document.getElementById('viewOpArea').textContent = td[4].textContent.trim();
+        document.getElementById('viewOpStatus').innerHTML = td[5].innerHTML;
+        document.getElementById('viewOpCreated').textContent = td[6].textContent.trim();
+        document.getElementById('viewOpLogin').textContent = row.getAttribute('data-last-login') || '—';
+        openModal('viewOperatorModal');
+      };
+
+      /* ---- 编辑 ---- */
+      window.openEditOperator = function (btn) {
+        var row = btn.closest('tr');
+        window._editRow = row;
+        var td = row.cells;
+        var area = td[4].textContent.trim();
+        var town = area.split(' / ')[0] || '';
+        var village = area.split(' / ')[1] || '';
+        document.getElementById('editOpName').value = td[0].textContent.trim();
+        document.getElementById('editOpAccount').value = td[1].textContent.trim();
+        document.getElementById('editOpPhone').value = td[2].textContent.trim();
+        document.getElementById('editOpRole').value = td[3].textContent.trim();
+        document.getElementById('editOpTown').value = town;
+        document.getElementById('editOpVillage').value = village;
+        document.getElementById('editOpStatus').value = td[5].textContent.trim();
+        openModal('editOperatorModal');
+      };
+
+      window.submitEditOperator = function () {
+        var name = document.getElementById('editOpName').value.trim();
+        var account = document.getElementById('editOpAccount').value.trim();
+        var phone = document.getElementById('editOpPhone').value.trim();
+        if (!name || !account || !phone) { showToast('请完整填写必填信息', 'warning'); return; }
+        var row = window._editRow;
+        if (row) {
+          var role = document.getElementById('editOpRole').value;
+          var town = document.getElementById('editOpTown').value;
+          var village = document.getElementById('editOpVillage').value;
+          var status = document.getElementById('editOpStatus').value;
+          row.cells[0].textContent = name;
+          row.cells[1].textContent = account;
+          row.cells[2].textContent = phone;
+          var roleTag = row.cells[3].querySelector('.tag');
+          roleTag.className = 'tag ' + (role === '管理员' ? 'tag-blue' : 'tag-gray');
+          roleTag.textContent = role;
+          row.setAttribute('data-role', role);
+          row.cells[4].textContent = town ? (village ? town + ' / ' + village : town) : (village || '—');
+          var statusTag = row.cells[5].querySelector('.tag');
+          statusTag.className = 'tag ' + (status === '启用' ? 'tag-green' : 'tag-red');
+          statusTag.textContent = status;
+          row.setAttribute('data-status', status);
+          renderOpCell(row);
+        }
+        closeModal('editOperatorModal');
+        renderRows();
+        showToast('保存成功', 'success');
+      };
+
+      /* ---- 操作列渲染：按状态显示 停用 / 启用 ---- */
+      function renderOpCell(row) {
+        var cell = row.querySelector('.op-cell');
+        var name = row.cells[0].textContent.trim();
+        var status = row.getAttribute('data-status');
+        var isEnabled = status !== '停用';
+        var html =
+          '<button type="button" class="btn-op" onclick="viewOperator(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-edit" onclick="openEditOperator(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+          '<span class="op-divider"></span>' +
+          (isEnabled
+            ? '<button type="button" class="btn-op btn-op-danger" onclick="toggleOperator(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>'
+            : '<button type="button" class="btn-op btn-op-edit" onclick="toggleOperator(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>启用</button>') +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op" onclick="resetPwd(this)"><iconify-icon icon="ri:lock-password-line"></iconify-icon>重置密码</button>';
+        cell.innerHTML = html;
+      }
+
+      /* ---- 启用 / 停用 ---- */
+      window.toggleOperator = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        var isEnabled = row.getAttribute('data-status') !== '停用';
+        showConfirm({
+          title: isEnabled ? '停用确认' : '启用确认',
+          message: isEnabled ? '确定停用账号「' + name + '」吗？停用后无法登录。' : '确定启用账号「' + name + '」吗？启用后可正常登录。',
+          confirmText: isEnabled ? '确认停用' : '确认启用',
+          danger: isEnabled, // 停用为危险操作，红色按钮；启用为常规操作
+          onConfirm: function () {
+            var status = isEnabled ? '停用' : '启用';
+            row.setAttribute('data-status', status);
+            var tag = row.cells[5].querySelector('.tag');
+            tag.className = 'tag ' + (status === '启用' ? 'tag-green' : 'tag-red');
+            tag.textContent = status;
+            renderOpCell(row);
+            renderRows();
+            showToast(status === '启用' ? '已启用' : '已停用', 'success');
+          }
+        });
+      };
+
+      /* ---- 重置密码 ---- */
+      window.resetPwd = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        showConfirm({
+          title: '重置密码',
+          message: '确定重置账号「' + name + '」的登录密码吗？重置后将通过短信下发新密码。',
+          confirmText: '确认重置',
+          onConfirm: function () { showToast('密码已重置', 'success'); }
+        });
+      };
+
+      /* ---- 新增运营人员 ---- */
+      window.submitAddOperator = function () {
+        var name = document.getElementById('opName').value.trim();
+        var account = document.getElementById('opAccount').value.trim();
+        var phone = document.getElementById('opPhone').value.trim();
+        var role = document.getElementById('opRole').value;
+        var town = document.getElementById('opTown').value;
+        var village = document.getElementById('opVillage').value;
+        var status = document.getElementById('opStatus').value;
+        if (!name || !account || !phone || !role) { showToast('请完整填写必填信息', 'warning'); return; }
+        var now = new Date();
+        var date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-role', role);
+        tr.setAttribute('data-status', status);
+        tr.setAttribute('data-last-login', '—');
+        tr.innerHTML =
+          '<td class="town-name">' + escapeHtml(name) + '</td>' +
+          '<td class="nums">' + escapeHtml(account) + '</td>' +
+          '<td class="nums">' + escapeHtml(phone) + '</td>' +
+          '<td><span class="tag ' + (role === '管理员' ? 'tag-blue' : 'tag-gray') + '">' + escapeHtml(role) + '</span></td>' +
+          '<td>' + escapeHtml(town ? (village ? town + ' / ' + village : town) : (village || '—')) + '</td>' +
+          '<td><span class="tag ' + (status === '启用' ? 'tag-green' : 'tag-red') + '">' + escapeHtml(status) + '</span></td>' +
+          '<td class="nums">' + date + '</td>' +
+          '<td class="op-cell"></td>';
+        renderOpCell(tr);
+        tbody.insertBefore(tr, tbody.firstChild);
+        ['opName', 'opAccount', 'opPhone', 'opRole', 'opTown', 'opVillage']
+          .forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el.tagName === 'SELECT') el.value = '';
+            else el.value = '';
+          });
+        document.getElementById('opStatus').value = '启用';
+        resetOperatorFilter();
+        closeModal('operatorForm');
+        showToast('保存成功', 'success');
+      };
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () {
+        openModal('exportModal');
+      };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '运营人员列表';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+    })();
+  </script>
+</body>
+</html>

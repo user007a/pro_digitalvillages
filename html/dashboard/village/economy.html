@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡村产业 | 数字乡村大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码由 CSS 治理统一处理，本页先行覆盖关键蓝系伪元素/光晕/悬浮 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .tab-btn:hover { transform: none; }
+    .tab-btn.active { background: linear-gradient(180deg, var(--color-primary-50), var(--color-primary-100)); }
+    .tab-btn.active::after { background: var(--color-primary-500); box-shadow: none; }
+    .data-card:hover, .stat-mini:hover { transform: none; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .dash-header::before { display: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12); color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-300); }
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <a href="../index.html" class="dash-entry-btn" aria-label="返回总览" data-tip="返回总览大屏">
+          <iconify-icon icon="ri:arrow-left-line"></iconify-icon>返回总览
+        </a>
+        <div class="dash-logo"><iconify-icon icon="ri:plant-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">乡村产业 · 数字大屏</h1>
+          <span class="dash-subtitle">幸福村乡村产业数据总览</span>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月09日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+      <div class="tab-content active" style="display:flex;">
+        <!-- Hero -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>乡村产业</h2>
+              <p>年总产值 1,280 万元 · 带动就业 320 人</p>
+              <span class="tab-hero-tag">幸福村 · 乡村产业数据</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">年总产值</span>
+                  <span><span class="kpi-item-value">1280</span><span class="kpi-item-unit">万元</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:store-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">产业主体</span>
+                  <span><span class="kpi-item-value">86</span><span class="kpi-item-unit">个</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:team-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">带动就业</span>
+                  <span><span class="kpi-item-value">320</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:bank-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">村集体收入</span>
+                  <span><span class="kpi-item-value">86</span><span class="kpi-item-unit">万元</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>产业结构占比</div>
+              <div class="panel-body"><div id="chart-eco-structure" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:line-chart-line"></iconify-icon>产值趋势<span class="panel-title-extra">单位：万元</span></div>
+              <div class="panel-body"><div id="chart-eco-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <!-- Center: 产业分布地图 + 产业榜单 -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:map-2-line"></iconify-icon>产业分布地图<span class="panel-title-extra">幸福村全域</span></div>
+              <div class="panel-body" style="padding: 12px;">
+                <div class="village-gis" style="flex: 1.35; min-height: 0;">
+                  <svg aria-hidden="true" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                      <pattern id="grid-pattern-eco" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(22,163,74,0.06)" stroke-width="1"/>
+                      </pattern>
+                      <linearGradient id="river-grad-eco" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#dcfce7" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#bbf7d0" stop-opacity="0.4"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="600" height="400" fill="url(#grid-pattern-eco)"/>
+
+                    <!-- River -->
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="url(#river-grad-eco)" stroke-width="28" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+
+                    <!-- 蜜桔园种植区 (large, bottom-left) -->
+                    <rect x="60" y="240" width="200" height="120" rx="8" fill="rgba(16,185,129,0.10)" stroke="rgba(16,185,129,0.3)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="160" y="305" text-anchor="middle" fill="#047857" font-size="13" font-weight="600">蜜桔园种植区</text>
+
+                    <!-- 养殖区 (bottom-right) -->
+                    <rect x="380" y="250" width="160" height="90" rx="8" fill="rgba(245,158,11,0.10)" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="460" y="298" text-anchor="middle" fill="#b45309" font-size="13" font-weight="600">生态养殖区</text>
+
+                    <!-- 加工区 (mid-right) -->
+                    <!-- Industrial zone -->
+                    <rect x="410" y="150" width="130" height="80" rx="8" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="475" y="195" text-anchor="middle" fill="#b91c1c" font-size="13" font-weight="600">加工产业区</text>
+
+                    <!-- 采摘园 / 旅游区 (top-right) -->
+                    <rect x="400" y="60" width="140" height="80" rx="8" fill="rgba(217,119,6,0.10)" stroke="rgba(217,119,6,0.3)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="470" y="105" text-anchor="middle" fill="#92400e" font-size="13" font-weight="600">田园采摘园</text>
+
+                    <!-- 居民/电商区 -->
+                    <rect x="180" y="90" width="160" height="80" rx="8" fill="rgba(22,163,74,0.08)" stroke="rgba(22,163,74,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="260" y="135" text-anchor="middle" fill="#14532d" font-size="13" font-weight="600">电商服务中心</text>
+
+                    <!-- Roads -->
+                    <line x1="0" y1="200" x2="600" y2="200" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+                    <line x1="300" y1="0" x2="300" y2="400" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+
+                    <!-- 产业点 markers -->
+                    <g class="gis-marker">
+                      <circle cx="160" cy="300" r="9" fill="#10b981" stroke="#fff" stroke-width="2"/>
+                      <text x="160" y="332" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">蜜桔基地</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="460" cy="290" r="8" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+                      <text x="460" y="320" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">生态养殖场</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="475" cy="190" r="8" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+                      <text x="475" y="220" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">食品加工厂</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="470" cy="100" r="8" fill="#92400e" stroke="#fff" stroke-width="2"/>
+                      <text x="470" y="88" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">田园采摘园</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="260" cy="130" r="8" fill="#0f766e" stroke="#fff" stroke-width="2"/>
+                      <text x="285" y="128" fill="#14532d" font-size="11" font-weight="600">电商中心</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="240" cy="160" r="8" fill="#16a34a" stroke="#fff" stroke-width="2"/>
+                      <text x="240" y="180" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">农家乐集群</text>
+                    </g>
+
+                    <!-- 认养农业点位 -->
+                    <circle cx="200" cy="280" r="5" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+                    <circle cx="120" cy="320" r="5" fill="#10b981" stroke="#fff" stroke-width="1.5"/>
+                  </svg>
+                  <div class="gis-legend">
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#10b981;"></span>种植</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#f59e0b;"></span>养殖</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#ef4444;"></span>加工</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#92400e;"></span>文旅</div>
+                  </div>
+                </div>
+                <div class="rank-list" style="flex: 1; min-height: 0; margin-top: 12px;">
+                  <div class="rank-item"><span class="rank-num">1</span><span class="rank-name">益农蜜桔合作社</span><span class="rank-value">386万</span></div>
+                  <div class="rank-item"><span class="rank-num">2</span><span class="rank-name">幸福生态养殖场</span><span class="rank-value">268万</span></div>
+                  <div class="rank-item"><span class="rank-num">3</span><span class="rank-name">乡村食品加工厂</span><span class="rank-value">215万</span></div>
+                  <div class="rank-item"><span class="rank-num">4</span><span class="rank-name">田园采摘园</span><span class="rank-value">156万</span></div>
+                  <div class="rank-item"><span class="rank-num">5</span><span class="rank-name">农家乐集群</span><span class="rank-value">128万</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>认养农业统计<span class="panel-title-extra">认养规模</span></div>
+              <div class="panel-body"><div id="chart-eco-adoption" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:apps-line"></iconify-icon>企业规模分布</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:plant-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">合作社</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:home-smile-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">28</span><span class="data-card-label">家庭农场</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:store-2-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">38</span><span class="data-card-label">个体户</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-purple"><iconify-icon icon="ri:building-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8</span><span class="data-card-label">企业</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：村级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 乡村产业维度</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var chartColors = ['#16a34a', '#0f766e', '#f59e0b', '#92400e', '#10b981', '#ef4444', '#22c55e'];
+    var baseTooltip = {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: 'rgba(22,163,74,0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#14532d', fontSize: 13 },
+      extraCssText: 'box-shadow: 0 4px 12px rgba(22,163,74,0.15); border-radius: 8px;'
+    };
+    var baseLegend = { right: 10, top: 10, textStyle: { color: '#57534e', fontSize: 12 }, itemWidth: 12, itemHeight: 12, itemGap: 10 };
+    var baseAxisLabel = { color: '#78716c', fontSize: 12 };
+    var baseAxisLine = { lineStyle: { color: 'rgba(22,163,74,0.15)' } };
+    var baseSplitLine = { lineStyle: { color: 'rgba(22,163,74,0.06)' } };
+    var myCharts = [];
+
+    function initChart(id, option) {
+      var el = document.getElementById(id);
+      if (!el || typeof echarts === 'undefined') return null;
+      var chart = echarts.init(el);
+      chart.setOption(option);
+      myCharts.push(chart);
+      return chart;
+    }
+
+    // 1. 产业结构占比饼图
+    initChart('chart-eco-structure', {
+      color: chartColors,
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'item', formatter: '{b}: {d}%' }),
+      legend: Object.assign({}, baseLegend, { orient: 'vertical', right: 10, top: 'center', itemGap: 8 }),
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['38%', '50%'],
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 600, color: '#14532d' },
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(22,163,74,0.2)' }
+        },
+        data: [
+          { value: 42, name: '种植业' },
+          { value: 22, name: '加工业' },
+          { value: 18, name: '畜牧业' },
+          { value: 10, name: '乡村旅游' },
+          { value: 8, name: '渔业' }
+        ]
+      }]
+    });
+
+    // 2. 产值趋势折线图（近6季度）
+    initChart('chart-eco-trend', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', formatter: '{b}<br/>产值: {c} 万元' }),
+      grid: { left: 50, right: 20, top: 25, bottom: 35 },
+      xAxis: {
+        type: 'category',
+        data: ['2025Q1', '2025Q2', '2025Q3', '2025Q4', '2026Q1', '2026Q2'],
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 11 }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value', name: '万元',
+        nameTextStyle: { color: '#78716c', fontSize: 11 },
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'line', smooth: true, data: [265, 290, 305, 330, 315, 345],
+        lineStyle: { width: 2.5, color: chartColors[0] },
+        itemStyle: { color: chartColors[0] },
+        symbol: 'circle', symbolSize: 7,
+        label: { show: true, position: 'top', color: '#14532d', fontSize: 11, fontWeight: 600 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(22,163,74,0.2)' },
+            { offset: 1, color: 'rgba(22,163,74,0)' }
+          ])
+        }
+      }]
+    });
+
+    // 3. 认养农业统计柱状图
+    var adoptionUnits = ['棵', '棵', '只', '亩'];
+    initChart('chart-eco-adoption', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (p) { return p[0].name + ': ' + p[0].value + adoptionUnits[p[0].dataIndex]; } }),
+      grid: { left: 55, right: 20, top: 25, bottom: 35 },
+      xAxis: {
+        type: 'category',
+        data: ['蜜桔树', '果树', '家禽', '农田'],
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 11 }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '46%',
+        data: [1280, 560, 860, 120],
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: function (params) {
+            var colorList = [
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#6ee7b7' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#16a34a' }, { offset: 1, color: '#bbf7d0' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#fbbf24' }]),
+              new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#92400e' }, { offset: 1, color: '#f59e0b' }])
+            ];
+            return colorList[params.dataIndex];
+          }
+        },
+        label: { show: true, position: 'top', color: '#14532d', fontSize: 11, fontWeight: 600 }
+      }]
+    });
+
+    window.addEventListener('resize', function () {
+      setTimeout(function () {
+        myCharts.forEach(function (c) { if (c) c.resize(); });
+      }, 100);
+    });
+    setTimeout(function () {
+      myCharts.forEach(function (c) { if (c) c.resize(); });
+    }, 250);
+  })();
+  </script>
+</body>
+</html>

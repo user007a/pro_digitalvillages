@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>首页设计器 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    .form-designer {
+      display: flex;
+      gap: 16px;
+      height: calc(100vh - 80px);
+    }
+    .form-designer-left {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .form-designer-canvas {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .form-designer-props {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    /* 画布：手机宽度模拟 + 拖拽提示条 */
+    .canvas-hint {
+      width: 375px;
+      max-width: 100%;
+      flex-shrink: 0;
+      border: 1.5px dashed #bfe3bf;
+      background: #f4fbf4;
+      border-radius: 10px;
+      color: #16a34a;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px;
+      margin-bottom: 14px;
+    }
+    .canvas-hint iconify-icon { font-size: 16px; }
+    .form-designer-canvas .designer-field {
+      width: 375px;
+      max-width: 100%;
+      flex-shrink: 0;
+    }
+    /* 页头（对齐乡镇开通页：标题横排 + 副标题 p 元素） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .designer-comp-group { margin-bottom: 16px; }
+    .designer-comp-group-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+    .designer-comp-group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #eef0f3;
+    }
+    .designer-comp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      justify-content: flex-start;
+      height: 36px;
+      padding: 0 10px;
+      font-size: 14px;
+      margin-bottom: 6px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 8px;
+      cursor: grab;
+      color: #374151;
+      font-family: inherit;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .designer-comp:hover {
+      border-color: #16a34a;
+      color: #16a34a;
+      background: #f0fdf4;
+      box-shadow: 0 1px 4px rgba(22, 163, 74, 0.12);
+    }
+    .designer-comp .comp-ico {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: #f0fdf4;
+      color: #16a34a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .designer-comp .comp-ico iconify-icon { font-size: 13px; }
+    /* 分组图标配色：基础=绿 / 数据=青 / 媒体=橙 */
+    .designer-comp-group[data-tone="cyan"] .comp-ico { background: #f0fdfa; color: #0f766e; }
+    .designer-comp-group[data-tone="orange"] .comp-ico { background: #fffbeb; color: #d97706; }
+    .designer-field {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px 16px 14px;
+      margin-bottom: 12px;
+      background: #fff;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .designer-field:hover {
+      border-color: #16a34a;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.10);
+    }
+    .designer-field-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .designer-field-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .designer-field-type {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-left: 6px;
+      font-weight: 400;
+      background: #f9fafb;
+      border: 1px solid #f3f4f6;
+      border-radius: 999px;
+      padding: 1px 8px;
+    }
+    .designer-field-delete {
+      border: none;
+      background: transparent;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .designer-field-delete:hover { background: #fef2f2; }
+    .designer-canvas-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    .designer-props-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eef0f3;
+    }
+    .designer-props-title::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: #16a34a;
+      border-radius: 2px;
+    }
+    .designer-props-title iconify-icon {
+      color: #16a34a;
+    }
+    .props-section {
+      margin-bottom: 18px;
+    }
+    .props-section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    /* 画布预览样式 */
+    .preview-banner {
+      position: relative;
+      height: 96px;
+      border-radius: 8px;
+      background: linear-gradient(120deg, #15803d 0%, #16a34a 55%, #22c55e 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-size: 13px;
+      overflow: hidden;
+    }
+    .preview-banner .pb-icon {
+      font-size: 26px;
+      margin-bottom: 4px;
+      opacity: 0.9;
+    }
+    .preview-banner .pb-dots {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    .preview-banner .pb-dots i {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .preview-banner .pb-dots i.on { background: #fff; width: 14px; border-radius: 3px; }
+    .preview-quickentry {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+    .preview-quickentry .qe-item {
+      color: #374151;
+      font-size: 12px;
+      padding: 6px 2px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .preview-quickentry .qe-item:hover { background: #f0fdf4; }
+    .preview-quickentry .qe-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #f0fdf4;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 5px;
+      font-size: 22px;
+    }
+    .preview-list .preview-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 2px;
+      border-bottom: 1px dashed #f0f0f0;
+      font-size: 13px;
+      color: #374151;
+    }
+    .preview-list .preview-row:last-child { border-bottom: none; }
+    .preview-list .preview-row .row-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-list .preview-row .row-date {
+      font-size: 12px;
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
+    .preview-rank .preview-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 2px;
+      font-size: 13px;
+      color: #374151;
+    }
+    .preview-rank .rank-no {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .preview-rank .rank-no.top1 { background: #fa8c16; color: #fff; }
+    .preview-rank .rank-no.top2 { background: #9ca3af; color: #fff; }
+    .preview-rank .rank-no.top3 { background: #d97706; color: #fff; }
+    .preview-rank .rank-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .preview-rank .rank-score { font-size: 12px; font-weight: 600; color: #fa8c16; }
+    /* 预览弹窗：手机壳模拟 */
+    .phone-frame {
+      width: 300px;
+      margin: 0 auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #f9fafb;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .phone-status {
+      height: 30px;
+      background: linear-gradient(120deg, #15803d, #16a34a);
+      color: #fff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+    }
+    .phone-status iconify-icon { font-size: 13px; }
+    .phone-body { padding: 10px 12px 14px; }
+    .phone-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 12px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .phone-section-title::before {
+      content: '';
+      width: 3px;
+      height: 13px;
+      background: #16a34a;
+      border-radius: 2px;
+    }
+    .phone-body .preview-banner { height: 88px; }
+    @media (max-width: 1000px) {
+      .form-designer { flex-direction: column; height: auto; }
+      .form-designer-left, .form-designer-props { width: 100%; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-page-title="首页设计器" data-page-subtitle="配置幸福村村民端首页">
+
+  <!-- 顶部页头 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>首页设计器</h2>
+      <p>配置幸福村村级首页的组件、数据源与发布管理</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="openModal('previewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon> 预览</button>
+      <button class="btn btn-primary" onclick="openModal('publishModal')"><iconify-icon icon="ri:rocket-line"></iconify-icon> 保存发布</button>
+    </div>
+  </div>
+
+  <!-- 三栏设计器 -->
+  <div class="form-designer">
+
+    <!-- 左栏：组件库 -->
+    <div class="form-designer-left">
+      <div class="designer-comp-group">
+        <div class="designer-comp-group-title">基础组件</div>
+        <button type="button" class="designer-comp" data-comp="轮播图" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:slideshow-line"></iconify-icon></span> 轮播图</button>
+        <button type="button" class="designer-comp" data-comp="快捷入口" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:grid-line"></iconify-icon></span> 快捷入口</button>
+        <button type="button" class="designer-comp" data-comp="通知公告" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:notification-3-line"></iconify-icon></span> 通知公告</button>
+        <button type="button" class="designer-comp" data-comp="村情简介" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:community-line"></iconify-icon></span> 村情简介</button>
+      </div>
+      <div class="designer-comp-group" data-tone="cyan">
+        <div class="designer-comp-group-title">数据组件</div>
+        <button type="button" class="designer-comp" data-comp="村务公开" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></span> 村务公开</button>
+        <button type="button" class="designer-comp" data-comp="积分榜" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:trophy-line"></iconify-icon></span> 积分榜</button>
+        <button type="button" class="designer-comp" data-comp="便民服务" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon></span> 便民服务</button>
+      </div>
+      <div class="designer-comp-group" data-tone="orange">
+        <div class="designer-comp-group-title">媒体组件</div>
+        <button type="button" class="designer-comp" data-comp="图片广告" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:image-line"></iconify-icon></span> 图片广告</button>
+        <button type="button" class="designer-comp" data-comp="视频组件" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:video-line"></iconify-icon></span> 视频组件</button>
+        <button type="button" class="designer-comp" data-comp="自定义 HTML" draggable="true" ondragstart="dragComp(event)" onclick="addComp(this)"><span class="comp-ico"><iconify-icon icon="ri:code-s-slash-line"></iconify-icon></span> 自定义 HTML</button>
+      </div>
+    </div>
+
+    <!-- 中栏：画布 -->
+    <div class="form-designer-canvas" ondragover="event.preventDefault()" ondrop="dropComp(event)">
+      <!-- 拖拽提示条 -->
+      <div class="canvas-hint">
+        <iconify-icon icon="ri:drag-drop-line"></iconify-icon>
+        从左侧拖拽组件到此处，或点击左侧组件添加
+      </div>
+      <!-- 轮播图 -->
+      <div class="designer-field">
+        <div class="designer-field-head">
+          <div>
+            <span class="designer-field-label">轮播图</span>
+            <span class="designer-field-type">（顶部轮播）</span>
+          </div>
+          <button type="button" class="designer-field-delete" aria-label="删除组件" onclick="this.closest('.designer-field').remove();showToast('组件已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+        </div>
+        <div class="preview-banner" style="background-image:url('../../../images/banner-village.jpg');background-size:cover;background-position:center">
+          <span class="pb-icon"><iconify-icon icon="ri:slideshow-line"></iconify-icon></span>
+          轮播图占位 · 建议尺寸 750×320
+          <span class="pb-dots"><i class="on"></i><i></i><i></i></span>
+        </div>
+      </div>
+
+      <!-- 快捷入口 -->
+      <div class="designer-field">
+        <div class="designer-field-head">
+          <div>
+            <span class="designer-field-label">快捷入口</span>
+            <span class="designer-field-type">（4 个图标）</span>
+          </div>
+          <button type="button" class="designer-field-delete" aria-label="删除组件" onclick="this.closest('.designer-field').remove();showToast('组件已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+        </div>
+        <div class="preview-quickentry">
+          <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></div>村务公开</div>
+          <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon></div>便民服务</div>
+          <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:camera-line"></iconify-icon></div>随手拍</div>
+          <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:trophy-line"></iconify-icon></div>积分榜</div>
+        </div>
+      </div>
+
+      <!-- 村务公开 -->
+      <div class="designer-field">
+        <div class="designer-field-head">
+          <div>
+            <span class="designer-field-label">村务公开</span>
+            <span class="designer-field-type">（3 条）</span>
+          </div>
+          <button type="button" class="designer-field-delete" aria-label="删除组件" onclick="this.closest('.designer-field').remove();showToast('组件已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+        </div>
+        <div class="preview-list">
+          <div class="preview-row"><span class="row-title">2026 年第二季度村财务收支公示</span><span class="row-date">2026-07-05</span></div>
+          <div class="preview-row"><span class="row-title">幸福村低保户名单公示</span><span class="row-date">2026-07-12</span></div>
+          <div class="preview-row"><span class="row-title">村级工程项目招标公告</span><span class="row-date">2026-07-20</span></div>
+        </div>
+      </div>
+
+      <!-- 积分榜 -->
+      <div class="designer-field">
+        <div class="designer-field-head">
+          <div>
+            <span class="designer-field-label">积分榜</span>
+            <span class="designer-field-type">（前 5 名）</span>
+          </div>
+          <button type="button" class="designer-field-delete" aria-label="删除组件" onclick="this.closest('.designer-field').remove();showToast('组件已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+        </div>
+        <div class="preview-rank">
+          <div class="preview-row"><span class="rank-no top1">1</span><span class="rank-name">李建国</span><span class="rank-score">860 分</span></div>
+          <div class="preview-row"><span class="rank-no top2">2</span><span class="rank-name">王桂花</span><span class="rank-score">780 分</span></div>
+          <div class="preview-row"><span class="rank-no top3">3</span><span class="rank-name">赵铁柱</span><span class="rank-score">720 分</span></div>
+          <div class="preview-row"><span class="rank-no">4</span><span class="rank-name">孙富贵</span><span class="rank-score">640 分</span></div>
+          <div class="preview-row"><span class="rank-no">5</span><span class="rank-name">周小敏</span><span class="rank-score">580 分</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：属性面板 -->
+    <div class="form-designer-props">
+      <div class="designer-props-title"><iconify-icon icon="ri:settings-3-line"></iconify-icon>组件属性</div>
+      <div class="props-section">
+        <div class="props-section-label">基本设置</div>
+        <div class="form-group">
+          <label for="propName">组件名称</label>
+          <input type="text" id="propName" name="propName" class="form-input" value="村务公开" placeholder="请输入组件名称…" autocomplete="off" inputmode="text" oninput="updateCompName(this)">
+        </div>
+        <div class="form-group">
+          <label for="propSource">数据源</label>
+          <select id="propSource" name="propSource" class="form-select">
+            <option selected>村务公开列表</option>
+            <option>通知公告列表</option>
+            <option>自定义数据</option>
+          </select>
+        </div>
+      </div>
+      <div class="props-section">
+        <div class="props-section-label">展示设置</div>
+        <div class="form-group">
+          <label for="propStyle">样式配置</label>
+          <select id="propStyle" name="propStyle" class="form-select">
+            <option>列表样式</option>
+            <option>卡片样式</option>
+            <option>表格样式</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="propCount">显示条数</label>
+          <input type="number" id="propCount" name="propCount" class="form-input" value="3" placeholder="请输入显示条数…" autocomplete="off" inputmode="numeric">
+        </div>
+        <div class="form-group">
+          <label for="propSort">排序</label>
+          <select id="propSort" name="propSort" class="form-select">
+            <option>按时间倒序</option>
+            <option>按时间正序</option>
+            <option>按权重排序</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../../js/admin.js"></script>
+
+  <!-- ========== 预览弹窗（手机端模拟） ========== -->
+  <div class="modal-overlay" id="previewModal" aria-hidden="true">
+    <div class="modal" style="width:400px;max-width:92vw">
+      <div class="modal-header">
+        <h3>首页预览</h3>
+        <button type="button" class="modal-close" onclick="closeModal('previewModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:18px 24px 20px;background:#f0f2f5">
+        <div class="phone-frame">
+          <div class="phone-status">
+            <span>幸福村 · 数字乡村</span>
+            <iconify-icon icon="ri:signal-wifi-line"></iconify-icon>
+          </div>
+          <div class="phone-body">
+            <div class="preview-banner" style="background-image:url('../../../images/banner-village.jpg');background-size:cover;background-position:center">
+              <span class="pb-icon"><iconify-icon icon="ri:slideshow-line"></iconify-icon></span>
+              幸福村欢迎您
+              <span class="pb-dots"><i class="on"></i><i></i><i></i></span>
+            </div>
+            <div class="phone-section-title">快捷服务</div>
+            <div class="preview-quickentry">
+              <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></div>村务公开</div>
+              <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon></div>便民服务</div>
+              <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:camera-line"></iconify-icon></div>随手拍</div>
+              <div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:trophy-line"></iconify-icon></div>积分榜</div>
+            </div>
+            <div class="phone-section-title">村务公开</div>
+            <div class="preview-list" style="background:#fff;border-radius:8px;padding:4px 12px;border:1px solid #f3f4f6">
+              <div class="preview-row"><span class="row-title">2026 年第二季度村财务收支公示</span><span class="row-date">07-05</span></div>
+              <div class="preview-row"><span class="row-title">幸福村低保户名单公示</span><span class="row-date">07-12</span></div>
+            </div>
+            <div class="phone-section-title">积分榜 · 前 3</div>
+            <div class="preview-rank" style="background:#fff;border-radius:8px;padding:4px 12px;border:1px solid #f3f4f6">
+              <div class="preview-row"><span class="rank-no top1">1</span><span class="rank-name">李建国</span><span class="rank-score">860 分</span></div>
+              <div class="preview-row"><span class="rank-no top2">2</span><span class="rank-name">王桂花</span><span class="rank-score">780 分</span></div>
+              <div class="preview-row"><span class="rank-no top3">3</span><span class="rank-name">赵铁柱</span><span class="rank-score">720 分</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('previewModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 保存发布弹窗 ========== -->
+  <div class="modal-overlay" id="publishModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>保存并发布</h3>
+        <button type="button" class="modal-close" onclick="closeModal('publishModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="publishForm" onsubmit="return false">
+          <div class="form-group">
+            <label for="pubScope">发布范围 <span style="color:#dc2626">*</span></label>
+            <select id="pubScope" name="pubScope" class="form-select">
+              <option selected>全部村民</option>
+              <option>指定网格</option>
+              <option>仅村干部</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pubRole">可见角色 <span style="color:#dc2626">*</span></label>
+            <select id="pubRole" name="pubRole" class="form-select">
+              <option selected>全体村民</option>
+              <option>村民 + 村干部</option>
+              <option>仅游客可见</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pubNote">发布说明</label>
+            <textarea id="pubNote" name="pubNote" class="form-textarea" rows="3" placeholder="选填，填写本次发布的说明…" autocomplete="off"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('publishModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="publishHome()">确认发布</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 首页设计器：组件添加 / 名称联动 / 拖拽入库 ===== */
+    function compTypeName(type) {
+      var m = {
+        '轮播图': '顶部轮播', '快捷入口': '4 个图标', '通知公告': '3 条', '村情简介': '图文介绍',
+        '村务公开': '3 条', '积分榜': '前 3 名', '便民服务': '4 个图标', '图片广告': '广告位',
+        '视频组件': '视频位', '自定义 HTML': '富内容'
+      };
+      return m[type] || type;
+    }
+    function compBodyHtml(type) {
+      switch (type) {
+        case '轮播图':
+          return '<div class="preview-banner" style="background-image:url(\'../../../images/banner-village.jpg\');background-size:cover;background-position:center"><span class="pb-icon"><iconify-icon icon="ri:slideshow-line"></iconify-icon></span>轮播图占位 · 建议尺寸 750×320<span class="pb-dots"><i class="on"></i><i></i><i></i></span></div>';
+        case '快捷入口':
+          return '<div class="preview-quickentry">' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></div>村务公开</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon></div>便民服务</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:camera-line"></iconify-icon></div>随手拍</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:trophy-line"></iconify-icon></div>积分榜</div></div>';
+        case '便民服务':
+          return '<div class="preview-quickentry">' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon></div>报修服务</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:calendar-event-line"></iconify-icon></div>预约办事</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:heart-pulse-line"></iconify-icon></div>健康咨询</div>' +
+            '<div class="qe-item"><div class="qe-icon"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div>惠农补贴</div></div>';
+        case '通知公告':
+        case '村务公开':
+          return '<div class="preview-list">' +
+            '<div class="preview-row"><span class="row-title">' + type + '示例数据 1</span><span class="row-date">2026-08-01</span></div>' +
+            '<div class="preview-row"><span class="row-title">' + type + '示例数据 2</span><span class="row-date">2026-08-05</span></div>' +
+            '<div class="preview-row"><span class="row-title">' + type + '示例数据 3</span><span class="row-date">2026-08-08</span></div></div>';
+        case '积分榜':
+          return '<div class="preview-rank">' +
+            '<div class="preview-row"><span class="rank-no top1">1</span><span class="rank-name">李建国</span><span class="rank-score">860 分</span></div>' +
+            '<div class="preview-row"><span class="rank-no top2">2</span><span class="rank-name">王桂花</span><span class="rank-score">780 分</span></div>' +
+            '<div class="preview-row"><span class="rank-no top3">3</span><span class="rank-name">赵铁柱</span><span class="rank-score">720 分</span></div></div>';
+        case '图片广告':
+          return '<div class="preview-banner" style="background-image:url(\'../../../images/banner-village.jpg\');background-size:cover;background-position:center"><span class="pb-icon"><iconify-icon icon="ri:image-line"></iconify-icon></span>图片广告占位 · 建议尺寸 750×300</div>';
+        case '视频组件':
+          return '<div class="preview-banner" style="background-image:url(\'../../../images/banner-village.jpg\');background-size:cover;background-position:center"><span class="pb-icon"><iconify-icon icon="ri:video-line"></iconify-icon></span>视频组件占位 · 建议尺寸 750×420</div>';
+        case '村情简介':
+          return '<div style="font-size:13px;color:#374151;line-height:1.8">幸福村位于青山县东南部，全村共 8 个村民小组，常住人口 2160 人，主导产业为蜜桔种植与乡村旅游。</div>';
+        case '自定义 HTML':
+          return '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:6px 0">自定义 HTML 内容占位</div>';
+        default:
+          return '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:6px 0">' + type + '占位</div>';
+      }
+    }
+    function compNode(type) {
+      var div = document.createElement('div');
+      div.className = 'designer-field';
+      div.innerHTML =
+        '<div class="designer-field-head">' +
+        '<div><span class="designer-field-label">' + type + '</span><span class="designer-field-type">（' + compTypeName(type) + '）</span></div>' +
+        '<button type="button" class="designer-field-delete" aria-label="删除组件" onclick="this.closest(\'.designer-field\').remove();showToast(\'组件已删除\',\'success\')"><iconify-icon icon="ri:close-line"></iconify-icon></button>' +
+        '</div>' + compBodyHtml(type);
+      return div;
+    }
+    function addComp(btn) {
+      var type = btn.getAttribute('data-comp');
+      if (!type) return;
+      var canvas = document.querySelector('.form-designer-canvas');
+      if (canvas) {
+        var node = compNode(type);
+        canvas.appendChild(node);
+        selectComp(node);
+      }
+      showToast('已添加：' + type, 'success');
+    }
+    function dragComp(ev) {
+      var type = ev.currentTarget.getAttribute('data-comp');
+      ev.dataTransfer.setData('text/plain', type || '');
+    }
+    function dropComp(ev) {
+      ev.preventDefault();
+      var type = ev.dataTransfer.getData('text/plain');
+      if (!type) return;
+      var canvas = document.querySelector('.form-designer-canvas');
+      if (canvas) {
+        var node = compNode(type);
+        canvas.appendChild(node);
+        selectComp(node);
+      }
+      showToast('已添加：' + type, 'success');
+    }
+    function selectComp(el) {
+      if (!el) return;
+      if (window._selComp && window._selComp !== el) {
+        window._selComp.style.borderColor = '';
+        window._selComp.style.boxShadow = '';
+      }
+      window._selComp = el;
+      el.style.borderColor = '#16a34a';
+      el.style.boxShadow = '0 0 0 2px rgba(22,163,74,0.20)';
+      var labelEl = el.querySelector('.designer-field-label');
+      var nameInput = document.getElementById('propName');
+      if (labelEl && nameInput) nameInput.value = labelEl.textContent.trim();
+    }
+    function updateCompName(input) {
+      if (!window._selComp) return;
+      var labelEl = window._selComp.querySelector('.designer-field-label');
+      if (labelEl) labelEl.textContent = input.value || '未命名组件';
+    }
+    (function () {
+      var canvas = document.querySelector('.form-designer-canvas');
+      if (!canvas) return;
+      canvas.addEventListener('click', function (ev) {
+        var field = ev.target.closest('.designer-field');
+        if (!field || ev.target.closest('.designer-field-delete')) return;
+        selectComp(field);
+      });
+      var def = null;
+      canvas.querySelectorAll('.designer-field').forEach(function (f) {
+        var l = f.querySelector('.designer-field-label');
+        if (!def && l && l.textContent.trim() === '村务公开') def = f;
+      });
+      if (!def) def = canvas.querySelector('.designer-field');
+      if (def) selectComp(def);
+    })();
+    function publishHome() {
+      closeModal('publishModal');
+      showToast('首页已保存并发布', 'success');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡村振兴数字平台 · 村干部端</title>
+  <script src="../shared/js/icons-local.js"></script>
+  <script src="../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="css/cadre.css">
+  <style>
+    /* Iconify icon sizing inside existing containers */
+    .quick-icon iconify-icon { font-size: 22px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .todo-icon iconify-icon { font-size: 22px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .tab-icon iconify-icon { font-size: 22px; }
+    .notice-icon iconify-icon { font-size: 20px; }
+    /* Approval & message card styles */
+    .approval-card, .message-item { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .approval-card:active, .message-item:active { transform: scale(0.98); }
+    .section-title--approval, .section-title--message { margin: 0 16px 8px; }
+    /* v3.0 生态绿覆盖：cadre.css 蓝系硬编码为第二批清理项，本页先行覆盖为生态绿/暖棕 */
+    body { background: var(--bg-page); font-family: var(--font-family); }
+    a { color: var(--color-primary-600); }
+    .phone-container { background: var(--bg-page); }
+    :root { --shadow-primary: var(--shadow-green-md); }
+    .header-bar { background: linear-gradient(135deg, #15803d, #14532d); }
+    .header-bar::before { display: none; }
+    .section-title::before { background: var(--color-primary-500); }
+    .todo-card .todo-num { color: var(--color-primary-600); }
+    .todo-card:active { transform: scale(0.98); }
+    .quick-item:hover { background: var(--color-primary-50); }
+    .quick-item .quick-icon { background: var(--color-primary-50); color: var(--color-primary-600); }
+    .quick-item:hover .quick-label { color: var(--color-primary-600); }
+    .tab-bar .tab-item.active { color: var(--color-primary-500); }
+    .tab-bar .tab-item.active .tab-icon { transform: none; }
+    .tab-bar .tab-item.active::after { background: var(--color-primary-500); }
+  </style>
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 顶部标题栏 -->
+  <header class="header-bar">
+    <h1 class="header-title">村干部工作台</h1>
+    <div class="header-btn" role="button" tabindex="0" aria-label="切换身份" onclick="window.location.href='../villager/index.html'">切换身份</div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-nav">
+    <!-- Banner横幅 - 乡村实景图 -->
+    <div class="header-banner" style="margin: 0 16px; border-radius: 12px; overflow: hidden; margin-top: 24px; position: relative;">
+      <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20rural%20village%20scene%20lush%20green%20mountains%20tidy%20village%20houses%20rice%20fields%20high%20saturation%20realistic%20photo&image_size=landscape_4_3" alt="数字乡村" style="width: 100%; height: 120px; object-fit: cover;">
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 16px; background: linear-gradient(transparent, rgba(20,83,45,0.85)); color: #fff; font-size: 13px; font-weight: 600;">
+        欢迎回来，李书记
+      </div>
+    </div>
+
+    <!-- 待办事项区域 - 待办驱动 -->
+    <section class="todo-section" aria-label="待办事项">
+      <h2 class="section-title">待办事项</h2>
+      <div class="todo-grid">
+        <div class="todo-card" role="button" tabindex="0" aria-label="待处理事件，3项" onclick="showInfoModal('待处理事件','共3项待处理事件：<br>· 环境问题 2项<br>· 安全隐患 1项<br><br>事件处理页面建设中，可先通过「网格巡查」模块查看')">
+          <div class="todo-icon" style="color: #ef4444;"><iconify-icon icon="ri:alarm-warning-line"></iconify-icon></div>
+          <span class="todo-num">3</span>
+          <span class="todo-label">待处理事件</span>
+        </div>
+        <div class="todo-card" role="button" tabindex="0" aria-label="待审核积分，5项" onclick="window.location.href='points/audit-list.html'">
+          <div class="todo-icon" style="color: #f59e0b;"><iconify-icon icon="ri:star-line"></iconify-icon></div>
+          <span class="todo-num">5</span>
+          <span class="todo-label">待审核积分</span>
+        </div>
+        <div class="todo-card" role="button" tabindex="0" aria-label="待回复议题，2项" onclick="showInfoModal('待回复议题','共2项待回复议题：<br>· 农田灌溉用水问题<br>· 道路硬化建议<br><br>议题回复功能建设中，敬请期待')">
+          <div class="todo-icon" style="color: var(--color-primary-600);"><iconify-icon icon="ri:chat-3-line"></iconify-icon></div>
+          <span class="todo-num">2</span>
+          <span class="todo-label">待回复议题</span>
+        </div>
+        <div class="todo-card" role="button" tabindex="0" aria-label="待处理办事，1项" onclick="showInfoModal('待处理办事','共1项待处理办事：<br>· 低保申请（张桂芳）<br><br>办事审批页面建设中，敬请期待')">
+          <div class="todo-icon" style="color: #10b981;"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></div>
+          <span class="todo-num">1</span>
+          <span class="todo-label">待处理办事</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 移动审批 -->
+    <h2 class="section-title section-title--approval">移动审批</h2>
+    <section style="margin: 0 16px 16px;">
+      <div class="approval-card" style="background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;" onclick="window.location.href='points/audit-list.html'" role="button" tabindex="0">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--color-primary-50); display: flex; align-items: center; justify-content: center;">
+            <iconify-icon icon="ri:file-check-line" style="font-size: 20px; color: var(--color-primary-600);"></iconify-icon>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">积分兑换申请</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">王建国 · 兑换洗洁精 · 50积分</div>
+          </div>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" style="font-size: 18px; color: var(--text-tertiary);"></iconify-icon>
+      </div>
+      <div class="approval-card" style="background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;" onclick="showInfoModal('村务公开审核','第三季度财务报告待审核<br><br>村务公开审核页面建设中，敬请期待')" role="button" tabindex="0">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--color-accent-50); display: flex; align-items: center; justify-content: center;">
+            <iconify-icon icon="ri:building-line" style="font-size: 20px; color: var(--color-accent-600);"></iconify-icon>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">村务公开审核</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">第三季度财务报告 · 待审核</div>
+          </div>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" style="font-size: 18px; color: var(--text-tertiary);"></iconify-icon>
+      </div>
+    </section>
+
+    <!-- 消息中心 -->
+    <h2 class="section-title section-title--message">消息中心</h2>
+    <section style="margin: 0 16px 16px;">
+      <div class="message-item" style="background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;" onclick="window.location.href='notice/notice-sent.html'" role="button" tabindex="0">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--color-error-light); display: flex; align-items: center; justify-content: center; position: relative;">
+            <iconify-icon icon="ri:notification-3-line" style="font-size: 20px; color: var(--color-error);"></iconify-icon>
+            <span style="position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px; background: var(--color-error); color: #fff; font-size: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">3</span>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">系统通知</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">3条未读 · 最新：防汛预警通知</div>
+          </div>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" style="font-size: 18px; color: var(--text-tertiary);"></iconify-icon>
+      </div>
+      <div class="message-item" style="background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;" onclick="window.location.href='appeal/appeal-list.html'" role="button" tabindex="0">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--color-primary-50); display: flex; align-items: center; justify-content: center; position: relative;">
+            <iconify-icon icon="ri:customer-service-2-line" style="font-size: 20px; color: var(--color-primary-600);"></iconify-icon>
+            <span style="position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px; background: var(--color-primary-600); color: #fff; font-size: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">2</span>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">村民诉求</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">2条未读 · 最新：道路积水问题</div>
+          </div>
+        </div>
+        <iconify-icon icon="ri:arrow-right-s-line" style="font-size: 18px; color: var(--text-tertiary);"></iconify-icon>
+      </div>
+    </section>
+
+    <!-- 快捷功能宫格 -->
+    <h2 class="section-title section-title--quick">快捷功能</h2>
+    <section aria-label="快捷功能">
+      <div class="quick-grid">
+        <a class="quick-item" role="button" href="task/task-list.html" aria-label="任务管理">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:task-line"></iconify-icon>
+          </div>
+          <div class="quick-label">任务管理</div>
+        </a>
+        <a class="quick-item" role="button" href="notice/notice-send.html" aria-label="通知发布">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:megaphone-line"></iconify-icon>
+          </div>
+          <div class="quick-label">通知发布</div>
+        </a>
+        <a class="quick-item" role="button" href="points/audit-list.html" aria-label="积分审核">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:star-line"></iconify-icon>
+          </div>
+          <div class="quick-label">积分审核</div>
+        </a>
+        <a class="quick-item" role="button" href="appeal/appeal-list.html" aria-label="村民诉求">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:customer-service-2-line"></iconify-icon>
+          </div>
+          <div class="quick-label">村民诉求</div>
+        </a>
+        <a class="quick-item" role="button" href="journal/journal-list.html" aria-label="工作日志">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:book-line"></iconify-icon>
+          </div>
+          <div class="quick-label">工作日志</div>
+        </a>
+        <a class="quick-item" role="button" href="data/data-overview.html" aria-label="数据查看">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:bar-chart-2-line"></iconify-icon>
+          </div>
+          <div class="quick-label">数据查看</div>
+        </a>
+        <a class="quick-item" role="button" href="report/report-home.html" aria-label="随手拍">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:camera-line"></iconify-icon>
+          </div>
+          <div class="quick-label">随手拍</div>
+        </a>
+        <a class="quick-item" role="button" href="device/device-list.html" aria-label="设备监控">
+          <div class="quick-icon" aria-hidden="true">
+            <iconify-icon icon="ri:radar-line"></iconify-icon>
+          </div>
+          <div class="quick-label">设备监控</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- TabBar -->
+  <nav class="tab-bar" role="tablist" aria-label="主导航">
+    <a class="tab-item active" role="tab" aria-current="page" href="index.html" aria-label="工作台">
+      <span class="tab-icon" aria-hidden="true">
+        <iconify-icon icon="ri:home-4-fill"></iconify-icon>
+      </span>
+      <span>工作台</span>
+    </a>
+    <a class="tab-item" role="tab" href="patrol/patrol-plan.html" aria-label="巡查">
+      <span class="tab-icon" aria-hidden="true">
+        <iconify-icon icon="ri:map-2-line"></iconify-icon>
+      </span>
+      <span>巡查</span>
+    </a>
+    <a class="tab-item" role="tab" href="notice/notice-sent.html" aria-label="通知，2条未读">
+      <span class="tab-icon" aria-hidden="true">
+        <iconify-icon icon="ri:notification-3-line"></iconify-icon>
+      </span>
+      <span>通知</span>
+      <span class="badge badge--tab" aria-label="2条未读通知">2</span>
+    </a>
+    <a class="tab-item" role="tab" href="profile/profile.html" aria-label="我的">
+      <span class="tab-icon" aria-hidden="true">
+        <iconify-icon icon="ri:user-3-line"></iconify-icon>
+      </span>
+      <span>我的</span>
+    </a>
+  </nav>
+</div>
+<script src="js/cadre.js"></script>
+</body>
+</html>

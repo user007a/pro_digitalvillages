@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>乡村开通 - 县级运营平台</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「南丰蜜桔·病虫害模型·监测数据」页面规范：
+       - 页面内容区 24px 内边距
+       - 标题 20px 粗体 / 副标题 14px 灰字（标题+副标题左侧纵向，操作按钮右侧）
+       - Tab 独立白卡（tab px-4 py-4 / text-sm / 激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 弹窗：白底圆角、标题 18px、表单标签 13px
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* ---- 页面容器：24px 内边距（对齐 pest_data .content-wrapper） ---- */
+    .content-wrapper { padding: 24px; }
+
+    /* ---- 页面标题区：标题+副标题左侧纵向，操作按钮右侧（对齐 pest_data mb-6） ---- */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* ---- 操作按钮（对齐 pest_data：绿底主按钮 / 灰底次按钮，圆角 8px） ---- */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* ---- Tab 独立白卡（对齐 pest_data：bg-white rounded-xl border-gray-100 mb-6） ---- */
+    .tab-bar { margin-bottom: 24px; padding: 0 24px; border-bottom: 1px solid #f0f2f5; border-radius: 12px; background: #fff; }
+    .tab-item { padding: 16px 24px; font-size: 14px; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab-item:hover { color: #374151; }
+    .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ---- 搜索筛选区（对齐 pest_data：白卡 p-4 mb-4，控件 px-3 py-2 border-gray-300 rounded-lg text-sm） ---- */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* ---- 表格卡：白底 12px 圆角细边框（对齐 pest_data rounded-xl shadow-sm） ---- */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+
+    /* ---- 列表标题行：标题左 + 新增按钮右 ---- */
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+
+    /* ---- 表格区：24px 内边距（对齐 pest_data p-6） ---- */
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* ---- 表格：表头 12px 大写灰字 / 单元格 14px（对齐 pest_data px-4 py-3） ---- */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+    .data-table tbody td.reason-cell { font-size: 12px; color: #6b7280; max-width: 280px; }
+
+    /* ---- 表格底部统计（对齐 pest_data：p-3 border-t text-xs gray-500） ---- */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* ---- 弹窗：白底圆角、标题 18px、标签 13px（对齐 pest_data modal） ---- */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* ---- 审核弹窗：概要信息区 ---- */
+    .audit-summary { background: #f9fafb; border: 1px solid #f0f2f5; border-radius: 10px; padding: 4px 12px; margin-bottom: 20px; }
+    .audit-summary .detail-item { padding: 8px 8px; border-bottom: 1px solid #f0f2f5; }
+    .audit-summary .detail-item:last-child { border-bottom: none; }
+
+    /* ---- 导出弹窗：格式选择卡片 ---- */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧），导出（右侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>乡村开通</h2>
+        <p>受理并审核本县各村开通申请，跟踪申请处理进度，统一开通乡村平台管理权限</p>
+      </div>
+      <button type="button" class="btn btn-export" onclick="openExportModal()">
+        <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+      </button>
+    </div>
+
+    <!-- 状态 Tab（独立白卡，点击联动筛选下方数据列表） -->
+    <div class="tab-bar">
+      <div class="tab-item active" data-tab="all">全部</div>
+      <div class="tab-item" data-tab="pending">待受理</div>
+      <div class="tab-item" data-tab="processing">受理中</div>
+      <div class="tab-item" data-tab="audited">已审核</div>
+      <div class="tab-item" data-tab="rejected">已驳回</div>
+    </div>
+
+    <!-- 搜索筛选区（对齐监测数据页：白卡 + 紧凑控件 + 绿色查询按钮） -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fVillage">申请村名称</label>
+        <input type="text" id="fVillage" class="form-input" placeholder="请输入村名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fTown">所属乡镇</label>
+        <select id="fTown" class="form-select">
+          <option value="">全部</option>
+          <option>益农镇</option>
+          <option>蜜桔镇</option>
+          <option>青松乡</option>
+          <option>临江镇</option>
+          <option>白云镇</option>
+          <option>绿野乡</option>
+          <option>红星镇</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">申请状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待受理</option>
+          <option>受理中</option>
+          <option>已审核</option>
+          <option>已驳回</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFilter()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 新增按钮 -->
+      <div class="table-actions-header">
+        <h3>乡村开通申请列表</h3>
+        <button type="button" class="btn btn-primary" onclick="openModal('addApplyModal')">
+          <iconify-icon icon="ri:add-line"></iconify-icon> 新增申请
+        </button>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>申请村名称</th>
+              <th>所属乡镇</th>
+              <th>申请人姓名</th>
+              <th>申请人手机号</th>
+              <th>申请理由</th>
+              <th>申请日期</th>
+              <th>申请状态</th>
+              <th>审核意见</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="待受理">
+              <td class="town-name">幸福村</td>
+              <td>益农镇</td>
+              <td>李建国</td>
+              <td class="nums">138****5678</td>
+              <td class="reason-cell">本村蜜桔种植规模扩大，亟需数字化管理平台支撑产销对接…</td>
+              <td class="nums">2026-07-15</td>
+              <td><span class="tag tag-orange">待受理</span></td>
+              <td class="reason-cell">—</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="受理中">
+              <td class="town-name">金桔村</td>
+              <td>蜜桔镇</td>
+              <td>王秀英</td>
+              <td class="nums">139****6789</td>
+              <td class="reason-cell">推进村务公开与积分治理，申请开通乡村数字化服务…</td>
+              <td class="nums">2026-07-18</td>
+              <td><span class="tag tag-blue">受理中</span></td>
+              <td class="reason-cell">—</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="已审核">
+              <td class="town-name">平安村</td>
+              <td>益农镇</td>
+              <td>张明远</td>
+              <td class="nums">137****7890</td>
+              <td class="reason-cell">提升基层治理效率，申请接入县级运营平台统一管理…</td>
+              <td class="nums">2026-07-20</td>
+              <td><span class="tag tag-green">已审核</span></td>
+              <td class="reason-cell">资料齐全，符合开通条件，予以通过。</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="已驳回">
+              <td class="town-name">松林村</td>
+              <td>青松乡</td>
+              <td>陈丽华</td>
+              <td class="nums">136****8901</td>
+              <td class="reason-cell">申请开通数字化服务，加强林业资源与村民管理…</td>
+              <td class="nums">2026-07-22</td>
+              <td><span class="tag tag-red">已驳回</span></td>
+              <td class="reason-cell">申请材料中负责人身份证明缺失，请补充后重新提交。</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="待受理">
+              <td class="town-name">丰收村</td>
+              <td>蜜桔镇</td>
+              <td>孙志强</td>
+              <td class="nums">188****2345</td>
+              <td class="reason-cell">蜜桔丰收季临近，需开通平台进行产销数据采集…</td>
+              <td class="nums">2026-08-01</td>
+              <td><span class="tag tag-orange">待受理</span></td>
+              <td class="reason-cell">—</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="受理中">
+              <td class="town-name">金桔村</td>
+              <td>蜜桔镇</td>
+              <td>周慧敏</td>
+              <td class="nums">139****1111</td>
+              <td class="reason-cell">申请扩展金桔村数字化管理范围，纳入果园物联网监测…</td>
+              <td class="nums">2026-08-03</td>
+              <td><span class="tag tag-blue">受理中</span></td>
+              <td class="reason-cell">—</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-status="已审核">
+              <td class="town-name">幸福村</td>
+              <td>益农镇</td>
+              <td>吴建军</td>
+              <td class="nums">138****2222</td>
+              <td class="reason-cell">申请开通村民积分兑换与公示模块，完善治理体系…</td>
+              <td class="nums">2026-08-05</td>
+              <td><span class="tag tag-green">已审核</span></td>
+              <td class="reason-cell">同意开通，已分配管理员账号并完成初始化。</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">7</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增申请弹窗 -->
+  <div class="modal-overlay" id="addApplyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:home-5-line"></iconify-icon> 新增乡村开通申请</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addApplyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addVillage"><span class="req">*</span>申请村名称</label>
+              <input type="text" id="addVillage" class="form-input" placeholder="请输入村名称…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="addTown"><span class="req">*</span>所属乡镇</label>
+              <select id="addTown" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>益农镇</option>
+                <option>蜜桔镇</option>
+                <option>青松乡</option>
+                <option>临江镇</option>
+                <option>白云镇</option>
+                <option>绿野乡</option>
+                <option>红星镇</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addApplyName"><span class="req">*</span>申请人姓名</label>
+              <input type="text" id="addApplyName" class="form-input" placeholder="请输入申请人姓名…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="addApplyPhone"><span class="req">*</span>申请人手机号</label>
+              <input type="tel" id="addApplyPhone" class="form-input" placeholder="请输入手机号…" required autocomplete="tel" inputmode="tel">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="addReason"><span class="req">*</span>申请理由</label>
+            <textarea id="addReason" class="form-input" rows="3" placeholder="请输入申请理由…" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addApplyModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAddApply()">提 交</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看申请弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewApplyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-search-line"></iconify-icon> 申请详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewApplyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">申请村名称</span><span class="detail-value" id="viewVillage">—</span></div>
+          <div class="detail-item"><span class="detail-label">所属乡镇</span><span class="detail-value" id="viewTown">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请人姓名</span><span class="detail-value" id="viewApplicant">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请人手机号</span><span class="detail-value" id="viewPhone">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请日期</span><span class="detail-value" id="viewDate">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请状态</span><span class="detail-value" id="viewStatus">—</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">申请理由</span><span class="detail-value" id="viewReason">—</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">审核意见</span><span class="detail-value" id="viewOpinion">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewApplyModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 审核弹窗 -->
+  <div class="modal-overlay" id="auditApplyModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon> 审核乡村开通申请</h3>
+        <button type="button" class="modal-close" onclick="closeModal('auditApplyModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid audit-summary">
+          <div class="detail-item"><span class="detail-label">申请村名称</span><span class="detail-value" id="auditVillage">—</span></div>
+          <div class="detail-item"><span class="detail-label">所属乡镇</span><span class="detail-value" id="auditTown">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请人</span><span class="detail-value" id="auditApplicant">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请日期</span><span class="detail-value" id="auditDate">—</span></div>
+        </div>
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label><span class="req">*</span>审核结果</label>
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="auditResult" value="通过" checked> <span>通过</span></label>
+              <label class="radio-item"><input type="radio" name="auditResult" value="驳回"> <span>驳回</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="auditOpinion">审核意见<span class="req" id="opinionReq" style="display:none">*</span></label>
+            <textarea id="auditOpinion" class="form-input" rows="3" placeholder="请输入审核意见（驳回时必填）…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('auditApplyModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAudit()">确认审核</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出申请数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出乡村开通申请记录。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="乡村开通申请记录" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- Tab 状态联动筛选 + 搜索筛选 + 分页（默认 10 条/页） ---- */
+      var STATUS_TEXT = { all: '全部', pending: '待受理', processing: '受理中', audited: '已审核', rejected: '已驳回' };
+      var currentTab = 'all';
+      var pageSize = 10;
+      var currentPage = 1;
+      var tbody = document.querySelector('.data-table tbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+
+      /* 获取当前页签 + 搜索条件下应显示的行集合（未分页） */
+      function getVisibleRows() {
+        var name = document.getElementById('fVillage').value.trim().toLowerCase();
+        var town = document.getElementById('fTown').value;
+        var status = document.getElementById('fStatus').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var cells = row.cells;
+          var show = (currentTab === 'all' || row.getAttribute('data-status') === STATUS_TEXT[currentTab]);
+          if (show && name && cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+          if (show && town && cells[1].textContent.trim() !== town) show = false;
+          if (show && status && cells[6].textContent.trim() !== status) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      /* 统一渲染：页签 + 搜索 + 分页 */
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      /* 分页条事件（事件委托） */
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) {
+          currentPage = parseInt(numBtn.getAttribute('data-page'), 10);
+          renderRows();
+          return;
+        }
+        if (e.target.closest('.pager-prev')) {
+          if (currentPage > 1) { currentPage--; renderRows(); }
+          return;
+        }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      function resetFilter() {
+        document.getElementById('fVillage').value = '';
+        document.getElementById('fTown').value = '';
+        document.getElementById('fStatus').value = '';
+        renderRows();
+      }
+      /* 暴露给筛选区按钮的内联 onclick（查询回到第一页） */
+      window.queryFilter = function () { currentPage = 1; renderRows(); };
+      window.resetFilter = resetFilter;
+
+      document.querySelectorAll('.tab-item').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+          tab.classList.add('active');
+          currentTab = tab.getAttribute('data-tab') || 'all';
+          currentPage = 1;
+          renderRows();
+        });
+      });
+
+      /* ---- 追加 18 条 Mock 数据（共 25 条，验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var pairs = [
+          { v: '临江村', t: '临江镇' }, { v: '白云村', t: '白云镇' },
+          { v: '绿野村', t: '绿野乡' }, { v: '红星村', t: '红星镇' },
+          { v: '青山村', t: '青松乡' }, { v: '朝阳村', t: '益农镇' },
+          { v: '白水村', t: '蜜桔镇' }, { v: '明月村', t: '青松乡' },
+          { v: '益农蜜桔村', t: '益农镇' }, { v: '桔园村', t: '蜜桔镇' }
+        ];
+        var names = ['王建国', '李秀兰', '刘桂芳', '陈志远', '王丽', '赵国强', '孙丽华', '周建军', '吴秀英', '郑海燕', '冯志刚', '褚桂兰', '蒋国栋', '沈丽娟', '韩文明', '杨春梅', '朱建军', '秦桂芳'];
+        var reasons = [
+          '本村蜜桔种植规模扩大，亟需数字化管理平台支撑产销对接…',
+          '推进村务公开与积分治理，申请开通乡村数字化服务…',
+          '提升基层治理效率，申请接入县级运营平台统一管理…',
+          '申请开通数字化服务，加强林业资源与村民管理…',
+          '蜜桔丰收季临近，需开通平台进行产销数据采集…'
+        ];
+        var statuses = ['待受理', '受理中', '已审核', '已驳回'];
+        var opinions = { '已审核': '资料齐全，符合开通条件，予以通过。', '已驳回': '申请材料中负责人身份证明缺失，请补充后重新提交。' };
+        function fmtDate(offset) {
+          var d = new Date(2026, 7, 11 - offset);
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function maskPhone(i) {
+          var prefix = ['138', '139', '137', '136', '135', '188', '186', '187', '150', '159'][i % 10];
+          return prefix + '****' + String(1000 + ((i * 791) % 9000));
+        }
+        for (var i = 0; i < 18; i++) {
+          var pair = pairs[i % pairs.length];
+          var status = statuses[i % 4];
+          var hasAudit = status === '待受理' || status === '受理中';
+          var opinion = hasAudit ? '—' : (opinions[status] || '—');
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-status', status);
+          tr.innerHTML =
+            '<td class="town-name">' + pair.v + '</td>' +
+            '<td>' + pair.t + '</td>' +
+            '<td>' + names[i % names.length] + '</td>' +
+            '<td class="nums">' + maskPhone(i) + '</td>' +
+            '<td class="reason-cell">' + reasons[i % reasons.length] + '</td>' +
+            '<td class="nums">' + fmtDate(17 - i) + '</td>' +
+            '<td><span class="tag ' + (status === '待受理' ? 'tag-orange' : status === '受理中' ? 'tag-blue' : status === '已审核' ? 'tag-green' : 'tag-red') + '">' + status + '</span></td>' +
+            '<td class="reason-cell">' + opinion + '</td>' +
+            '<td class="op-cell"></td>';
+          tbody.appendChild(tr);
+          renderOpCell(tr, hasAudit);
+        }
+      })();
+
+      renderRows();
+
+      /* ---- 查看详情：按行数据填充弹窗 ---- */
+      window.viewApply = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewVillage').textContent = td[0].textContent.trim();
+        document.getElementById('viewTown').textContent = td[1].textContent.trim();
+        document.getElementById('viewApplicant').textContent = td[2].textContent.trim();
+        document.getElementById('viewPhone').textContent = td[3].textContent.trim();
+        document.getElementById('viewDate').textContent = td[5].textContent.trim();
+        document.getElementById('viewStatus').innerHTML = td[6].innerHTML;
+        document.getElementById('viewReason').textContent = td[4].textContent.trim();
+        document.getElementById('viewOpinion').textContent = td[7].textContent.trim();
+        openModal('viewApplyModal');
+      };
+
+      /* ---- 审核：按行数据填充弹窗 ---- */
+      window.openAudit = function (btn) {
+        var row = btn.closest('tr');
+        window._auditRow = row;
+        var td = row.cells;
+        document.getElementById('auditVillage').textContent = td[0].textContent.trim();
+        document.getElementById('auditTown').textContent = td[1].textContent.trim();
+        document.getElementById('auditApplicant').textContent = td[2].textContent.trim();
+        document.getElementById('auditDate').textContent = td[5].textContent.trim();
+        document.querySelectorAll('input[name="auditResult"]').forEach(function (r) { r.checked = r.value === '通过'; });
+        document.getElementById('auditOpinion').value = '';
+        document.getElementById('opinionReq').style.display = 'none';
+        openModal('auditApplyModal');
+      };
+
+      /* 驳回时审核意见必填 */
+      var radios = document.getElementsByName('auditResult');
+      var req = document.getElementById('opinionReq');
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].addEventListener('change', function () {
+          req.style.display = this.value === '驳回' ? '' : 'none';
+        });
+      }
+
+      window.submitAudit = function () {
+        var checked = document.querySelector('input[name="auditResult"]:checked');
+        var result = checked ? checked.value : '';
+        var opinion = document.getElementById('auditOpinion').value.trim();
+        if (result === '驳回' && !opinion) { showToast('驳回时请填写审核意见', 'warning'); return; }
+        var row = window._auditRow;
+        if (row) {
+          var isPass = result === '通过';
+          row.setAttribute('data-status', isPass ? '已审核' : '已驳回');
+          var tag = row.querySelector('.tag');
+          tag.className = 'tag ' + (isPass ? 'tag-green' : 'tag-red');
+          tag.textContent = isPass ? '已审核' : '已驳回';
+          row.cells[7].textContent = opinion || (isPass ? '资料完备，同意开通。' : '');
+          renderOpCell(row, isPass);
+        }
+        closeModal('auditApplyModal');
+        renderRows();
+        showToast('审核已完成', 'success');
+      };
+
+      /* ---- 操作列渲染：已审核/已驳回不显示"审核"按钮 ---- */
+      function renderOpCell(row, hasAudit) {
+        var cell = row.querySelector('.op-cell');
+        var html = '<button type="button" class="btn-op" onclick="viewApply(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+        if (hasAudit) {
+          html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="openAudit(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>';
+        }
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deleteApply(this)" aria-label="删除"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+        cell.innerHTML = html;
+      }
+
+      /* ---- 删除：确认后移除该行 ---- */
+      window.deleteApply = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        showConfirm({
+          title: '删除确认',
+          message: '确定删除申请记录「' + name + '」吗？删除后不可恢复。',
+          confirmText: '确认删除',
+          onConfirm: function () {
+            row.parentNode.removeChild(row);
+            renderRows();
+            showToast('删除成功', 'success');
+          }
+        });
+      };
+
+      /* ---- 新增申请：校验后插入表格首行（待受理） ---- */
+      window.submitAddApply = function () {
+        var village = document.getElementById('addVillage').value.trim();
+        var town = document.getElementById('addTown').value;
+        var applicant = document.getElementById('addApplyName').value.trim();
+        var phone = document.getElementById('addApplyPhone').value.trim();
+        var reason = document.getElementById('addReason').value.trim();
+        if (!village || !town || !applicant || !phone || !reason) {
+          showToast('请完整填写申请信息', 'warning');
+          return;
+        }
+        var now = new Date();
+        var date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-status', '待受理');
+        tr.innerHTML =
+          '<td class="town-name">' + escapeHtml(village) + '</td>' +
+          '<td>' + escapeHtml(town) + '</td>' +
+          '<td>' + escapeHtml(applicant) + '</td>' +
+          '<td class="nums">' + escapeHtml(phone) + '</td>' +
+          '<td class="reason-cell">' + escapeHtml(reason) + '</td>' +
+          '<td class="nums">' + date + '</td>' +
+          '<td><span class="tag tag-orange">待受理</span></td>' +
+          '<td class="reason-cell">—</td>' +
+          '<td class="op-cell"></td>';
+        renderOpCell(tr, true);
+        tbody.insertBefore(tr, tbody.firstChild);
+
+        // 重置表单
+        ['addVillage', 'addTown', 'addApplyName', 'addApplyPhone', 'addReason']
+          .forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el.tagName === 'SELECT') el.value = '';
+            else el.value = '';
+          });
+
+        // 切换到"全部"页签并回到第一页显示新记录
+        document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+        document.querySelector('.tab-item[data-tab="all"]').classList.add('active');
+        currentTab = 'all';
+        currentPage = 1;
+        resetFilter();
+        closeModal('addApplyModal');
+        showToast('申请已提交，等待受理', 'success');
+      };
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      /* ---- 导出弹窗：格式选择 + 确认导出 ---- */
+      window.openExportModal = function () {
+        openModal('exportModal');
+      };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '乡村开通申请记录';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+    })();
+  </script>
+</body>
+</html>

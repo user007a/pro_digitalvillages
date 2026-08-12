@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>党建引领 | 数字乡村大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码由 CSS 治理统一处理，本页先行覆盖关键蓝系伪元素/光晕/悬浮 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .tab-btn:hover { transform: none; }
+    .tab-btn.active { background: linear-gradient(180deg, var(--color-primary-50), var(--color-primary-100)); }
+    .tab-btn.active::after { background: var(--color-primary-500); box-shadow: none; }
+    .data-card:hover, .stat-mini:hover { transform: none; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .dash-header::before { display: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12); color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-300); }
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <a href="../index.html" class="dash-entry-btn" aria-label="返回总览" data-tip="返回总览大屏">
+          <iconify-icon icon="ri:arrow-left-line"></iconify-icon>返回总览
+        </a>
+        <div class="dash-logo"><iconify-icon icon="ri:government-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">党建引领 · 数字大屏</h1>
+          <span class="dash-subtitle">幸福村党建引领数据总览</span>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月09日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+      <div class="tab-content active" style="display:flex;">
+        <!-- Hero -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>党建引领</h2>
+              <p>党员 128 人 · 党组织 6 个</p>
+              <span class="tab-hero-tag">幸福村 · 党建引领数据</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:group-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">党员总数</span>
+                  <span><span class="kpi-item-value">128</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:building-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">党组织数</span>
+                  <span><span class="kpi-item-value">6</span><span class="kpi-item-unit">个</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:calendar-event-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">本年活动</span>
+                  <span><span class="kpi-item-value">42</span><span class="kpi-item-unit">次</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:medal-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">党员示范户</span>
+                  <span><span class="kpi-item-value">35</span><span class="kpi-item-unit">户</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>党员结构</div>
+              <div class="panel-body"><div id="chart-party-structure" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>党员年龄分布<span class="panel-title-extra">单位：人</span></div>
+              <div class="panel-body"><div id="chart-party-age" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <!-- Center -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:radar-line"></iconify-icon>党建引领评估<span class="panel-title-extra">六维度 · 满分100</span></div>
+              <div class="panel-body" style="padding: 12px 20px;">
+                <div id="chart-party-radar" class="chart-box" style="flex: 1.15; min-height: 0;"></div>
+                <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; margin-top: 10px; overflow-y: auto;">
+                  <div style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-dashboard-title); display: flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="ri:time-line" style="color: var(--color-primary-500); font-size: 16px;"></iconify-icon>近期党建活动
+                  </div>
+                  <div class="info-list" style="flex: 0 0 auto;">
+                    <div class="info-item info-danger"><iconify-icon icon="ri:calendar-event-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">主题党日活动 — 学习二十届三中全会精神</div><div class="info-meta">2026-08-05 · 参与 86 人</div></div></div>
+                    <div class="info-item info-info"><iconify-icon icon="ri:book-open-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">专题党课 — 乡村振兴党员先行</div><div class="info-meta">2026-07-28 · 参与 64 人</div></div></div>
+                    <div class="info-item info-success"><iconify-icon icon="ri:hand-heart-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">党员志愿服务 — 困难群众帮扶</div><div class="info-meta">2026-07-15 · 参与 42 人</div></div></div>
+                    <div class="info-item info-warning"><iconify-icon icon="ri:flag-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">庆七一 · 重温入党誓词</div><div class="info-meta">2026-07-01 · 参与 128 人</div></div></div>
+                    <div class="info-item info-info"><iconify-icon icon="ri:team-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">支部委员会 — 半年工作总结</div><div class="info-meta">2026-06-20 · 参与 18 人</div></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-grouped-line"></iconify-icon>三会一课统计<span class="panel-title-extra">单位：次</span></div>
+              <div class="panel-body"><div id="chart-party-meetings" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:medal-line"></iconify-icon>党员示范户分布</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:medal-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">35</span><span class="data-card-label">党员示范户</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:home-heart-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">党员中心户</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:layout-grid-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8</span><span class="data-card-label">党员责任区</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：村级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 党建引领维度</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var chartColors = ['#16a34a', '#0f766e', '#f59e0b', '#92400e', '#10b981', '#ef4444', '#22c55e'];
+    var baseTooltip = {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: 'rgba(22,163,74,0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#14532d', fontSize: 13 },
+      extraCssText: 'box-shadow: 0 4px 12px rgba(22,163,74,0.15); border-radius: 8px;'
+    };
+    var baseLegend = { right: 10, top: 10, textStyle: { color: '#57534e', fontSize: 12 }, itemWidth: 12, itemHeight: 12, itemGap: 10 };
+    var baseAxisLabel = { color: '#78716c', fontSize: 12 };
+    var baseAxisLine = { lineStyle: { color: 'rgba(22,163,74,0.15)' } };
+    var baseSplitLine = { lineStyle: { color: 'rgba(22,163,74,0.06)' } };
+    var myCharts = [];
+
+    function initChart(id, option) {
+      var el = document.getElementById(id);
+      if (!el || typeof echarts === 'undefined') return null;
+      var chart = echarts.init(el);
+      chart.setOption(option);
+      myCharts.push(chart);
+      return chart;
+    }
+
+    // 1. 党员结构饼图
+    initChart('chart-party-structure', {
+      color: chartColors,
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'item', formatter: '{b}: {c}人 ({d}%)' }),
+      legend: Object.assign({}, baseLegend, { orient: 'vertical', right: 10, top: 'center', itemGap: 8 }),
+      series: [{
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 600, color: '#14532d' },
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(22,163,74,0.2)' }
+        },
+        data: [
+          { value: 86, name: '正式党员' },
+          { value: 24, name: '预备党员' },
+          { value: 18, name: '入党积极分子' }
+        ]
+      }]
+    });
+
+    // 2. 党员年龄分布柱状图
+    initChart('chart-party-age', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c}人' }),
+      grid: { left: 45, right: 20, top: 25, bottom: 35 },
+      xAxis: {
+        type: 'category',
+        data: ['30岁以下', '30-45岁', '46-60岁', '60岁以上'],
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 11 }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar',
+        barWidth: '48%',
+        data: [18, 42, 48, 20],
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#16a34a' },
+            { offset: 1, color: '#bbf7d0' }
+          ])
+        }
+      }]
+    });
+
+    // 3. 党建引领六维雷达图
+    initChart('chart-party-radar', {
+      color: [chartColors[0], chartColors[1]],
+      tooltip: Object.assign({}, baseTooltip),
+      legend: Object.assign({}, baseLegend, { data: ['本村', '达标值'] }),
+      radar: {
+        indicator: [
+          { name: '组织建设', max: 100 },
+          { name: '党员管理', max: 100 },
+          { name: '活动开展', max: 100 },
+          { name: '学习教育', max: 100 },
+          { name: '服务群众', max: 100 },
+          { name: '示范引领', max: 100 }
+        ],
+        center: ['50%', '54%'],
+        radius: '62%',
+        axisName: { color: '#57534e', fontSize: 12 },
+        splitLine: { lineStyle: { color: 'rgba(22,163,74,0.1)' } },
+        splitArea: { areaStyle: { color: ['rgba(22,163,74,0.02)', 'rgba(22,163,74,0.04)'] } },
+        axisLine: { lineStyle: { color: 'rgba(22,163,74,0.1)' } }
+      },
+      series: [{
+        type: 'radar',
+        data: [
+          {
+            value: [88, 92, 85, 90, 87, 83], name: '本村',
+            areaStyle: { color: 'rgba(22,163,74,0.15)' },
+            lineStyle: { width: 2, color: chartColors[0] },
+            itemStyle: { color: chartColors[0] }
+          },
+          {
+            value: [80, 80, 80, 80, 80, 80], name: '达标值',
+            areaStyle: { color: 'rgba(15,118,110,0.08)' },
+            lineStyle: { width: 2, color: chartColors[1], type: 'dashed' },
+            itemStyle: { color: chartColors[1] }
+          }
+        ]
+      }]
+    });
+
+    // 4. 三会一课统计分组柱状图
+    initChart('chart-party-meetings', {
+      color: [chartColors[0], chartColors[1], chartColors[2], chartColors[3]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' } }),
+      legend: Object.assign({}, baseLegend, { data: ['党员大会', '支委会', '党小组会', '党课'] }),
+      grid: { left: 40, right: 15, top: 50, bottom: 35 },
+      xAxis: {
+        type: 'category',
+        data: ['3月', '4月', '5月', '6月', '7月', '8月'],
+        axisLabel: Object.assign({}, baseAxisLabel, { fontSize: 11 }),
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      series: [
+        { name: '党员大会', type: 'bar', barWidth: '14%', data: [1, 1, 2, 1, 1, 1], itemStyle: { borderRadius: [4, 4, 0, 0] } },
+        { name: '支委会', type: 'bar', barWidth: '14%', data: [3, 4, 4, 3, 4, 4], itemStyle: { borderRadius: [4, 4, 0, 0] } },
+        { name: '党小组会', type: 'bar', barWidth: '14%', data: [2, 2, 3, 2, 2, 3], itemStyle: { borderRadius: [4, 4, 0, 0] } },
+        { name: '党课', type: 'bar', barWidth: '14%', data: [1, 1, 1, 2, 1, 1], itemStyle: { borderRadius: [4, 4, 0, 0] } }
+      ]
+    });
+
+    window.addEventListener('resize', function () {
+      setTimeout(function () {
+        myCharts.forEach(function (c) { if (c) c.resize(); });
+      }, 100);
+    });
+    setTimeout(function () {
+      myCharts.forEach(function (c) { if (c) c.resize(); });
+    }, 250);
+  })();
+  </script>
+</body>
+</html>

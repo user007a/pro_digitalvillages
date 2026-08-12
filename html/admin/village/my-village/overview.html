@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>乡村概况 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <!-- 本页样式：与「乡级管理 → 乡镇信息」风格一致——标题/副标题字号、Tab、表格、分页、页面边距、
+       横幅+指标+详情表达形式、弹窗美化、导出弹窗。 -->
+  <style>
+    /* ========== 页面容器与页头（对齐监测数据页：padding 24px / h1 20px / p 14px） ========== */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; text-align: left; }
+    .dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; text-align: left; }
+
+    /* ========== Tab（对齐监测数据页：白卡圆角 + 轻阴影，激活绿色下划线） ========== */
+    .dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 8px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; text-align: left; white-space: nowrap; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ========== 搜索筛选区（白卡 + 紧凑控件，对齐监测数据页） ========== */
+    .dv-filter { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 14px 20px; margin-bottom: 16px; }
+
+    /* ========== 数据列表卡片：标题行（标题左 + 新增按钮右） + 表格 + 分页 ========== */
+    .table-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* ========== 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） ========== */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+
+    /* 表格图片缩略图 */
+    .thumb-img { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f3; display: inline-block; vertical-align: middle; background: #f9fafb; }
+    .thumb-img-lg { width: 96px; height: 64px; }
+
+    /* ========== 分页（对齐监测数据页：text-xs / 上分隔线） ========== */
+    .table-card .pagination { border: none; box-shadow: none; border-radius: 0 0 12px 12px; border-top: 1px solid #f0f2f5; margin: 0; padding: 12px 20px; }
+    .pagination.pg-pager .page-total { font-size: 12px; color: #6b7280; }
+    .pagination.pg-pager .page-size-select { height: 30px; font-size: 12px; }
+    .pagination.pg-pager .page-btn { height: 30px; font-size: 12px; }
+
+    /* ========== 乡村概况：横幅 + 关键指标 + 基本信息（与乡镇信息一致） ========== */
+    .survey-banner { position: relative; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; border: 1px solid #eef0f3; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); }
+    .survey-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .survey-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.38) 50%, rgba(22,163,74,0.16) 100%); }
+    .survey-banner-info { position: absolute; left: 32px; bottom: 26px; z-index: 2; color: #fff; }
+    .survey-banner-info h3 { font-size: 26px; font-weight: 700; margin: 0 0 6px; text-shadow: 0 1px 4px rgba(0,0,0,0.3); text-align: left; }
+    .survey-banner-info p { font-size: 14px; margin: 0; opacity: 0.95; text-align: left; }
+    .survey-banner-tag { display: inline-block; margin-top: 10px; padding: 2px 12px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #166534; font-size: 12px; font-weight: 600; }
+
+    .survey-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+    .survey-kpi { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; padding: 16px 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); }
+    .survey-kpi-label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .survey-kpi-value { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.2; }
+    .survey-kpi-value em { font-style: normal; font-size: 12px; font-weight: 500; color: #6b7280; margin-left: 2px; }
+    @media (max-width: 1100px) { .survey-kpis { grid-template-columns: repeat(3, 1fr); } }
+
+    .survey-detail { padding: 0; margin-bottom: 16px; }
+    .survey-detail .detail-grid { padding: 8px 4px 8px; }
+
+    /* ========== 乡村名片（保留原卡片表达） ========== */
+    .vc-head { display: flex; align-items: center; gap: 24px; padding: 8px 4px 20px; border-bottom: 1px solid #f0f2f5; }
+    .vc-emblem { width: 96px; height: 96px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-primary-600); }
+    .vc-emblem iconify-icon { font-size: 48px; }
+    .vc-name { font-size: 24px; font-weight: 700; color: #111827; text-align: left; }
+    .vc-sub { font-size: 13px; color: #6b7280; margin-top: 6px; }
+    .vc-section { padding-top: 20px; }
+    .vc-section-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; text-align: left; }
+    .vc-section-title::before { content: ''; display: inline-block; width: 3px; height: 16px; border-radius: 2px; background: var(--color-primary-500); }
+    .vc-intro { font-size: 14px; color: #4b5563; line-height: 1.8; }
+    .vc-ind-list { display: flex; flex-wrap: wrap; gap: 12px; }
+    .vc-ind { display: flex; align-items: center; gap: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 16px; font-size: 14px; color: #15803d; }
+    .vc-honor-list { display: flex; flex-wrap: wrap; gap: 10px; }
+    .vc-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+    .vc-contact-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #374151; }
+    .vc-contact-item iconify-icon { font-size: 18px; color: #6b7280; }
+    .vc-body { padding: 20px; }
+
+    /* ========== 弹窗美化（对齐监测数据页：圆角 12px / 头部图标 / footer 灰底） ========== */
+    .modal-overlay { padding: 16px; }
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .modal { max-width: 420px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    @media (max-width: 768px) {
+      .dv-page-header { flex-direction: column; align-items: flex-start; }
+      .survey-banner { height: 150px; }
+      .survey-banner-info { left: 20px; bottom: 18px; }
+      .survey-banner-info h3 { font-size: 20px; }
+    }
+  </style>
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../../shared/js/export-helper.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="乡村概况" data-page-subtitle="数字村史馆、乡村大事记与名片管理">
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>乡村概况</h2>
+      <span class="text-muted">乡村概况、数字村史馆、乡村大事记与乡村名片统一管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换 -->
+  <div class="tab-bar dv-tabbar" id="villageTabs">
+    <div class="tab-item active" onclick="switchVillageTab(this)" data-tab="overview">乡村概况</div>
+    <div class="tab-item" onclick="switchVillageTab(this)" data-tab="museum">数字村史馆</div>
+    <div class="tab-item" onclick="switchVillageTab(this)" data-tab="chronicle">乡村大事记</div>
+    <div class="tab-item" onclick="switchVillageTab(this)" data-tab="card">乡村名片</div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡村概况 ==================== -->
+  <div class="tab-panel" id="tab-overview">
+
+    <!-- 村情横幅 -->
+    <div class="survey-banner">
+      <img src="../../../images/village-card-1.jpg" alt="幸福村全景">
+      <div class="survey-banner-info">
+        <h3>幸福村</h3>
+        <p>益农蜜桔村 · 省级乡村振兴示范村 · 数字乡村建设试点村</p>
+        <span class="survey-banner-tag">村情概览</span>
+      </div>
+    </div>
+
+    <!-- 关键指标 -->
+    <div class="survey-kpis">
+      <div class="survey-kpi"><span class="survey-kpi-label">村域面积</span><span class="survey-kpi-value">3.6<em>平方公里</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">总户数</span><span class="survey-kpi-value">423<em>户</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">总人口</span><span class="survey-kpi-value">1286<em>人</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">党员数</span><span class="survey-kpi-value">47<em>人</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">耕地面积</span><span class="survey-kpi-value">1850<em>亩</em></span></div>
+      <div class="survey-kpi"><span class="survey-kpi-label">村集体收入</span><span class="survey-kpi-value">86<em>万元</em></span></div>
+    </div>
+
+    <!-- 基本信息详情 -->
+    <div class="card survey-detail">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:file-info-line"></iconify-icon>基本信息</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('editOverviewModal')"><iconify-icon icon="ri:edit-2-line"></iconify-icon> 编辑概况</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">村名称</span><span class="detail-value">幸福村（益农蜜桔村）</span></div>
+        <div class="detail-item"><span class="detail-label">所属乡镇</span><span class="detail-value">益农镇</span></div>
+        <div class="detail-item"><span class="detail-label">村域面积</span><span class="detail-value">3.6 平方公里</span></div>
+        <div class="detail-item"><span class="detail-label">总户数</span><span class="detail-value">423 户</span></div>
+        <div class="detail-item"><span class="detail-label">总人口</span><span class="detail-value">1286 人</span></div>
+        <div class="detail-item"><span class="detail-label">党员数</span><span class="detail-value">47 人</span></div>
+        <div class="detail-item"><span class="detail-label">耕地面积</span><span class="detail-value">1850 亩</span></div>
+        <div class="detail-item"><span class="detail-label">村集体收入</span><span class="detail-value">86 万元</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">村简介</span><span class="detail-value">幸福村位于益农镇中部，因盛产益农蜜桔而得名"益农蜜桔村"。全村辖4个队组，主导产业为蜜桔种植与乡村旅游，先后获评省级乡村振兴示范村、县级文明村。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：数字村史馆 ==================== -->
+  <div class="tab-panel" id="tab-museum" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="exhibitFName">展品名称</label>
+        <input type="text" id="exhibitFName" name="name" class="form-input" placeholder="请输入展品名称…" style="width:180px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="exhibitFCategory">展品分类</label>
+        <select id="exhibitFCategory" name="category" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>历史照片</option>
+          <option>文献资料</option>
+          <option>实物展示</option>
+          <option>影像记录</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="exhibitFStatus">状态</label>
+        <select id="exhibitFStatus" name="status" class="form-select" style="width:100px">
+          <option value="">全部</option>
+          <option>展出</option>
+          <option>库存</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="filterExhibits()">查 询</button>
+        <button class="btn btn-search-reset" onclick="resetExhibitFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:museum-line"></iconify-icon>数字村史馆列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addExhibitModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增展品</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>展品名称</th>
+              <th>展品分类</th>
+              <th>年代</th>
+              <th>捐赠人</th>
+              <th>展品简介</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-name="幸福村老村口照片" data-category="历史照片" data-age="1980年代" data-donor="李建国" data-status="展出" data-intro="记录80年代村口牌坊原貌，展现幸福村历史变迁。" data-img="../../../images/village-card-2.jpg" data-img-alt="幸福村老村口照片">
+              <td><img class="thumb-img" src="../../../images/village-card-2.jpg" alt="幸福村老村口照片"></td>
+              <td>幸福村老村口照片</td>
+              <td><span class="tag tag-blue">历史照片</span></td>
+              <td>1980年代</td>
+              <td>李建国</td>
+              <td>记录80年代村口牌坊原貌</td>
+              <td><span class="tag tag-green">展出</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-name="益农蜜桔种植手抄本" data-category="文献资料" data-age="1965年" data-donor="孙富贵" data-status="展出" data-intro="早期蜜桔种植技术手稿，记录上世纪60年代蜜桔栽培经验。" data-img="../../../images/village-pilot.jpg" data-img-alt="益农蜜桔种植手抄本">
+              <td><img class="thumb-img" src="../../../images/village-pilot.jpg" alt="益农蜜桔种植手抄本"></td>
+              <td>益农蜜桔种植手抄本</td>
+              <td><span class="tag tag-purple">文献资料</span></td>
+              <td>1965年</td>
+              <td>孙富贵</td>
+              <td>早期蜜桔种植技术手稿</td>
+              <td><span class="tag tag-green">展出</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-name="老式蜜桔分级筛" data-category="实物展示" data-age="1970年代" data-donor="赵铁柱" data-status="展出" data-intro="传统蜜桔分级工具，按果径大小人工分选。" data-img="../../../images/village-card-3.jpg" data-img-alt="老式蜜桔分级筛">
+              <td><img class="thumb-img" src="../../../images/village-card-3.jpg" alt="老式蜜桔分级筛"></td>
+              <td>老式蜜桔分级筛</td>
+              <td><span class="tag tag-orange">实物展示</span></td>
+              <td>1970年代</td>
+              <td>赵铁柱</td>
+              <td>传统蜜桔分级工具</td>
+              <td><span class="tag tag-green">展出</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-name="幸福村建村纪念碑拓片" data-category="文献资料" data-age="1958年" data-donor="周小敏" data-status="库存" data-intro="建村纪念碑拓印资料，见证建村历史。" data-img="../../../images/village-card-4.jpg" data-img-alt="幸福村建村纪念碑拓片">
+              <td><img class="thumb-img" src="../../../images/village-card-4.jpg" alt="幸福村建村纪念碑拓片"></td>
+              <td>幸福村建村纪念碑拓片</td>
+              <td><span class="tag tag-purple">文献资料</span></td>
+              <td>1958年</td>
+              <td>周小敏</td>
+              <td>建村纪念碑拓印资料</td>
+              <td><span class="tag tag-gray">库存</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-name="村史纪录片《桔乡记忆》" data-category="影像记录" data-age="2020年" data-donor="黄国庆" data-status="展出" data-intro="记录村发展变迁的纪录片。" data-img="../../../images/village-hero.jpg" data-img-alt="村史纪录片《桔乡记忆》">
+              <td><img class="thumb-img" src="../../../images/village-hero.jpg" alt="村史纪录片《桔乡记忆》"></td>
+              <td>村史纪录片《桔乡记忆》</td>
+              <td><span class="tag tag-blue">影像记录</span></td>
+              <td>2020年</td>
+              <td>黄国庆</td>
+              <td>记录村发展变迁的纪录片</td>
+              <td><span class="tag tag-green">展出</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-name="旧时农具犁耙" data-category="实物展示" data-age="1960年代" data-donor="陈大山" data-status="库存" data-intro="传统耕作农具，反映农耕文化。" data-img="../../../images/rural-bg-real.jpg" data-img-alt="旧时农具犁耙">
+              <td><img class="thumb-img" src="../../../images/rural-bg-real.jpg" alt="旧时农具犁耙"></td>
+              <td>旧时农具犁耙</td>
+              <td><span class="tag tag-orange">实物展示</span></td>
+              <td>1960年代</td>
+              <td>陈大山</td>
+              <td>传统耕作农具</td>
+              <td><span class="tag tag-gray">库存</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewExhibitModal');viewExhibitDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editExhibitModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该展品记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡村大事记 ==================== -->
+  <div class="tab-panel" id="tab-chronicle" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="chronFTitle">事件标题</label>
+        <input type="text" id="chronFTitle" name="title" class="form-input" placeholder="请输入事件标题…" style="width:200px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="chronFCategory">事件分类</label>
+        <select id="chronFCategory" name="category" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>村级大事</option>
+          <option>党建活动</option>
+          <option>民生工程</option>
+          <option>文化活动</option>
+          <option>灾害记录</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="chronFStatus">状态</label>
+        <select id="chronFStatus" name="status" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>已发布</option>
+          <option>草稿</option>
+          <option>已归档</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:history-line"></iconify-icon>乡村大事记列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addChronicleModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增大事记</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>事件标题</th>
+              <th>发生日期</th>
+              <th>事件分类</th>
+              <th>记录人</th>
+              <th>事件内容</th>
+              <th>附件</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>幸福村庆祝建党105周年系列活动</td>
+              <td>2026-07-01</td>
+              <td><span class="tag tag-red">党建活动</span></td>
+              <td>李建国</td>
+              <td>组织党员重温入党誓词、走访慰问老党员</td>
+              <td><iconify-icon icon="ri:attachment-2"></iconify-icon> 2个</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村蜜桔产业园升级改造开工</td>
+              <td>2026-07-08</td>
+              <td><span class="tag tag-green">民生工程</span></td>
+              <td>周小敏</td>
+              <td>启动蜜桔产业园基础设施升级改造</td>
+              <td><iconify-icon icon="ri:attachment-2"></iconify-icon> 1个</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村2026年第二季度村民代表大会</td>
+              <td>2026-07-12</td>
+              <td><span class="tag tag-blue">村级大事</span></td>
+              <td>李建国</td>
+              <td>审议通过村集体资金使用方案</td>
+              <td><iconify-icon icon="ri:attachment-2"></iconify-icon> 3个</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村首届蜜桔文化节筹备启动</td>
+              <td>2026-07-18</td>
+              <td><span class="tag tag-purple">文化活动</span></td>
+              <td>黄国庆</td>
+              <td>启动首届蜜桔文化节筹备工作</td>
+              <td><iconify-icon icon="ri:attachment-2"></iconify-icon> 1个</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村7月防汛应急演练</td>
+              <td>2026-07-22</td>
+              <td><span class="tag tag-orange">灾害记录</span></td>
+              <td>陈大山</td>
+              <td>组织防汛应急演练，提升应急处置能力</td>
+              <td><iconify-icon icon="ri:attachment-2"></iconify-icon> 2个</td>
+              <td><span class="tag tag-green">已发布</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村人居环境整治方案（草稿）</td>
+              <td>2026-07-28</td>
+              <td><span class="tag tag-green">民生工程</span></td>
+              <td>周小敏</td>
+              <td>拟定人居环境整治提升方案</td>
+              <td>—</td>
+              <td><span class="tag tag-orange">草稿</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewChronicleModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editChronicleModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该大事记记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 6 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：乡村名片 ==================== -->
+  <div class="tab-panel" id="tab-card" style="display:none">
+
+    <!-- 乡村名片卡片 -->
+    <div class="card" style="padding:0">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:shield-star-line"></iconify-icon>乡村名片</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-primary" onclick="openModal('editCardModal')"><iconify-icon icon="ri:edit-2-line"></iconify-icon> 编辑名片</button>
+        </div>
+      </div>
+      <div class="vc-body">
+        <!-- 名片头 -->
+        <div class="vc-head">
+          <div class="vc-emblem" role="img" aria-label="村徽占位"><iconify-icon icon="ri:shield-star-line"></iconify-icon></div>
+          <div>
+            <div class="vc-name">幸福村（益农蜜桔村）</div>
+            <div class="vc-sub">所属乡镇：益农镇 · 村域面积 3.6 平方公里 · 423 户 1286 人</div>
+          </div>
+        </div>
+
+        <!-- 村简介 -->
+        <div class="vc-section">
+          <div class="vc-section-title">村简介</div>
+          <div class="vc-intro">幸福村位于益农镇中部，因盛产益农蜜桔而得名"益农蜜桔村"。全村辖4个队组，主导产业为蜜桔种植与乡村旅游，先后获评省级乡村振兴示范村、县级文明村。近年来依托数字乡村建设，推动蜜桔产业品牌化，发展农旅融合项目，村集体经济持续壮大。</div>
+        </div>
+
+        <!-- 特色产业 -->
+        <div class="vc-section">
+          <div class="vc-section-title">特色产业</div>
+          <div class="vc-ind-list">
+            <div class="vc-ind"><iconify-icon icon="ri:plant-line"></iconify-icon> 蜜桔种植</div>
+            <div class="vc-ind"><iconify-icon icon="ri:route-line"></iconify-icon> 乡村旅游</div>
+            <div class="vc-ind"><iconify-icon icon="ri:live-line"></iconify-icon> 电商直播</div>
+            <div class="vc-ind"><iconify-icon icon="ri:hand-heart-line"></iconify-icon> 认养农业</div>
+          </div>
+        </div>
+
+        <!-- 荣誉墙 -->
+        <div class="vc-section">
+          <div class="vc-section-title">荣誉墙</div>
+          <div class="vc-honor-list">
+            <span class="tag tag-green">省级乡村振兴示范村</span>
+            <span class="tag tag-blue">县级文明村</span>
+            <span class="tag tag-red">县级先进基层党组织</span>
+            <span class="tag tag-orange">蜜桔产业示范村</span>
+            <span class="tag tag-purple">数字乡村建设试点村</span>
+          </div>
+        </div>
+
+        <!-- 联系方式 -->
+        <div class="vc-section">
+          <div class="vc-section-title">联系方式</div>
+          <div class="vc-contact">
+            <div class="vc-contact-item"><iconify-icon icon="ri:map-pin-line"></iconify-icon> 地址：益农镇幸福村村委会</div>
+            <div class="vc-contact-item"><iconify-icon icon="ri:phone-line"></iconify-icon> 村委电话：0512-88**5678</div>
+            <div class="vc-contact-item"><iconify-icon icon="ri:user-line"></iconify-icon> 联系人：李建国（村党支部书记）</div>
+            <div class="vc-contact-item"><iconify-icon icon="ri:mail-line"></iconify-icon> 邮编：215600</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：乡村概况 ==================== -->
+
+<!-- 编辑概况弹窗 -->
+<div class="modal-overlay" id="editOverviewModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑概况</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editOverviewModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ovName"><span class="req">*</span>村名称</label>
+            <input type="text" id="ovName" name="ovName" class="form-input" value="幸福村（益农蜜桔村）" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="ovTown"><span class="req">*</span>所属乡镇</label>
+            <input type="text" id="ovTown" name="ovTown" class="form-input" value="益农镇" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ovArea"><span class="req">*</span>村域面积</label>
+            <input type="text" id="ovArea" name="ovArea" class="form-input" value="3.6" placeholder="请输入面积（平方公里）…" required autocomplete="off" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label for="ovHouseholds"><span class="req">*</span>总户数</label>
+            <input type="text" id="ovHouseholds" name="ovHouseholds" class="form-input" value="423" placeholder="请输入户数…" required autocomplete="off" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ovPopulation"><span class="req">*</span>总人口</label>
+            <input type="text" id="ovPopulation" name="ovPopulation" class="form-input" value="1286" placeholder="请输入人口数…" required autocomplete="off" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label for="ovParty">党员数</label>
+            <input type="text" id="ovParty" name="ovParty" class="form-input" value="47" placeholder="请输入党员数…" autocomplete="off" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ovLand">耕地面积</label>
+            <input type="text" id="ovLand" name="ovLand" class="form-input" value="1850" placeholder="请输入耕地面积（亩）…" autocomplete="off" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label for="ovIncome">村集体收入</label>
+            <input type="text" id="ovIncome" name="ovIncome" class="form-input" value="86" placeholder="请输入收入（万元）…" autocomplete="off" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ovIntro">村简介</label>
+          <textarea id="ovIntro" name="ovIntro" class="form-input" rows="4" placeholder="请输入村简介…">幸福村位于益农镇中部，因盛产益农蜜桔而得名"益农蜜桔村"。全村辖4个队组，主导产业为蜜桔种植与乡村旅游，先后获评省级乡村振兴示范村、县级文明村。</textarea>
+        </div>
+        <div class="form-group">
+          <label>村图片</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择村图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传村容村貌图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 800×500</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editOverviewModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editOverviewModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：数字村史馆 ==================== -->
+
+<!-- 新增展品弹窗 -->
+<div class="modal-overlay" id="addExhibitModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:gift-2-line"></iconify-icon>新增展品</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addExhibitModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="exName"><span class="req">*</span>展品名称</label>
+          <input type="text" id="exName" name="exName" class="form-input" placeholder="请输入展品名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="exCategory"><span class="req">*</span>展品分类</label>
+            <select id="exCategory" name="exCategory" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>历史照片</option>
+              <option>文献资料</option>
+              <option>实物展示</option>
+              <option>影像记录</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="exAge"><span class="req">*</span>年代</label>
+            <input type="text" id="exAge" name="exAge" class="form-input" placeholder="请输入年代…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="exDonor">捐赠人</label>
+            <input type="text" id="exDonor" name="exDonor" class="form-input" placeholder="请输入捐赠人…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="exStatus"><span class="req">*</span>状态</label>
+            <select id="exStatus" name="exStatus" class="form-select" required>
+              <option value="展出">展出</option>
+              <option value="库存">库存</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="exIntro">展品简介</label>
+          <textarea id="exIntro" name="exIntro" class="form-input" rows="3" placeholder="请输入展品简介…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>图片</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择展品图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传展品图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 600×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addExhibitModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addExhibitModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看展品弹窗 -->
+<div class="modal-overlay detail-modal" id="viewExhibitModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>展品详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewExhibitModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">图片</span><span class="detail-value"><img id="viewExhibitImg" class="thumb-img thumb-img-lg" src="../../../images/village-card-2.jpg" alt="幸福村老村口照片"></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">展品名称</span><span id="viewExhibitName" class="detail-value">幸福村老村口照片</span></div>
+        <div class="detail-item"><span class="detail-label">展品分类</span><span class="detail-value"><span id="viewExhibitCategory" class="tag tag-blue">历史照片</span></span></div>
+        <div class="detail-item"><span class="detail-label">年代</span><span id="viewExhibitAge" class="detail-value">1980年代</span></div>
+        <div class="detail-item"><span class="detail-label">捐赠人</span><span id="viewExhibitDonor" class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span id="viewExhibitStatus" class="tag tag-green">展出</span></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">展品简介</span><span id="viewExhibitIntro" class="detail-value">记录80年代村口牌坊原貌，展现幸福村历史变迁。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewExhibitModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑展品弹窗 -->
+<div class="modal-overlay" id="editExhibitModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑展品</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editExhibitModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editExName"><span class="req">*</span>展品名称</label>
+          <input type="text" id="editExName" class="form-input" value="幸福村老村口照片" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editExCategory"><span class="req">*</span>展品分类</label>
+            <select id="editExCategory" class="form-select" required>
+              <option selected>历史照片</option>
+              <option>文献资料</option>
+              <option>实物展示</option>
+              <option>影像记录</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editExAge"><span class="req">*</span>年代</label>
+            <input type="text" id="editExAge" class="form-input" value="1980年代" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editExDonor">捐赠人</label>
+            <input type="text" id="editExDonor" class="form-input" value="李建国" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editExStatus"><span class="req">*</span>状态</label>
+            <select id="editExStatus" class="form-select" required>
+              <option selected>展出</option>
+              <option>库存</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editExIntro">展品简介</label>
+          <textarea id="editExIntro" class="form-input" rows="3" placeholder="请输入展品简介…">记录80年代村口牌坊原貌，展现幸福村历史变迁。</textarea>
+        </div>
+        <div class="form-group">
+          <label>图片</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择展品图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传展品图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 600×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editExhibitModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editExhibitModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：乡村大事记 ==================== -->
+
+<!-- 新增大事记弹窗 -->
+<div class="modal-overlay" id="addChronicleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:history-line"></iconify-icon>新增大事记</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addChronicleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="chTitle"><span class="req">*</span>事件标题</label>
+          <input type="text" id="chTitle" name="chTitle" class="form-input" placeholder="请输入事件标题…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="chDate"><span class="req">*</span>发生日期</label>
+            <input type="date" id="chDate" name="chDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="chCategory"><span class="req">*</span>事件分类</label>
+            <select id="chCategory" name="chCategory" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>村级大事</option>
+              <option>党建活动</option>
+              <option>民生工程</option>
+              <option>文化活动</option>
+              <option>灾害记录</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="chRecorder">记录人</label>
+            <input type="text" id="chRecorder" name="chRecorder" class="form-input" placeholder="请输入记录人…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="chStatus"><span class="req">*</span>状态</label>
+            <select id="chStatus" name="chStatus" class="form-select" required>
+              <option value="已发布">已发布</option>
+              <option value="草稿">草稿</option>
+              <option value="已归档">已归档</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="chContent"><span class="req">*</span>事件内容</label>
+          <textarea id="chContent" name="chContent" class="form-input" rows="4" placeholder="请输入事件内容…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>附件</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择附件上传','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传附件</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png/pdf/doc，单个不超过 10MB</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addChronicleModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addChronicleModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看大事记弹窗 -->
+<div class="modal-overlay detail-modal" id="viewChronicleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>大事记详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewChronicleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">事件标题</span><span class="detail-value">幸福村庆祝建党105周年系列活动</span></div>
+        <div class="detail-item"><span class="detail-label">发生日期</span><span class="detail-value">2026-07-01</span></div>
+        <div class="detail-item"><span class="detail-label">事件分类</span><span class="detail-value"><span class="tag tag-red">党建活动</span></span></div>
+        <div class="detail-item"><span class="detail-label">记录人</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag tag-green">已发布</span></span></div>
+        <div class="detail-item"><span class="detail-label">附件</span><span class="detail-value">2个附件</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">事件内容</span><span class="detail-value">7月1日，幸福村党支部组织开展庆祝建党105周年系列活动，全体党员重温入党誓词，并走访慰问村内老党员，传递党组织关怀。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewChronicleModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑大事记弹窗 -->
+<div class="modal-overlay" id="editChronicleModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑大事记</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editChronicleModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editChTitle"><span class="req">*</span>事件标题</label>
+          <input type="text" id="editChTitle" class="form-input" value="幸福村庆祝建党105周年系列活动" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editChDate"><span class="req">*</span>发生日期</label>
+            <input type="date" id="editChDate" class="form-input" value="2026-07-01" required>
+          </div>
+          <div class="form-group">
+            <label for="editChCategory"><span class="req">*</span>事件分类</label>
+            <select id="editChCategory" class="form-select" required>
+              <option>村级大事</option>
+              <option selected>党建活动</option>
+              <option>民生工程</option>
+              <option>文化活动</option>
+              <option>灾害记录</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editChRecorder">记录人</label>
+            <input type="text" id="editChRecorder" class="form-input" value="李建国" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editChStatus"><span class="req">*</span>状态</label>
+            <select id="editChStatus" class="form-select" required>
+              <option selected>已发布</option>
+              <option>草稿</option>
+              <option>已归档</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editChContent"><span class="req">*</span>事件内容</label>
+          <textarea id="editChContent" class="form-input" rows="4" required>7月1日，幸福村党支部组织开展庆祝建党105周年系列活动，全体党员重温入党誓词，并走访慰问村内老党员，传递党组织关怀。</textarea>
+        </div>
+        <div class="form-group">
+          <label>附件</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择附件上传','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传附件</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png/pdf/doc，单个不超过 10MB</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editChronicleModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editChronicleModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：乡村名片 ==================== -->
+
+<!-- 编辑名片弹窗 -->
+<div class="modal-overlay" id="editCardModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:shield-star-line"></iconify-icon>编辑名片</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editCardModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vcNameInput"><span class="req">*</span>村名称</label>
+            <input type="text" id="vcNameInput" name="vcNameInput" class="form-input" value="幸福村（益农蜜桔村）" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="vcTownInput"><span class="req">*</span>所属乡镇</label>
+            <input type="text" id="vcTownInput" name="vcTownInput" class="form-input" value="益农镇" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="vcIntroInput"><span class="req">*</span>村简介</label>
+          <textarea id="vcIntroInput" name="vcIntroInput" class="form-input" rows="4" required>幸福村位于益农镇中部，因盛产益农蜜桔而得名"益农蜜桔村"。全村辖4个队组，主导产业为蜜桔种植与乡村旅游，先后获评省级乡村振兴示范村、县级文明村。</textarea>
+        </div>
+        <div class="form-group">
+          <label for="vcIndustryInput">特色产业</label>
+          <input type="text" id="vcIndustryInput" name="vcIndustryInput" class="form-input" value="蜜桔种植、乡村旅游、电商直播、认养农业" placeholder="多个产业用顿号分隔…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="vcHonorInput">荣誉墙</label>
+          <input type="text" id="vcHonorInput" name="vcHonorInput" class="form-input" value="省级乡村振兴示范村、县级文明村、县级先进基层党组织" placeholder="多个荣誉用顿号分隔…" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vcAddressInput">地址</label>
+            <input type="text" id="vcAddressInput" name="vcAddressInput" class="form-input" value="益农镇幸福村村委会" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="vcTelInput">村委电话</label>
+            <input type="tel" id="vcTelInput" name="vcTelInput" class="form-input" value="0512-88**5678" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vcContactInput">联系人</label>
+            <input type="text" id="vcContactInput" name="vcContactInput" class="form-input" value="李建国（村党支部书记）" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="vcPostcodeInput">邮编</label>
+            <input type="text" id="vcPostcodeInput" name="vcPostcodeInput" class="form-input" value="215600" autocomplete="off" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>村徽</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择村徽图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传村徽图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 200×200</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editCardModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editCardModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    function switchVillageTab(tab) {
+      document.querySelectorAll('#villageTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    }
+    /* 查看展品详情：严格按点击行 data-* 数据填充弹窗 */
+    function viewExhibitDetail(btn) {
+      var row = btn.closest('tr');
+      var modal = document.getElementById('viewExhibitModal');
+      if (!row || !modal) return;
+      var imgEl = document.getElementById('viewExhibitImg');
+      var nameEl = document.getElementById('viewExhibitName');
+      var catEl = document.getElementById('viewExhibitCategory');
+      var ageEl = document.getElementById('viewExhibitAge');
+      var donorEl = document.getElementById('viewExhibitDonor');
+      var statusEl = document.getElementById('viewExhibitStatus');
+      var introEl = document.getElementById('viewExhibitIntro');
+      var catMap = { '历史照片': 'tag-blue', '文献资料': 'tag-purple', '实物展示': 'tag-orange', '影像记录': 'tag-blue' };
+      var statusMap = { '展出': 'tag-green', '库存': 'tag-gray' };
+      var cat = row.getAttribute('data-category') || '';
+      var status = row.getAttribute('data-status') || '';
+      if (imgEl) { imgEl.src = row.getAttribute('data-img') || ''; imgEl.alt = row.getAttribute('data-img-alt') || ''; }
+      if (nameEl) nameEl.textContent = row.getAttribute('data-name') || '';
+      if (catEl) { catEl.textContent = cat; catEl.className = 'tag ' + (catMap[cat] || 'tag-blue'); }
+      if (ageEl) ageEl.textContent = row.getAttribute('data-age') || '';
+      if (donorEl) donorEl.textContent = row.getAttribute('data-donor') || '';
+      if (statusEl) { statusEl.textContent = status; statusEl.className = 'tag ' + (statusMap[status] || 'tag-green'); }
+      if (introEl) introEl.textContent = row.getAttribute('data-intro') || '';
+    }
+    /* 数字村史馆筛选：过滤行并刷新分页"共 N 条" */
+    function refreshExhibitPager() {
+      var pagers = document.querySelectorAll('#tab-museum .pagination');
+      var total = 0;
+      var rows = document.querySelectorAll('#tab-museum tbody tr');
+      rows.forEach(function (r) {
+        if (r.querySelector('td') && !r.classList.contains('pg-filtered')) total++;
+      });
+      pagers.forEach(function (p) {
+        if (p._pgRender) { p._pgRender(); return; }
+        var el = p.querySelector('.page-total');
+        if (el) el.textContent = '第 1 / 1 页，共 ' + total + ' 条';
+      });
+    }
+    function filterExhibits() {
+      var kw = (document.getElementById('exhibitFName').value || '').trim().toLowerCase();
+      var cat = document.getElementById('exhibitFCategory').value;
+      var status = document.getElementById('exhibitFStatus').value;
+      var rows = document.querySelectorAll('#tab-museum tbody tr');
+      var count = 0;
+      rows.forEach(function (r) {
+        if (!r.querySelector('td')) return;
+        var name = (r.getAttribute('data-name') || '').toLowerCase();
+        var rc = r.getAttribute('data-category') || '';
+        var rs = r.getAttribute('data-status') || '';
+        var show = (!kw || name.indexOf(kw) !== -1) && (!cat || rc === cat) && (!status || rs === status);
+        r.classList.toggle('pg-filtered', !show);
+        if (show) count++;
+      });
+      refreshExhibitPager();
+      showToast('查询完成，共 ' + count + ' 条', 'success');
+    }
+    function resetExhibitFilter() {
+      document.getElementById('exhibitFName').value = '';
+      document.getElementById('exhibitFCategory').value = '';
+      document.getElementById('exhibitFStatus').value = '';
+      filterExhibits();
+    }
+    (function () {
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#villageTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchVillageTab(t);
+      }
+    })();
+  </script>
+</body>
+</html>

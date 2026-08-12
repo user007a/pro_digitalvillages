@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>队组管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* 页头（对齐南丰监测数据页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    /* 搜索筛选区（对齐南丰监测数据页：控件 14px + 8px 圆角 + 灰边框） */
+    .search-filter .filter-item .form-input,
+    .search-filter .filter-item .form-select {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+      border-color: #d1d5db;
+    }
+    .search-filter .filter-actions .btn {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5;padding:24px;box-sizing:border-box" data-page-title="队组管理" data-page-subtitle="村级队组划分与人员统计">
+
+  <!-- 顶部页头 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>队组管理</h2>
+      <p>村级队组信息统一管理，支持新增、导出与查询维护</p>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="openModal('addTeamModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增队组</button>
+    <button class="btn btn-outline" onclick="openModal('exportModal')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+  </div>
+
+  <!-- 搜索筛选区 -->
+  <div class="search-filter">
+    <div class="filter-item">
+      <label for="fName">队组名称</label>
+      <input type="text" id="fName" name="name" class="form-input" placeholder="请输入队组名称…" style="width:160px" autocomplete="off">
+    </div>
+    <div class="filter-item">
+      <label for="fLeader">队组长</label>
+      <input type="text" id="fLeader" name="leader" class="form-input" placeholder="请输入队组长…" style="width:140px" autocomplete="off">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+      <button class="btn btn-search-reset">重 置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="checkbox-cell"><input type="checkbox" class="select-all" aria-label="全选当前页"></th>
+          <th>队组名称</th>
+          <th>队组长</th>
+          <th>户数</th>
+          <th>人口数</th>
+          <th>排序</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>第一队组</td>
+          <td>李建国</td>
+          <td>112</td>
+          <td>342</td>
+          <td>1</td>
+          <td>位于村东，以蜜桔种植为主</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewTeamModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openTeamEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="deleteTeam(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>第二队组</td>
+          <td>赵铁柱</td>
+          <td>108</td>
+          <td>326</td>
+          <td>2</td>
+          <td>位于村南，含部分务工户</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewTeamModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openTeamEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="deleteTeam(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>第三队组</td>
+          <td>周小敏</td>
+          <td>105</td>
+          <td>318</td>
+          <td>3</td>
+          <td>位于村西，产业户集中</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewTeamModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openTeamEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="deleteTeam(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>第四队组</td>
+          <td>吴德发</td>
+          <td>98</td>
+          <td>300</td>
+          <td>4</td>
+          <td>位于村北，外出务工较多</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewTeamModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openTeamEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="deleteTeam(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 分页 -->
+  <div class="pagination">
+    <span class="page-total">共 4 条记录</span>
+    <span class="page-info">第 1 页 / 共 1 页</span>
+    <select class="page-size-select" aria-label="每页条数">
+      <option>20条/页</option>
+      <option>50条/页</option>
+      <option>100条/页</option>
+    </select>
+    <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+    <button type="button" class="page-btn active" data-page="1">1</button>
+    <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>导出列表</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">选择导出格式，将当前筛选条件下的队组列表导出为文件。</p>
+        <div class="export-format-grid">
+          <button type="button" class="export-format active" onclick="selectExportFormat(this)"><iconify-icon icon="ri:image-line"></iconify-icon>图片</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-excel-2-line"></iconify-icon>Excel</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>PDF</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-text-line"></iconify-icon>TXT</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('exportModal');showToast('导出成功','success')">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增队组弹窗 -->
+  <div class="modal-overlay" id="addTeamModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新增队组</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addTeamModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="teamName"><span class="req">*</span>队组名称</label>
+              <input type="text" id="teamName" name="teamName" class="form-input" placeholder="请输入队组名称…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="teamLeader"><span class="req">*</span>队组长</label>
+              <input type="text" id="teamLeader" name="teamLeader" class="form-input" placeholder="请输入队组长姓名…" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="teamHouseholds">户数</label>
+              <input type="text" id="teamHouseholds" name="teamHouseholds" class="form-input" placeholder="请输入户数…" autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="teamPopulation">人口数</label>
+              <input type="text" id="teamPopulation" name="teamPopulation" class="form-input" placeholder="请输入人口数…" autocomplete="off" inputmode="numeric">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="teamSort"><span class="req">*</span>排序</label>
+            <input type="text" id="teamSort" name="teamSort" class="form-input" placeholder="请输入排序号…" required autocomplete="off" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label for="teamRemark">备注</label>
+            <textarea id="teamRemark" name="teamRemark" class="form-input" rows="2" placeholder="请输入备注…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addTeamModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="saveAddTeam()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看队组弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewTeamModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>队组详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewTeamModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">队组名称</span><span class="detail-value">第一队组</span></div>
+          <div class="detail-item"><span class="detail-label">队组长</span><span class="detail-value">李建国</span></div>
+          <div class="detail-item"><span class="detail-label">户数</span><span class="detail-value">112</span></div>
+          <div class="detail-item"><span class="detail-label">人口数</span><span class="detail-value">342</span></div>
+          <div class="detail-item"><span class="detail-label">排序</span><span class="detail-value">1</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">备注</span><span class="detail-value">位于村东，以蜜桔种植为主</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewTeamModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑弹窗 -->
+  <div class="modal-overlay" id="editTeamModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>编辑队组</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editTeamModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editTeamName"><span class="req">*</span>队组名称</label>
+              <input type="text" id="editTeamName" class="form-input" value="第一队组" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editTeamLeader"><span class="req">*</span>队组长</label>
+              <input type="text" id="editTeamLeader" class="form-input" value="李建国" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editTeamHouseholds">户数</label>
+              <input type="text" id="editTeamHouseholds" class="form-input" value="112" autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="editTeamPopulation">人口数</label>
+              <input type="text" id="editTeamPopulation" class="form-input" value="342" autocomplete="off" inputmode="numeric">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editTeamSort"><span class="req">*</span>排序</label>
+            <input type="text" id="editTeamSort" class="form-input" value="1" required autocomplete="off" inputmode="numeric">
+          </div>
+          <div class="form-group">
+            <label for="editTeamRemark">备注</label>
+            <textarea id="editTeamRemark" class="form-input" rows="2" placeholder="请输入备注…">位于村东，以蜜桔种植为主</textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editTeamModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="saveEditTeam()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ---- 队组管理：新增 / 编辑 / 删除 行级操作 ---- */
+  function saveAddTeam() {
+    var tbody = document.querySelector('.data-table tbody');
+    if (!tbody) return;
+    var name = (document.getElementById('teamName').value || '').trim();
+    var leader = (document.getElementById('teamLeader').value || '').trim();
+    if (!name || !leader) { showToast('请输入队组名称和队组长', 'warning'); return; }
+    var households = (document.getElementById('teamHouseholds').value || '').trim();
+    var population = (document.getElementById('teamPopulation').value || '').trim();
+    var sort = (document.getElementById('teamSort').value || '').trim();
+    var remark = (document.getElementById('teamRemark').value || '').trim();
+    var row = document.createElement('tr');
+    row.innerHTML =
+      '<td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>' +
+      '<td>' + name + '</td>' +
+      '<td>' + leader + '</td>' +
+      '<td>' + (households || '-') + '</td>' +
+      '<td>' + (population || '-') + '</td>' +
+      '<td>' + (sort || '-') + '</td>' +
+      '<td>' + (remark || '-') + '</td>' +
+      '<td class="op-cell">' +
+        '<button type="button" class="btn-op" onclick="openModal(\'viewTeamModal\')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openTeamEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteTeam(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>' +
+      '</td>';
+    tbody.appendChild(row);
+    closeModal('addTeamModal');
+    showToast('保存成功', 'success');
+    updateTeamPagination();
+  }
+  function openTeamEdit(btn) {
+    window._teamEditRow = btn.closest('tr');
+    var tds = btn.closest('tr').querySelectorAll('td');
+    document.getElementById('editTeamName').value = tds[1] ? tds[1].textContent.trim() : '';
+    document.getElementById('editTeamLeader').value = tds[2] ? tds[2].textContent.trim() : '';
+    document.getElementById('editTeamHouseholds').value = tds[3] ? tds[3].textContent.trim() : '';
+    document.getElementById('editTeamPopulation').value = tds[4] ? tds[4].textContent.trim() : '';
+    document.getElementById('editTeamSort').value = tds[5] ? tds[5].textContent.trim() : '';
+    document.getElementById('editTeamRemark').value = tds[6] ? tds[6].textContent.trim() : '';
+    openModal('editTeamModal');
+  }
+  function saveEditTeam() {
+    var row = window._teamEditRow;
+    if (!row) return;
+    var name = (document.getElementById('editTeamName').value || '').trim();
+    var leader = (document.getElementById('editTeamLeader').value || '').trim();
+    if (!name || !leader) { showToast('请输入队组名称和队组长', 'warning'); return; }
+    var households = (document.getElementById('editTeamHouseholds').value || '').trim();
+    var population = (document.getElementById('editTeamPopulation').value || '').trim();
+    var sort = (document.getElementById('editTeamSort').value || '').trim();
+    var remark = (document.getElementById('editTeamRemark').value || '').trim();
+    var tds = row.querySelectorAll('td');
+    if (tds[1]) tds[1].textContent = name;
+    if (tds[2]) tds[2].textContent = leader;
+    if (tds[3]) tds[3].textContent = households;
+    if (tds[4]) tds[4].textContent = population;
+    if (tds[5]) tds[5].textContent = sort;
+    if (tds[6]) tds[6].textContent = remark;
+    closeModal('editTeamModal');
+    showToast('保存成功', 'success');
+  }
+  function deleteTeam(btn) {
+    var row = btn.closest('tr');
+    showConfirm({
+      title: '删除确认',
+      message: '确定删除该队组记录吗？删除后不可恢复。',
+      onConfirm: function () {
+        if (row.parentNode) row.parentNode.removeChild(row);
+        showToast('删除成功', 'success');
+        updateTeamPagination();
+      }
+    });
+  }
+  function updateTeamPagination() {
+    var pager = document.querySelector('.pagination');
+    if (!pager) return;
+    var tbody = document.querySelector('.data-table tbody');
+    var total = 0;
+    if (tbody) {
+      tbody.querySelectorAll('tr').forEach(function (tr) {
+        if (!tr.classList.contains('pg-filtered')) total++;
+      });
+    }
+    var countEl = pager.querySelector('.pg-page-count');
+    var rangeEl = pager.querySelector('.pg-page-range');
+    if (countEl || rangeEl) {
+      var pageSize = 10;
+      var sizeSel = pager.querySelector('.page-size-select');
+      if (sizeSel && sizeSel.value) pageSize = parseInt(sizeSel.value, 10) || 10;
+      if (countEl) countEl.textContent = total;
+      if (rangeEl) rangeEl.textContent = total === 0 ? '0-0' : '1-' + Math.min(pageSize, total);
+      return;
+    }
+    var totalEl = pager.querySelector('.page-total');
+    if (totalEl) totalEl.textContent = '共 ' + total + ' 条记录';
+    var infoEl = pager.querySelector('.page-info');
+    if (infoEl) infoEl.textContent = '第 1 页 / 共 ' + Math.max(1, Math.ceil(total / 20)) + ' 页';
+  }
+  </script>
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

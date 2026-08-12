@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据源管理 - 数据大屏管理</title>
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="../css/admin.css">
+  
+  <style>
+    body { background: var(--color-neutral-100); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    /* 页头（对齐南丰外部抓取页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      padding: 20px 24px;
+      background: #fff;
+      border-bottom: 1px solid #eef0f3;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .page-header .page-header-actions { display: flex; align-items: center; gap: 8px; }
+    /* 测试连接结果列表 */
+    .test-result-list { display: flex; flex-direction: column; gap: 8px; }
+    .test-result-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; }
+    .test-result-item .test-name { color: #1f2937; font-weight: 500; }
+    .test-result-item .test-status { font-size: 12px; }
+    .test-result-item.ok { background: #f0fdf4; border-color: #bbf7d0; }
+    .test-result-item.ok .test-status { color: #15803d; }
+    .test-result-item.fail { background: #fef2f2; border-color: #fecaca; }
+    .test-result-item.fail .test-status { color: #b91c1c; }
+    .page-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    /* 数据源表格表头：对齐南丰规范（浅灰底 / 灰字 / 12px / 600） */
+    .page-card table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-online { background: var(--color-success); }
+    .status-offline { background: var(--color-error); }
+    .status-pending { background: var(--color-warning); }
+    .source-type { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .source-api { background: var(--color-info-light); color: var(--color-info-dark); }
+    .source-db { background: var(--color-success-light); color: var(--color-success-dark); }
+    .source-manual { background: var(--color-accent-50); color: var(--color-accent-700); }
+  
+    .flex{display:flex;}
+.flex-1{flex:1 1 0%;}
+.grid{display:grid;}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.items-center{align-items:center;}
+.justify-between{justify-content:space-between;}
+.block{display:block;}
+.relative{position:relative;}
+.overflow-hidden{overflow:hidden;}
+.cursor-pointer{cursor:pointer;}
+.m-0{margin:0;}
+.p-0{padding:0;}
+.uppercase{text-transform:uppercase;}
+.transition-colors{transition:color .15s, background-color .15s, border-color .15s;}
+.text-left{text-align:left;}
+.text-right{text-align:right;}
+.m-0{margin:0;}
+.mb-2{margin-bottom:8px;}
+.mb-3{margin-bottom:12px;}
+.mb-5{margin-bottom:20px;}
+.mr-2{margin-right:8px;}
+.mt-0\.5{margin-top:2.0px;}
+.mt-1{margin-top:4px;}
+.mt-2{margin-top:8px;}
+.p-0{padding:0;}
+.p-3{padding:12px;}
+.p-4{padding:16px;}
+.p-5{padding:20px;}
+.p-6{padding:24px;}
+.pl-8{padding-left:32px;}
+.pr-3{padding-right:12px;}
+.px-3{padding-left:12px;padding-right:12px;}
+.px-4{padding-left:16px;padding-right:16px;}
+.px-5{padding-left:20px;padding-right:20px;}
+.px-6{padding-left:24px;padding-right:24px;}
+.py-1{padding-top:4px;padding-bottom:4px;}
+.py-1\.5{padding-top:6.0px;padding-bottom:6.0px;}
+.py-2{padding-top:8px;padding-bottom:8px;}
+.py-3{padding-top:12px;padding-bottom:12px;}
+.py-3\.5{padding-top:14.0px;padding-bottom:14.0px;}
+.py-4{padding-top:16px;padding-bottom:16px;}
+.gap-1{gap:4px;}
+.gap-1\.5{gap:6px;}
+.gap-2{gap:8px;}
+.gap-3{gap:12px;}
+.gap-4{gap:16px;}
+.space-y-2 > * + * {margin-top:8px;}
+.space-y-4 > * + * {margin-top:16px;}
+.bg-primary{background:var(--color-primary-500);}
+.border-primary{border-color:var(--color-primary-500);}
+.bg-gray-50{background:var(--color-neutral-50);}
+.bg-gray-100{background:var(--color-neutral-100);}
+.bg-white{background:#fff;}
+.text-white{color:#fff;}
+.text-gray-400{color:var(--color-neutral-400);}
+.text-gray-500{color:var(--color-neutral-500);}
+.text-gray-600{color:var(--color-neutral-600);}
+.text-gray-700{color:var(--color-neutral-700);}
+.text-gray-800{color:var(--color-neutral-800);}
+.text-red-500{color:var(--color-error);}
+.text-green-600{color:var(--color-success-dark);}
+.text-yellow-600{color:var(--color-accent-700);}
+.border-gray-100{border-color:var(--color-neutral-100);}
+.border-gray-200{border-color:var(--color-neutral-200);}
+.border-gray-300{border-color:var(--color-neutral-300);}
+.divide-gray-100{border-color:var(--color-neutral-100);}
+.border{border-width:1px;border-style:solid;}
+.border-2{border-width:2px;border-style:solid;}
+.border-b{border-bottom-width:1px;border-bottom-style:solid;}
+.border-t{border-top-width:1px;border-top-style:solid;}
+.rounded{border-radius:4px;}
+.rounded-lg{border-radius:8px;}
+.font-bold{font-weight:700;}
+.font-semibold{font-weight:600;}
+.font-medium{font-weight:500;}
+.text-xs{font-size:12px;}
+.text-sm{font-size:14px;}
+.text-base{font-size:16px;}
+.text-lg{font-size:18px;}
+.w-full{width:100%;}
+.w-56{width:224px;}
+.divide-y > * + * { border-top-width: 1px; border-top-style: solid; border-top-color: var(--color-neutral-100); }
+.focus\:ring-primary:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:ring-2:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:border-transparent:focus{border-color:transparent;}
+.hover\:bg-primary-hover:hover{background:var(--color-primary-600);}
+.hover\:bg-gray-200:hover{background:var(--color-neutral-200);}
+.hover\:bg-gray-50:hover{background:var(--color-neutral-50);}
+.hover\:border-gray-300:hover{border-color:var(--color-neutral-300);}
+.hover\:text-primary:hover{color:var(--color-primary-600);}
+.hover\:text-red-500:hover{color:var(--color-error);}
+  </style>
+</head>
+<body class="m-0 p-0" data-no-pg-toolbar data-end="backend" data-page-title="数据源管理" data-page-subtitle="数据大屏管理">
+
+  <!-- 页面头部 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>数据源管理</h2>
+      <p>管理大屏各面板的数据来源、接口配置和同步状态</p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn btn-outline" onclick="openModal('testConnectionModal')"><iconify-icon icon="ri:pulse-line"></iconify-icon> 测试连接</button>
+      <button type="button" class="btn btn-primary" onclick="openModal('addSourceModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增数据源</button>
+    </div>
+  </div>
+
+  <!-- 筛选栏 -->
+  <div class="px-6 py-3 bg-white border-b border-gray-200 flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-500">类型：</span>
+      <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+        <option>全部</option>
+        <option>API接口</option>
+        <option>数据库</option>
+        <option>手动录入</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-500">状态：</span>
+      <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+        <option>全部</option>
+        <option>在线</option>
+        <option>离线</option>
+        <option>待配置</option>
+      </select>
+    </div>
+    <div class="flex-1"></div>
+    <div class="relative">
+      <iconify-icon icon="ri:search-line" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-neutral-400); font-size: 16px;"></iconify-icon>
+      <input type="text" placeholder="搜索数据源…" class="pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm w-56 focus:ring-2 focus:ring-primary">
+    </div>
+  </div>
+
+  <!-- 数据表格 -->
+  <div class="p-6">
+    <div class="page-card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50 font-semibold text-gray-600">
+            <th class="px-5 py-3 text-left">数据源名称</th>
+            <th class="px-5 py-3 text-left">类型</th>
+            <th class="px-5 py-3 text-left">关联模块</th>
+            <th class="px-5 py-3 text-left">同步频率</th>
+            <th class="px-5 py-3 text-left">最后同步</th>
+            <th class="px-5 py-3 text-left">状态</th>
+            <th class="px-5 py-3 text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:community-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">村情总览指标</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-api"><iconify-icon icon="ri:link" style="font-size: 12px;"></iconify-icon>API接口</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 1 页 · 村情总览</td>
+            <td class="px-5 py-3.5 text-gray-600">实时</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 18:20</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:pie-chart-2-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">人口结构统计</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-db"><iconify-icon icon="ri:database-line" style="font-size: 12px;"></iconify-icon>数据库</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 1 页 · 村情总览</td>
+            <td class="px-5 py-3.5 text-gray-600">每日</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 06:00</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:bar-chart-grouped-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">产业产值数据</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-api"><iconify-icon icon="ri:link" style="font-size: 12px;"></iconify-icon>API接口</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 2 页 · 产业兴旺</td>
+            <td class="px-5 py-3.5 text-gray-600">每日</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 06:00</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:leaf-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">环境监测数据</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-api"><iconify-icon icon="ri:link" style="font-size: 12px;"></iconify-icon>API接口</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 3 页 · 生态宜居</td>
+            <td class="px-5 py-3.5 text-gray-600">每5分钟</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 18:25</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:book-open-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">文明活动统计</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-db"><iconify-icon icon="ri:database-line" style="font-size: 12px;"></iconify-icon>数据库</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 4 页 · 乡风文明</td>
+            <td class="px-5 py-3.5 text-gray-600">每周</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-03 08:00</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:shield-check-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">事件治理数据</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-db"><iconify-icon icon="ri:database-line" style="font-size: 12px;"></iconify-icon>数据库</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 5 页 · 治理有效</td>
+            <td class="px-5 py-3.5 text-gray-600">实时</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 18:28</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:wallet-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">村民收入数据</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-manual"><iconify-icon icon="ri:edit-line" style="font-size: 12px;"></iconify-icon>手动录入</span></td>
+            <td class="px-5 py-3.5 text-gray-600">第 6 页 · 生活富裕</td>
+            <td class="px-5 py-3.5 text-gray-600">每月</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-01 10:00</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-pending"></span> <span class="text-yellow-600 text-xs">待更新</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:router-line" style="color: var(--color-primary-600);"></iconify-icon>
+                <span class="font-medium text-gray-800">设备状态数据</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-api"><iconify-icon icon="ri:link" style="font-size: 12px;"></iconify-icon>API接口</span></td>
+            <td class="px-5 py-3.5 text-gray-600">设备管理</td>
+            <td class="px-5 py-3.5 text-gray-600">实时</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 18:30</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-online"></span> <span class="text-green-600 text-xs">在线</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="ri:alarm-warning-line" style="color: #ef4444;"></iconify-icon>
+                <div>
+                  <div class="font-medium text-gray-800">设备预警数据</div>
+                  <div class="text-xs text-red-500 mt-0.5">1 条告警未同步</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-3.5"><span class="source-type source-api"><iconify-icon icon="ri:link" style="font-size: 12px;"></iconify-icon>API接口</span></td>
+            <td class="px-5 py-3.5 text-gray-600">设备管理</td>
+            <td class="px-5 py-3.5 text-gray-600">实时</td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">2026-08-05 18:29</td>
+            <td class="px-5 py-3.5"><span class="status-dot status-pending"></span> <span class="text-yellow-600 text-xs">待更新</span></td>
+            <td class="px-5 py-3.5 op-cell" style="justify-content:flex-end">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSourceModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="openModal('deleteSourceModal')"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 分页 -->
+      <div class="pagination">
+        <span class="page-total">共 9 条记录</span>
+        <span class="page-info">第 1 页 / 共 1 页</span>
+        <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+        <button type="button" class="page-btn active" data-page="1">1</button>
+        <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 测试连接弹窗 -->
+  <div class="modal-overlay" id="testConnectionModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>测试连接</h3>
+        <button type="button" class="modal-close" onclick="closeModal('testConnectionModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">已逐项测试全部数据源的连通性与响应耗时。</p>
+        <div class="test-result-list">
+          <div class="test-result-item ok"><span class="test-name">村情总览指标</span><span class="test-status">连接成功 · 36ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">人口结构统计</span><span class="test-status">连接成功 · 28ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">产业产值数据</span><span class="test-status">连接成功 · 41ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">环境监测数据</span><span class="test-status">连接成功 · 33ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">文明活动统计</span><span class="test-status">连接成功 · 52ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">事件治理数据</span><span class="test-status">连接成功 · 30ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">村民收入数据</span><span class="test-status">连接成功 · 22ms</span></div>
+          <div class="test-result-item ok"><span class="test-name">设备状态数据</span><span class="test-status">连接成功 · 47ms</span></div>
+          <div class="test-result-item fail"><span class="test-name">设备预警数据</span><span class="test-status">连接超时 · 1 条告警未同步</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('testConnectionModal')">关 闭</button>
+        <button class="btn btn-primary" onclick="closeModal('testConnectionModal');showToast('已重新测试全部数据源','success')">重新测试</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增数据源弹窗 -->
+  <div class="modal-overlay" id="addSourceModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新增数据源</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addSourceModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="addSourceForm" onsubmit="return false">
+          <div class="form-group">
+            <label>数据源名称 <span style="color:#dc2626">*</span></label>
+            <input type="text" class="form-input" placeholder="请输入数据源名称…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>数据源类型 <span style="color:#dc2626">*</span></label>
+            <select class="form-select">
+              <option selected>API接口</option>
+              <option>数据库</option>
+              <option>手动录入</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>关联模块 <span style="color:#dc2626">*</span></label>
+            <select class="form-select">
+              <option>第 1 页 · 村情总览</option>
+              <option>第 2 页 · 产业兴旺</option>
+              <option>第 3 页 · 生态宜居</option>
+              <option>第 4 页 · 乡风文明</option>
+              <option>第 5 页 · 治理有效</option>
+              <option>第 6 页 · 生活富裕</option>
+              <option>设备管理</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>同步频率</label>
+            <select class="form-select">
+              <option selected>实时</option>
+              <option>每5分钟</option>
+              <option>每小时</option>
+              <option>每日</option>
+              <option>每周</option>
+              <option>每月</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>接口地址</label>
+            <input type="text" class="form-input" placeholder="如 http://api.example.com/data…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>认证方式</label>
+            <select class="form-select">
+              <option>无需认证</option>
+              <option>API Key</option>
+              <option>Basic Auth</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('addSourceModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('addSourceModal');showToast('数据源已添加','success')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑数据源弹窗 -->
+  <div class="modal-overlay" id="editSourceModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>编辑数据源</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editSourceModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editSourceForm" onsubmit="return false">
+          <div class="form-group">
+            <label>数据源名称 <span style="color:#dc2626">*</span></label>
+            <input type="text" class="form-input" value="村情总览指标" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>数据源类型</label>
+            <select class="form-select">
+              <option selected>API接口</option>
+              <option>数据库</option>
+              <option>手动录入</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>关联模块</label>
+            <select class="form-select">
+              <option selected>第 1 页 · 村情总览</option>
+              <option>第 2 页 · 产业兴旺</option>
+              <option>第 3 页 · 生态宜居</option>
+              <option>第 4 页 · 乡风文明</option>
+              <option>第 5 页 · 治理有效</option>
+              <option>第 6 页 · 生活富裕</option>
+              <option>设备管理</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>同步频率</label>
+            <select class="form-select">
+              <option selected>实时</option>
+              <option>每5分钟</option>
+              <option>每小时</option>
+              <option>每日</option>
+              <option>每周</option>
+              <option>每月</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>接口地址</label>
+            <input type="text" class="form-input" value="http://api.example.com/village/overview" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>认证方式</label>
+            <select class="form-select">
+              <option selected>无需认证</option>
+              <option>API Key</option>
+              <option>Basic Auth</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('editSourceModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('editSourceModal');showToast('数据源配置已保存','success')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除数据源弹窗 -->
+  <div class="modal-overlay" id="deleteSourceModal" aria-hidden="true">
+    <div class="modal" style="width:420px">
+      <div class="modal-header">
+        <h3>确认删除</h3>
+        <button type="button" class="modal-close" onclick="closeModal('deleteSourceModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align:center;padding:24px">
+        <div class="confirm-flex" style="justify-content:center">
+          <div class="confirm-icon" style="width:52px;height:52px;border-radius:50%;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px"><iconify-icon icon="ri:delete-bin-6-line"></iconify-icon></div>
+        </div>
+        <p style="font-size:15px;font-weight:600;color:#1f2937;margin:0 0 6px">删除该数据源？</p>
+        <p style="font-size:13px;color:#6b7280;margin:0">删除后不可恢复，该数据源关联的大屏面板将无法同步数据。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('deleteSourceModal')">取 消</button>
+        <button class="btn btn-danger" onclick="closeModal('deleteSourceModal');showToast('数据源已删除','success')">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    function showToast(msg, type) {
+      if (window.parent && window.parent !== window && window.parent.showToast) {
+        window.parent.showToast(msg, type || 'info');
+      } else {
+        alert(msg);
+      }
+    }
+  </script>
+
+  <script>
+    /* 数据源列表筛选：类型 / 状态 / 关键字（三条件取交集） */
+    var typeSelect = document.querySelectorAll('select')[0];
+    var statusSelect = document.querySelectorAll('select')[1];
+    var searchInput = document.querySelector('input[placeholder="搜索数据源…"]');
+    var dsTbody = document.querySelector('tbody');
+    var dsCount = document.querySelector('.page-card .page-total');
+
+    function filterDataSources() {
+      var typeVal = typeSelect.value;
+      var statusVal = statusSelect.value;
+      var kw = searchInput.value.trim().toLowerCase();
+      var rows = dsTbody.querySelectorAll('tr');
+      var visible = 0;
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var cells = row.querySelectorAll('td');
+        var typeText = cells[1].textContent;
+        var statusText = cells[5].textContent;
+        var show = true;
+        if (typeVal !== '全部' && typeText.indexOf(typeVal) === -1) show = false;
+        if (show && statusVal !== '全部') {
+          var stMatched = statusText.indexOf(statusVal) !== -1;
+          if (statusVal === '待配置' && statusText.indexOf('待更新') !== -1) stMatched = true;
+          if (!stMatched) show = false;
+        }
+        if (show && kw && row.textContent.toLowerCase().indexOf(kw) === -1) show = false;
+        row.style.display = show ? '' : 'none';
+        if (show) row.classList.remove('pg-filtered');
+        else row.classList.add('pg-filtered');
+        if (show) visible++;
+      }
+      dsCount.textContent = '共 ' + visible + ' 条记录';
+      // 同步 pg-pager 分页信息（page-enhancer 注入后 .page-total 已被替换，需按可见行重算）
+      var dsPager = document.querySelector('.pagination.pg-pager');
+      if (dsPager && typeof dsPager._pgRender === 'function') dsPager._pgRender();
+    }
+
+    typeSelect.addEventListener('change', filterDataSources);
+    statusSelect.addEventListener('change', filterDataSources);
+    searchInput.addEventListener('input', filterDataSources);
+  </script>
+</body>
+</html>

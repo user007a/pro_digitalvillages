@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>申请审核</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body data-page-title="申请审核" data-page-subtitle="乡村振兴数字平台 · 后台管理" data-no-pg-toolbar>
+<div class="admin-page">
+  <div class="page-header">
+    <h2>申请审核</h2>
+    <span class="text-muted">村民线上办事申请审核</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-blue">
+      <div class="stat-label">本月申请</div>
+      <div class="stat-value">48 <span class="text-sm">件</span></div>
+      <div class="stat-desc">本月线上申请总量</div>
+    </div>
+    <div class="stat-card card-red">
+      <div class="stat-label">待审核</div>
+      <div class="stat-value">6 <span class="text-sm">件</span></div>
+      <div class="stat-desc">需要尽快审核</div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">办理中</div>
+      <div class="stat-value">12 <span class="text-sm">件</span></div>
+      <div class="stat-desc">正在办理中</div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">已完成</div>
+      <div class="stat-value">28 <span class="text-sm">件</span></div>
+      <div class="stat-desc">本月已完成办理</div>
+    </div>
+  </div>
+
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>申请状态</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>待审核</option>
+        <option>办理中</option>
+        <option>已完成</option>
+        <option>已驳回</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>办事指南分类</label>
+      <select class="form-select">
+        <option value="">全部分类</option>
+        <option>证明开具</option>
+        <option>补贴申领</option>
+        <option>医保社保</option>
+        <option>农业服务</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>申请人</label>
+      <input type="text" class="form-input" placeholder="请输入申请人姓名…">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>申请编号</th>
+          <th>办事指南名称</th>
+          <th>申请人</th>
+          <th>所属网格</th>
+          <th>提交时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SA-202608-001</td>
+          <td>贫困证明开具</td>
+          <td>李大华</td>
+          <td>第一网格</td>
+          <td>2026-08-05 09:20</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-002</td>
+          <td>耕地地力补贴申领</td>
+          <td>王小明</td>
+          <td>第二网格</td>
+          <td>2026-08-05 10:05</td>
+          <td><span class="tag tag-blue">办理中</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-003</td>
+          <td>城乡居民医保参保登记</td>
+          <td>刘桂芳</td>
+          <td>第三网格</td>
+          <td>2026-08-04 14:30</td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-004</td>
+          <td>养老保险待遇申领</td>
+          <td>陈志刚</td>
+          <td>第二网格</td>
+          <td>2026-08-04 16:45</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-005</td>
+          <td>农业机械购置补贴</td>
+          <td>杨春花</td>
+          <td>第三网格</td>
+          <td>2026-08-03 11:10</td>
+          <td><span class="tag tag-blue">办理中</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-006</td>
+          <td>宅基地使用权证明</td>
+          <td>吴德福</td>
+          <td>第一网格</td>
+          <td>2026-08-03 09:50</td>
+          <td><span class="tag tag-gray">已驳回</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-007</td>
+          <td>农村土地流转备案</td>
+          <td>赵德海</td>
+          <td>第一网格</td>
+          <td>2026-08-02 15:25</td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td>SA-202608-008</td>
+          <td>惠农贷款申请指引</td>
+          <td>郑十一</td>
+          <td>第二网格</td>
+          <td>2026-08-02 10:40</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openServiceReview(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="viewApplyDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 48 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn">2</button>
+        <button type="button" class="page-btn">3</button>
+        <button type="button" class="page-btn">4</button>
+        <button type="button" class="page-btn">5</button>
+        <button type="button" class="page-btn">6</button>
+        <button type="button" class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗 -->
+<script>
+function viewApplyDetail(btn) {
+  var row = btn.closest('tr');
+  var tds = row.querySelectorAll('td');
+  var modal = document.getElementById('viewApplyModal');
+  if (!modal) return;
+  modal.querySelector('#vaId').textContent = tds[0].textContent.trim();
+  modal.querySelector('#vaTitle').textContent = tds[1].textContent.trim();
+  modal.querySelector('#vaApplicant').textContent = tds[2].textContent.trim();
+  modal.querySelector('#vaGrid').textContent = tds[3].textContent.trim();
+  modal.querySelector('#vaTime').textContent = tds[4].textContent.trim();
+  modal.querySelector('#vaStatus').textContent = tds[5].textContent.trim();
+  modal.querySelector('#vaContent').textContent = '申请人「' + tds[2].textContent.trim() + '」就「' + tds[1].textContent.trim() + '」事项提交的线上申请，相关材料已上传，等待审核办理。';
+  openModal('viewApplyModal');
+}
+function openServiceReview(btn) {
+  window._svcRow = btn.closest('tr');
+  var sel = document.querySelector('#reviewModal .form-select');
+  if (sel) sel.selectedIndex = 0;
+  openModal('reviewModal');
+}
+function confirmServiceReview() {
+  var row = window._svcRow;
+  if (row) {
+    var sel = document.querySelector('#reviewModal .form-select');
+    var result = sel && sel.value ? sel.value : '通过';
+    var tds = row.querySelectorAll('td');
+    if (tds[5]) {
+      tds[5].innerHTML = result === '驳回'
+        ? '<span class="tag tag-red">已驳回</span>'
+        : '<span class="tag tag-blue">办理中</span>';
+    }
+    window._svcRow = null;
+  }
+  closeModal('reviewModal');
+  showToast('审核完成', 'success');
+}
+</script>
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>申请审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('reviewModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">审核结果</label>
+        <select class="form-select">
+          <option>通过</option>
+          <option>驳回</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">办理说明</label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入办理说明…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reviewModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmServiceReview()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 申请详情弹窗 -->
+<div class="modal-overlay" id="viewApplyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>申请详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewApplyModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">申请编号</span><span class="detail-value" id="vaId">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请事项</span><span class="detail-value" id="vaTitle">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请人</span><span class="detail-value" id="vaApplicant">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属网格</span><span class="detail-value" id="vaGrid">—</span></div>
+        <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value" id="vaTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">当前状态</span><span class="detail-value" id="vaStatus">—</span></div>
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">申请内容</label>
+        <div class="detail-box" id="vaContent" style="background:var(--color-neutral-50);padding:12px;border-radius:8px;font-size:14px;color:var(--color-neutral-600);line-height:1.7">—</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('viewApplyModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+/* ============================================
+   数字乡村 · 通用组件库 (Shared Components)
+   四端共用 — 基于统一 Design Tokens
+   v1.0  2026-08-05
+   ============================================ */
+
+/* ============================================
+   1. Button 按钮
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+  text-decoration: none;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--font-size-sm); border-radius: var(--radius-sm); }
+.btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--font-size-md); }
+
+/* Variants */
+.btn-primary {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+  border-color: var(--color-primary-500);
+}
+.btn-primary:hover { background: var(--color-primary-600); border-color: var(--color-primary-600); }
+.btn-primary:active { background: var(--color-primary-700); }
+
+.btn-secondary {
+  background: var(--color-neutral-0);
+  color: var(--color-neutral-700);
+  border-color: var(--color-neutral-300);
+}
+.btn-secondary:hover { background: var(--color-neutral-50); border-color: var(--color-neutral-400); }
+.btn-secondary:active { background: var(--color-neutral-100); }
+
+.btn-danger {
+  background: var(--color-error);
+  color: var(--color-neutral-0);
+  border-color: var(--color-error);
+}
+.btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+.btn-danger:active { background: #b91c1c; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-neutral-700);
+  border-color: transparent;
+}
+.btn-ghost:hover { background: var(--color-neutral-50); }
+
+.btn-text {
+  background: transparent;
+  color: var(--color-primary-500);
+  border: none;
+  padding: var(--space-1) var(--space-2);
+}
+.btn-text:hover { background: var(--color-primary-50); color: var(--color-primary-700); }
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-neutral-500);
+  border: none;
+}
+.btn-icon:hover { background: var(--color-neutral-100); color: var(--color-neutral-700); }
+
+
+/* ============================================
+   2. Form 表单
+   ============================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+}
+.form-label .required::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-neutral-400);
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+.form-input.error,
+.form-select.error,
+.form-textarea.error {
+  border-color: var(--color-error);
+}
+.form-input.error:focus,
+.form-select.error:focus,
+.form-textarea.error:focus {
+  box-shadow: 0 0 0 3px var(--color-error-light);
+}
+
+.form-error-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  margin-top: 2px;
+}
+
+.form-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  margin-top: 2px;
+}
+
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+
+/* ============================================
+   3. Table 表格
+   ============================================ */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.data-table thead {
+  background: var(--color-neutral-50);
+}
+.data-table th {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-500);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+.data-table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-700);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+.data-table tbody tr:hover {
+  background: var(--color-primary-50);
+}
+.data-table .col-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Table empty state row */
+.data-table .empty-row td {
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+  color: var(--color-neutral-400);
+}
+
+
+/* ============================================
+   4. Card 卡片
+   ============================================ */
+
+.card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-fast);
+}
+.card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+.card-header-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+}
+
+.card-body {
+  padding: var(--space-5);
+}
+
+.card-footer {
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-neutral-100);
+  background: var(--color-neutral-50);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* KPI Card variant — large number display */
+.kpi-card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+.kpi-card-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+  margin-bottom: var(--space-2);
+}
+.kpi-card-value {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-neutral-900);
+  font-variant-numeric: var(--font-variant-numeric);
+}
+.kpi-card-change {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--space-1);
+}
+.kpi-card-change.up   { color: var(--color-error); }    /* 中国股市习惯：涨红色 */
+.kpi-card-change.down { color: var(--color-success); }
+
+
+/* ============================================
+   5. Badge & Tag 标签/徽章
+   ============================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-0);
+  background: var(--color-error);
+  border-radius: var(--radius-full);
+  line-height: 1;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  line-height: var(--line-height-tight);
+}
+
+.tag-default  { color: var(--color-neutral-700); background: var(--color-neutral-100); }
+.tag-primary  { color: var(--color-primary-700);  background: var(--color-primary-50); }
+.tag-success  { color: var(--color-success-dark); background: var(--color-success-light); }
+.tag-warning  { color: var(--color-warning-dark); background: var(--color-warning-light); }
+.tag-error    { color: var(--color-error-dark); background: var(--color-error-light); }
+.tag-info     { color: var(--color-info-dark); background: var(--color-info-light); }
+
+
+/* ============================================
+   6. Toast 消息提示
+   ============================================ */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  min-width: 280px;
+  max-width: 420px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  animation: toastSlideIn 0.3s ease;
+}
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.toast-success { background: var(--color-success-light); color: var(--color-success-dark); border-left: 3px solid var(--color-success); }
+.toast-warning { background: var(--color-warning-light); color: var(--color-warning-dark); border-left: 3px solid var(--color-warning); }
+.toast-error   { background: var(--color-error-light);   color: var(--color-error-dark); border-left: 3px solid var(--color-error); }
+.toast-info    { background: var(--color-info-light);    color: var(--color-info-dark); border-left: 3px solid var(--color-info); }
+
+
+/* ============================================
+   7. Empty State 空态
+   ============================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+.empty-state-icon {
+  font-size: 48px;
+  color: var(--color-neutral-300);
+  margin-bottom: var(--space-4);
+}
+.empty-state-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-600);
+  margin-bottom: var(--space-2);
+}
+.empty-state-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-400);
+  max-width: 300px;
+  margin-bottom: var(--space-4);
+}
+
+
+/* ============================================
+   8. Pagination 分页
+   ============================================ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+}
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.pagination-btn:hover { border-color: var(--color-primary-500); color: var(--color-primary-500); }
+.pagination-btn.active {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+  border-color: var(--color-primary-500);
+}
+.pagination-btn:disabled {
+  color: var(--color-neutral-300);
+  cursor: not-allowed;
+}
+
+
+/* ============================================
+   9. Modal / Dialog 弹窗
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: var(--space-4);
+  overscroll-behavior: contain;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: scaleIn 0.2s ease;
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+.modal-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+}
+
+.modal-body {
+  padding: var(--space-5);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-neutral-100);
+}
+
+
+/* ============================================
+   10. Navigation 导航
+   ============================================ */
+
+/* Sidebar item (PC) */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--color-sidebar-hover); color: var(--color-neutral-0); }
+.nav-item.active { background: var(--color-sidebar-active); color: var(--color-primary-400); }
+
+.nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bottom tab bar (Mobile) */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 56px;
+  background: var(--color-neutral-0);
+  border-top: 1px solid var(--color-neutral-200);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+.tab-item.active { color: var(--color-primary-500); }
+.tab-item .tab-icon {
+  font-size: 22px;
+}
+
+
+/* ============================================
+   11. Search Bar 搜索栏
+   ============================================ */
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  flex-wrap: wrap;
+}
+.search-bar .form-input {
+  max-width: 240px;
+}
+
+
+/* ============================================
+   12. Loading Spinner 加载
+   ============================================ */
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-neutral-200);
+  border-top-color: var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  color: var(--color-neutral-400);
+  font-size: var(--font-size-sm);
+}
+
+
+/* ============================================
+   13. Divider 分割线
+   ============================================ */
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-neutral-100);
+  margin: var(--space-4) 0;
+}
+
+
+/* ============================================
+   14. Notice Bar 通知滚动条 (移动端)
+   ============================================ */
+
+.notice-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-warning-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-warning-dark);
+  overflow: hidden;
+}
+.notice-bar-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.notice-bar-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ============================================
+   15. Grid Icons 功能宫格 (移动端)
+   ============================================ */
+
+.grid-icons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  cursor: pointer;
+}
+.grid-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-0);
+  font-size: 22px;
+}
+.grid-icon.primary  { background: var(--color-primary-500); }
+.grid-icon.success  { background: var(--color-success); }
+.grid-icon.warning  { background: var(--color-warning); }
+.grid-icon.error    { background: var(--color-error); }
+.grid-icon.info     { background: var(--color-info); }
+.grid-icon.accent   { background: var(--color-accent-500); }
+.grid-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-700);
+  text-align: center;
+}
+
+
+/* ============================================
+   16. Reduced Motion 兜底（共享层）
+   尊重用户系统偏好，禁用动画/过渡
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .modal,
+  .modal-overlay,
+  .spinner,
+  .tab-item,
+  .btn,
+  .form-input,
+  .badge,
+  .empty-state,
+  .grid-item,
+  .notice-bar {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

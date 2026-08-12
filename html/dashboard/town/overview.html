@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>益农镇 · 乡镇全景大屏 | 数字乡村大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    /* 本页特有：乡镇行政区划 GIS 多边形 + 村庄状态列表 */
+    .town-zone {
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    .town-zone:hover { opacity: 0.85; }
+    .town-status-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      flex: 1;
+      overflow-y: auto;
+    }
+    .town-status-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 8px var(--space-3);
+      border-radius: var(--radius-md);
+      border-left: 3px solid transparent;
+      background: var(--color-primary-50);
+      transition: background var(--transition-fast);
+    }
+    .town-status-item:hover { background: var(--color-primary-100); }
+    .town-status-item.is-open { border-left-color: var(--color-success); }
+    .town-status-item.is-pending { border-left-color: var(--color-accent-500); }
+    .town-status-icon {
+      width: 28px; height: 28px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .is-open .town-status-icon { background: rgba(16,185,129,0.12); color: var(--color-success); }
+    .is-pending .town-status-icon { background: rgba(245,158,11,0.12); color: var(--color-accent-500); }
+    .town-status-icon iconify-icon { font-size: 16px; }
+    .town-status-name {
+      flex: 1;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-dashboard-title);
+    }
+    .town-status-meta {
+      font-size: var(--font-size-xs);
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    .town-status-tag {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+    }
+    .is-open .town-status-tag { background: var(--color-success-light); color: var(--color-success-dark); }
+    .is-pending .town-status-tag { background: var(--color-warning-light); color: var(--color-warning-dark); }
+  </style>
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码由 CSS 治理统一处理，本页先行覆盖关键蓝系伪元素/光晕/悬浮 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .tab-btn:hover { transform: none; }
+    .tab-btn.active { background: linear-gradient(180deg, var(--color-primary-50), var(--color-primary-100)); }
+    .tab-btn.active::after { background: var(--color-primary-500); box-shadow: none; }
+    .data-card:hover, .stat-mini:hover { transform: none; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .dash-header::before { display: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12); color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    ::-webkit-scrollbar-thumb { background: var(--color-neutral-300); }
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <div class="dash-logo"><iconify-icon icon="ri:community-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">益农镇 · 乡镇全景大屏</h1>
+          <span class="dash-subtitle">益农镇村情数据总览</span>
+        </div>
+        <div class="dash-header-center">
+          <a href="../index.html" class="dash-entry-btn" aria-label="返回总览">
+            <iconify-icon icon="ri:arrow-left-line"></iconify-icon>返回总览
+          </a>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月09日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Tab Bar (48px) ======== -->
+    <nav class="dash-tabbar" role="tablist" aria-label="数据面板切换">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="0"><iconify-icon icon="ri:community-line"></iconify-icon>乡镇全景</button>
+    </nav>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+
+      <div class="tab-content active" data-tab="0">
+        <!-- Hero + KPI -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>乡镇全景</h2>
+              <p>下辖村 8 个 · 总人口 1.2 万</p>
+              <span class="tab-hero-tag">益农镇 · 镇情数据</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:community-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">下辖村</span>
+                  <span><span class="kpi-item-value">8</span><span class="kpi-item-unit">个</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:group-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">总人口</span>
+                  <span><span class="kpi-item-value">1.2</span><span class="kpi-item-unit">万</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">年产值</span>
+                  <span><span class="kpi-item-value">8600</span><span class="kpi-item-unit">万</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:flag-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">党员</span>
+                  <span><span class="kpi-item-value">386</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-2-line"></iconify-icon>各村人口排行<span class="panel-title-extra">单位：人</span></div>
+              <div class="panel-body"><div id="chart-village-pop" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon>各村产值排行<span class="panel-title-extra">单位：万元</span></div>
+              <div class="panel-body"><div id="chart-village-gdp" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <!-- Center: Township Administrative Map + Village Status -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up" style="flex: 3;">
+              <div class="panel-title"><iconify-icon icon="ri:map-2-line"></iconify-icon>乡镇行政区划地图<span class="panel-title-extra">益农镇 · 8村</span></div>
+              <div class="panel-body" style="padding: 12px;">
+                <div class="village-gis">
+                  <svg aria-hidden="true" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                      <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(22,163,74,0.06)" stroke-width="1"/>
+                      </pattern>
+                      <linearGradient id="river-grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#dcfce7" stop-opacity="0.5"/>
+                        <stop offset="100%" stop-color="#bbf7d0" stop-opacity="0.3"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="600" height="400" fill="url(#grid-pattern)"/>
+
+                    <!-- River (镇内河流) -->
+                    <path d="M 0,200 Q 150,210 300,195 T 600,205" fill="none" stroke="url(#river-grad)" stroke-width="22" stroke-linecap="round" opacity="0.45"/>
+                    <path d="M 0,200 Q 150,210 300,195 T 600,205" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+
+                    <!-- 8 村行政区划多边形 (4x2 布局，轻微不规则) -->
+                    <!-- Row 1 -->
+                    <polygon class="town-zone" points="30,40 165,30 175,195 35,200" fill="rgba(22,163,74,0.18)" stroke="rgba(22,163,74,0.6)" stroke-width="1.5"/>
+                    <text x="100" y="110" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">幸福村</text>
+                    <text x="100" y="128" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">2010人</text>
+
+                    <polygon class="town-zone" points="165,30 320,35 330,195 175,195" fill="rgba(15,118,110,0.18)" stroke="rgba(15,118,110,0.6)" stroke-width="1.5"/>
+                    <text x="245" y="110" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">平安村</text>
+                    <text x="245" y="128" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1780人</text>
+
+                    <polygon class="town-zone" points="320,35 475,30 480,195 330,195" fill="rgba(245,158,11,0.18)" stroke="rgba(245,158,11,0.6)" stroke-width="1.5"/>
+                    <text x="400" y="110" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">丰收村</text>
+                    <text x="400" y="128" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1680人</text>
+
+                    <polygon class="town-zone" points="475,30 580,40 580,195 480,195" fill="rgba(239,68,68,0.18)" stroke="rgba(239,68,68,0.6)" stroke-width="1.5"/>
+                    <text x="525" y="110" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">金桔村</text>
+                    <text x="525" y="128" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1520人</text>
+
+                    <!-- Row 2 -->
+                    <polygon class="town-zone" points="35,200 175,195 165,370 40,365" fill="rgba(16,185,129,0.18)" stroke="rgba(16,185,129,0.6)" stroke-width="1.5"/>
+                    <text x="100" y="280" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">青山村</text>
+                    <text x="100" y="298" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1380人</text>
+
+                    <polygon class="town-zone" points="175,195 330,195 320,370 165,370" fill="rgba(217,119,6,0.18)" stroke="rgba(217,119,6,0.6)" stroke-width="1.5"/>
+                    <text x="245" y="280" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">桃花村</text>
+                    <text x="245" y="298" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1260人</text>
+
+                    <polygon class="town-zone" points="330,195 480,195 475,370 320,370" fill="rgba(249,115,22,0.18)" stroke="rgba(249,115,22,0.6)" stroke-width="1.5"/>
+                    <text x="400" y="280" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">朝阳村</text>
+                    <text x="400" y="298" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1180人</text>
+
+                    <polygon class="town-zone" points="480,195 580,195 580,365 475,370" fill="rgba(217,119,6,0.18)" stroke="rgba(217,119,6,0.6)" stroke-width="1.5"/>
+                    <text x="525" y="280" text-anchor="middle" fill="#14532d" font-size="14" font-weight="700">同心村</text>
+                    <text x="525" y="298" text-anchor="middle" fill="#57534e" font-size="11" font-weight="500">1190人</text>
+
+                    <!-- 镇政府 marker (中心) -->
+                    <circle cx="305" cy="195" r="7" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+                    <text x="305" y="180" text-anchor="middle" fill="#14532d" font-size="11" font-weight="700">镇政府</text>
+
+                    <!-- 道路 -->
+                    <line x1="0" y1="195" x2="600" y2="200" stroke="rgba(22,163,74,0.12)" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+                    <line x1="305" y1="30" x2="305" y2="370" stroke="rgba(22,163,74,0.12)" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+                  </svg>
+                  <div class="gis-legend">
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#f59e0b;"></span>镇政府</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#16a34a;"></span>行政村</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#4ade80;"></span>河流</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-card animate-dash-fade-up" style="flex: 2;">
+              <div class="panel-title"><iconify-icon icon="ri:shield-check-line"></iconify-icon>村庄数字乡村状态<span class="panel-title-extra">6 个村</span></div>
+              <div class="panel-body">
+                <div class="town-status-list">
+                  <div class="town-status-item is-open">
+                    <div class="town-status-icon"><iconify-icon icon="ri:checkbox-circle-fill"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">幸福村</div>
+                      <div class="town-status-meta">益农蜜桔村 · 2010人</div>
+                    </div>
+                    <span class="town-status-tag">已开通</span>
+                  </div>
+                  <div class="town-status-item is-open">
+                    <div class="town-status-icon"><iconify-icon icon="ri:checkbox-circle-fill"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">平安村</div>
+                      <div class="town-status-meta">1780人 · 6个网格</div>
+                    </div>
+                    <span class="town-status-tag">已开通</span>
+                  </div>
+                  <div class="town-status-item is-open">
+                    <div class="town-status-icon"><iconify-icon icon="ri:checkbox-circle-fill"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">丰收村</div>
+                      <div class="town-status-meta">1680人 · 农业主产</div>
+                    </div>
+                    <span class="town-status-tag">已开通</span>
+                  </div>
+                  <div class="town-status-item is-open">
+                    <div class="town-status-icon"><iconify-icon icon="ri:checkbox-circle-fill"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">金桔村</div>
+                      <div class="town-status-meta">1520人 · 金桔之乡</div>
+                    </div>
+                    <span class="town-status-tag">已开通</span>
+                  </div>
+                  <div class="town-status-item is-open">
+                    <div class="town-status-icon"><iconify-icon icon="ri:checkbox-circle-fill"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">青山村</div>
+                      <div class="town-status-meta">1380人 · 林业资源</div>
+                    </div>
+                    <span class="town-status-tag">已开通</span>
+                  </div>
+                  <div class="town-status-item is-pending">
+                    <div class="town-status-icon"><iconify-icon icon="ri:time-line"></iconify-icon></div>
+                    <div>
+                      <div class="town-status-name">桃花村</div>
+                      <div class="town-status-meta">1260人 · 待接入平台</div>
+                    </div>
+                    <span class="town-status-tag">待开通</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>产业分布<span class="panel-title-extra">8村产值占比</span></div>
+              <div class="panel-body"><div id="chart-industry-pie" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:community-line"></iconify-icon>乡镇指标</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:community-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8</span><span class="data-card-label">下辖村</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:group-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">1.2万</span><span class="data-card-label">总人口</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8600万</span><span class="data-card-label">年产值</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-red"><iconify-icon icon="ri:flag-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">386</span><span class="data-card-label">党员</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：乡级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 30s 自动轮播</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+  /* 本页 ECharts 初始化 — 乡镇全景 */
+  (function () {
+    'use strict';
+
+    var chartColors = ['#16a34a', '#0f766e', '#f59e0b', '#92400e', '#10b981', '#ef4444', '#22c55e', '#d97706'];
+
+    var baseTooltip = {
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      borderColor: 'rgba(22,163,74,0.2)',
+      borderWidth: 1,
+      textStyle: { color: '#14532d', fontSize: 13 },
+      extraCssText: 'box-shadow: 0 4px 12px rgba(22,163,74,0.15); border-radius: 8px;'
+    };
+    var baseLegend = { right: 10, top: 10, textStyle: { color: '#57534e', fontSize: 12 }, itemWidth: 12, itemHeight: 12, itemGap: 10 };
+    var baseAxisLabel = { color: '#78716c', fontSize: 12 };
+    var baseAxisLine = { lineStyle: { color: 'rgba(22,163,74,0.15)' } };
+    var baseSplitLine = { lineStyle: { color: 'rgba(22,163,74,0.06)' } };
+
+    var charts = {};
+    function initChart(id, option) {
+      var el = document.getElementById(id);
+      if (!el || typeof echarts === 'undefined') return null;
+      var chart = echarts.init(el);
+      chart.setOption(option);
+      charts[id] = chart;
+      return chart;
+    }
+
+    var villages = ['同心村', '朝阳村', '桃花村', '青山村', '金桔村', '丰收村', '平安村', '幸福村'];
+    var populations = [1190, 1180, 1260, 1380, 1520, 1680, 1780, 2010];
+    var gdps = [260, 350, 680, 1100, 1620, 1450, 1280, 1860];
+
+    // 1. 各村人口排行横向柱状图
+    initChart('chart-village-pop', {
+      color: [chartColors[0]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c}人' }),
+      grid: { left: 65, right: 50, top: 15, bottom: 25 },
+      xAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'category',
+        data: villages,
+        axisLabel: baseAxisLabel,
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '55%',
+        data: populations,
+        itemStyle: {
+          borderRadius: [0, 6, 6, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#bbf7d0' }, { offset: 1, color: '#16a34a' }
+          ])
+        },
+        label: { show: true, position: 'right', color: '#14532d', fontSize: 11, fontWeight: 600, formatter: '{c}人' }
+      }]
+    });
+
+    // 2. 各村产值排行横向柱状图
+    initChart('chart-village-gdp', {
+      color: [chartColors[2]],
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c}万元' }),
+      grid: { left: 65, right: 50, top: 15, bottom: 25 },
+      xAxis: {
+        type: 'value',
+        axisLabel: baseAxisLabel,
+        splitLine: baseSplitLine,
+        axisLine: { show: false },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'category',
+        data: ['同心村', '朝阳村', '桃花村', '青山村', '平安村', '丰收村', '金桔村', '幸福村'],
+        axisLabel: baseAxisLabel,
+        axisLine: baseAxisLine,
+        axisTick: { show: false }
+      },
+      series: [{
+        type: 'bar', barWidth: '55%',
+        data: [260, 350, 680, 1100, 1280, 1450, 1620, 1860],
+        itemStyle: {
+          borderRadius: [0, 6, 6, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#fcd34d' }, { offset: 1, color: '#f59e0b' }
+          ])
+        },
+        label: { show: true, position: 'right', color: '#14532d', fontSize: 11, fontWeight: 600, formatter: '{c}万' }
+      }]
+    });
+
+    // 3. 产业分布饼图（8 村产值占比）
+    initChart('chart-industry-pie', {
+      color: chartColors,
+      tooltip: Object.assign({}, baseTooltip, { trigger: 'item', formatter: '{b}: {c}万元 ({d}%)' }),
+      legend: Object.assign({}, baseLegend, { orient: 'vertical', right: 8, top: 'center', itemGap: 6, textStyle: { color: '#57534e', fontSize: 11 } }),
+      series: [{
+        type: 'pie',
+        radius: ['38%', '65%'],
+        center: ['32%', '50%'],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        emphasis: {
+          label: { show: true, fontSize: 13, fontWeight: 600, color: '#14532d' },
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(22,163,74,0.2)' }
+        },
+        data: [
+          { value: 1860, name: '幸福村' },
+          { value: 1620, name: '金桔村' },
+          { value: 1450, name: '丰收村' },
+          { value: 1280, name: '平安村' },
+          { value: 1100, name: '青山村' },
+          { value: 680, name: '桃花村' },
+          { value: 350, name: '朝阳村' },
+          { value: 260, name: '同心村' }
+        ]
+      }]
+    });
+
+    // 响应窗口缩放
+    window.addEventListener('resize', function () {
+      setTimeout(function () {
+        Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+      }, 100);
+    });
+    setTimeout(function () {
+      Object.keys(charts).forEach(function (id) { if (charts[id]) charts[id].resize(); });
+    }, 250);
+  })();
+  </script>
+</body>
+</html>

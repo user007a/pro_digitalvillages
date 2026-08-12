@@ -1,0 +1,533 @@
+/* ============================================
+   数字乡村 · 统一设计令牌 (Design Tokens) v3.0
+   四端共用 — 大屏 / 后台管理 / 村民端 / 村干部端
+   主色：生态自然绿 #16a34a 系（50–900 全阶）
+   辅助：土地暖棕（陶土 #b45309 / #d97706 系）
+   中性：去蓝调微暖灰（纸白 / 米白）
+
+   v3.1  2026-08-09  后台管理端切换南丰蜜桔模型管理系统风格：
+                      侧边栏墨绿 → 深海军蓝 #1b2a41，激活绿 #22a84a，
+                      后台页面底 #f0f2f5（其余端不受影响）
+   v3.0  2026-08-09  全面回归生态绿，废弃科技蓝方向
+                      （纠正 v2.0「全面替换农林绿→科技蓝」的错误注释）
+   v2.1  2026-08-09  统一主色为 #1D6FFF（本版本废弃）
+   v2.0  2026-08-06  全面替换农林绿→科技蓝（方向错误，本版本废弃）
+
+   设计系统定位：
+   - 基底 = Modern Minimal（现代极简）：无衬线、大量留白、单一强调色
+   - 情绪层 = Soft Warm（柔和温暖）：暖棕辅助、圆角柔和、亲和力强
+   - 大屏端 = Editorial 气质：大字号、清晰栅格、沉稳配色、远距可读
+   - 明确排除：科技蓝、霓虹光晕、赛博大屏、渐变堆砌
+
+   ⚠️ 本文件禁止再出现任何科技蓝系色值
+      （#1D6FFF / #0E223C / #1e3a5f / #2563eb / #1d4ed8 / #06b6d4 等）。
+      例外：后台内容页操作列行内按钮（.btn-op 查看/编辑/警告等）保留蓝/紫语义色，
+      系对标南丰蜜桔后台参考项目，仅限该场景，禁止扩散到其他组件。
+      仅保留一组「废弃兼容别名」--color-cyan-*，已重映射为翠绿，
+      供第二批尚未清理的 dashboard.css 引用临时兼容，禁止用于新代码。
+   ============================================ */
+
+/* ============================================
+   A. RAW COLOR TOKENS — 原始色值（四端共享）
+   ============================================ */
+
+:root {
+  /* ---- Primary（生态自然绿 #16a34a 系）----
+     基准主色 = --color-primary-500 (#16a34a)。
+     注：为使 500 档即主色（符合组件库「500=基准 / 600=hover / 700=active」
+     的使用约定），本表在 Tailwind 绿色阶基础上将 500/600 交换并补齐 900 深档。 */
+  --color-primary-50:  #f0fdf4;   /* 极浅绿 — 浅绿底 / 表格 hover 行 / 标签浅底 */
+  --color-primary-100: #dcfce7;   /* 浅绿 — 聚焦环 / 选中态填充 */
+  --color-primary-200: #bbf7d0;   /* 浅绿 — 数据卡片填充 / 轻边框 */
+  --color-primary-300: #4ade80;   /* 亮绿 — 图表辅助 / 进度亮端 / 装饰点缀 */
+  --color-primary-400: #22c55e;   /* 鲜绿 — 高亮数值 / 图标强调 */
+  --color-primary-500: #16a34a;   /* ← 基准主色：主按钮 / 主链接 / 图表主序列 / 侧边栏激活 */
+  --color-primary-600: #15803d;   /* 深一档 — 主按钮 hover / 导航激活底 */
+  --color-primary-700: #166534;   /* 深绿 — 主按钮 active / 强调文字 */
+  --color-primary-800: #14532d;   /* 墨绿 — 侧边栏实色底 / 大屏深绿带 / 页脚 */
+  --color-primary-900: #052e16;   /* 深墨绿 — 最深对比底 / 强调文字 */
+
+  /* ---- Accent（土地暖棕 — 陶土 #b45309 / #d97706 系）----
+     用于数据高亮、荣誉勋章、重点强调，呼应「土地 / 丰收」语义。 */
+  --color-accent-50:  #fffbeb;   /* 极浅暖黄 — 暖棕浅底 / 勋章浅底 */
+  --color-accent-100: #fef3c7;   /* 浅暖黄 — 高亮浅底 */
+  --color-accent-200: #fde68a;   /* 浅琥珀 — hover 边框 */
+  --color-accent-300: #fcd34d;   /* 琥珀 — 图表 / 高亮 */
+  --color-accent-400: #fbbf24;   /* 亮琥珀 — 勋章 / 强调图标 */
+  --color-accent-500: #f59e0b;   /* 基准琥珀 — 数据高亮 / 勋章 / 强调色 */
+  --color-accent-600: #d97706;   /* 陶土棕 — 强调 hover / 陶土主色 */
+  --color-accent-700: #b45309;   /* 深陶土 — 强调文字 / 深档 */
+  --color-accent-800: #92400e;   /* 深棕 — 强调文字（高对比） */
+  --color-accent-900: #78350f;   /* 最深棕 — 最深强调 / 页脚点缀 */
+
+  /* ---- DEPRECATED 兼容别名：cyan（禁止用于新代码）----
+     旧 dashboard.css 尚未清理的 --color-cyan-* 引用，临时映射为翠绿系，
+     使大屏在第二批清理前不出现青色/蓝色。第二批清理后本组整体删除。 */
+  --color-cyan-50:  #ecfdf5;
+  --color-cyan-100: #d1fae5;
+  --color-cyan-300: #6ee7b7;
+  --color-cyan-500: #10b981;   /* 翠绿（非青蓝） */
+  --color-cyan-700: #047857;
+
+  /* ---- DEPRECATED 兼容别名：旧 secondary-500（原指向 cyan）----
+     重映射到土地暖棕 accent-600，供旧组件（如 .grid-icon.accent）兼容。 */
+  --color-secondary-500: var(--color-accent-600);   /* #d97706 陶土棕 */
+
+  /* ---- Neutral（中性 — 去蓝调微暖灰，偏纸白/米白）---- */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #fafaf9;   /* 暖白 — 页面次级底 / 表格表头 */
+  --color-neutral-100: #f5f5f4;   /* 微暖灰 — 卡片底 / 分隔底 */
+  --color-neutral-200: #e7e5e4;   /* 浅暖灰 — 默认边框 */
+  --color-neutral-300: #d6d3d1;   /* 中暖灰 — 强边框 / 占位 */
+  --color-neutral-400: #a8a29e;   /* 中深暖灰 — 次要文字 / 禁用态 */
+  --color-neutral-500: #78716c;   /* 深暖灰 — 图标 / 说明文字 */
+  --color-neutral-600: #57534e;   /* 深暖灰 — 次级文字 */
+  --color-neutral-700: #44403c;   /* 暖深灰 — 标题 / 正文强 */
+  --color-neutral-800: #292524;   /* 近黑暖 — 深底 */
+  --color-neutral-900: #1c1917;   /* 暖黑 — 主文字 */
+
+  /* ---- Semantic（功能色 — 四端统一）----
+     注意：info 语义色不得为科技蓝，采用青绿（teal 绿），确保四色中无蓝。 */
+  --color-success:       #10b981;
+  --color-success-light: #ecfdf5;
+  --color-success-dark:  #047857;
+  --color-warning:       #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-warning-dark:  #92400e;
+  --color-error:         #ef4444;
+  --color-error-light:   #fef2f2;
+  --color-error-dark:    #b91c1c;
+  --color-info:          #0f766e;   /* 青绿 — 信息色（非蓝） */
+  --color-info-light:    #f0fdfa;
+  --color-info-dark:     #115e59;
+
+  /* ---- Sidebar（后台管理 — 南丰深海军蓝实色侧边栏）----
+     用户决策：参考南丰蜜桔模型管理系统，深海军蓝 #1b2a41 系（白字），
+     激活绿色 #22a84a（配合 rgba 绿底 + 左绿条）。 */
+  --color-sidebar-bg:        #1b2a41;                    /* 深海军蓝实色底 */
+  --color-sidebar-hover:     #243552;                    /* hover 提亮一档 */
+  --color-sidebar-active:    #22a84a;                    /* 激活绿色（左竖条/文字高亮） */
+  --color-sidebar-active-bg: rgba(34, 168, 74, 0.20);    /* 激活项背景（参考南丰 bg-primary/20） */
+  --color-sidebar-sub-bg:    #1c2a40;                    /* 子菜单底（略深于主底） */
+  --color-sidebar-text:      rgba(255, 255, 255, 0.80);  /* 侧边栏正文 */
+  --color-sidebar-text-active: #ffffff;                   /* 菜单文字 hover/激活态 */
+  --color-sidebar-icon:      rgba(255, 255, 255, 0.60);  /* 一级菜单图标 */
+  --color-sidebar-sub-icon:  rgba(110, 231, 183, 0.70);  /* 二级菜单图标（翠绿高亮） */
+  --color-sidebar-group-icon: rgba(255, 255, 255, 0.65); /* 分组标题图标 */
+  --sidebar-menu-font-size:  14px;                        /* 一级/二级/三级菜单统一字号 */
+  --color-sidebar-divider:   rgba(255, 255, 255, 0.10);
+
+  /* ---- Dashboard（大屏端 — 浅色田园底，默认）----
+     用户决策：浅色田园底（白/暖白底 + 绿点缀），排除深墨绿大屏底。
+     深绿仅用于 header 深绿带与面板标题等局部。 */
+  --color-dashboard-bg:      #f6faf4;                    /* 暖白微绿 — 大屏页面底 */
+  --color-dashboard-bg-end:  #eef6ea;                    /* 浅绿收尾 — 备用渐变端，默认不用 */
+  --color-dashboard-panel:   rgba(255, 255, 255, 0.92);  /* 面板半透明白 */
+  --color-dashboard-panel-solid: #ffffff;
+  --color-dashboard-title:   #14532d;                    /* 墨绿 — 大屏 header 深绿带 + 面板标题 */
+  --color-dashboard-subtitle:#667066;                    /* 暖灰绿 — 副标题 */
+  --color-dashboard-border:  rgba(22, 163, 74, 0.18);    /* 绿调边框（替代原蓝调） */
+  --color-dashboard-accent:  #16a34a;
+  --color-dashboard-grid-line: rgba(22, 163, 74, 0.08);  /* 绿调网格线/分隔线 */
+
+  /* ---- Chart Colors（图表色系 — 绿 + 暖棕 + 中性，9 色，无蓝）---- */
+  --color-chart-1: #16a34a;   /* 生态绿 — 主序列 */
+  --color-chart-2: #d97706;   /* 陶土棕 — 次序列 */
+  --color-chart-3: #f59e0b;   /* 琥珀金 — 第三序列 */
+  --color-chart-4: #10b981;   /* 翠绿 — 正向 */
+  --color-chart-5: #84cc16;   /* 草绿 — 对比 */
+  --color-chart-6: #0f766e;   /* 青绿 — 信息/补充 */
+  --color-chart-7: #92400e;   /* 深棕 — 深色强调 */
+  --color-chart-8: #a8a29e;   /* 暖灰 — 辅助/基准线 */
+  --color-chart-9: #ef4444;   /* 警戒红 — 负向/警戒，默认图表不使用 */
+  /* 已删除 --color-chart-gradient-*（135deg 渐变属「科技感堆砌」，见 §3.2 去AI味标准） */
+
+
+  /* ============================================
+     B. TYPOGRAPHY — 排版系统
+     字体栈改用系统字体（移除 Google Fonts 依赖）
+     ============================================ */
+
+  --font-family:          -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-family-mono:     "SF Mono", "JetBrains Mono", "Consolas", "Courier New", monospace;
+  --font-family-numeric:  "DIN Alternate", "DIN", "SF Pro Display", system-ui, sans-serif;
+  --font-variant-numeric: tabular-nums;
+
+  /* Font Size Scale（基准 14px — 后台/干部标准）*/
+  --font-size-xs:    12px;
+  --font-size-sm:    13px;
+  --font-size-base:  14px;
+  --font-size-md:    16px;
+  --font-size-lg:    18px;
+  --font-size-xl:    20px;
+  --font-size-2xl:   24px;
+  --font-size-3xl:   28px;
+  --font-size-hero:  36px;
+
+  /* Line Height */
+  --line-height-tight:   1.25;
+  --line-height-normal:  1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Font Weight */
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+
+  /* ============================================
+     C. SPACING — 间距系统（4px 基准网格）
+     ============================================ */
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+
+  /* ============================================
+     D. BORDER RADIUS — 圆角系统
+     ============================================ */
+
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+
+  /* ============================================
+     E. SHADOWS — 阴影系统
+     阴影底色改用暖黑（stone），去蓝色光晕；
+     生态绿光晕仅限少量强调场景，默认组件不使用。
+     ============================================ */
+
+  --shadow-xs:  0 1px 2px  rgba(28, 25, 23, 0.05);
+  --shadow-sm:  0 1px 3px  rgba(28, 25, 23, 0.07), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-md:  0 4px 12px rgba(28, 25, 23, 0.09);
+  --shadow-lg:  0 8px 24px rgba(28, 25, 23, 0.12);
+  --shadow-xl:  0 12px 40px rgba(28, 25, 23, 0.16);
+
+  /* 生态绿光晕（替代已删除的 --shadow-blue-*）— 仅大屏强调卡片/村民端主卡片等少量场景 */
+  --shadow-green-sm: 0 2px 8px  rgba(22, 163, 74, 0.10);
+  --shadow-green-md: 0 4px 16px rgba(22, 163, 74, 0.14);
+  --shadow-green-lg: 0 8px 32px rgba(22, 163, 74, 0.18);
+
+
+  /* ============================================
+     F. TRANSITIONS — 过渡动画
+     ease-bounce 已软化为「极轻微弹性」，仅村民端少量使用；
+     已移除 bounceIn 强弹跳关键帧。
+     ============================================ */
+
+  --transition-fast:    0.15s ease;
+  --transition-base:    0.25s ease;
+  --transition-slow:    0.35s ease;
+  --ease-out:           cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-in-out:        cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-bounce:        cubic-bezier(0.33, 1.2, 0.64, 1);   /* 极轻微弹性 */
+
+
+  /* ============================================
+     G. Z-INDEX — 层级系统
+     ============================================ */
+
+  --z-base:       0;
+  --z-dropdown:   100;
+  --z-sticky:     200;
+  --z-overlay:    500;
+  --z-modal:      9000;
+  --z-toast:      10000;
+
+
+  /* ============================================
+     H. LAYOUT CONSTANTS — 布局常量
+     ============================================ */
+
+  --sidebar-width:           240px;
+  --sidebar-collapsed-width: 64px;
+  --topbar-height:           48px;
+  --header-height-dashboard: 72px;
+  --dashboard-width:         1920px;
+  --dashboard-height:        1080px;
+  --mobile-width:            375px;
+  --tabbar-height:           56px;
+  --content-max-width:       1200px;
+
+
+  /* ============================================
+     I. SEMANTIC TOKENS — 语义令牌（默认=后台/干部）
+     组件应优先使用语义令牌，而非原始色值
+     ============================================ */
+
+  --bg-page:       var(--color-neutral-0);
+  --bg-surface:    var(--color-neutral-0);
+  --bg-elevated:   var(--color-neutral-0);
+  --bg-subtle:     var(--color-neutral-50);
+
+  --text-primary:   var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary:  var(--color-neutral-400);
+  --text-inverse:   var(--color-neutral-0);
+
+  --border-default: var(--color-neutral-200);
+  --border-strong:  var(--color-neutral-300);
+  --border-focus:   var(--color-primary-500);
+
+  --ring-focus: 0 0 0 3px var(--color-primary-100);
+}
+
+
+/* ============================================
+   J. PER-END OVERRIDES — 各端差异化令牌
+   页面 <body data-end="xxx"> 激活
+   ============================================ */
+
+/* ---- 大屏端：浅色田园风（用户决策：浅底 + 绿点缀，排除深墨绿大屏底）---- */
+[data-end="dashboard"] {
+  /* 背景：暖白微绿实底（去除 135deg 渐变主背景） */
+  --bg-page:     var(--color-dashboard-bg);
+  --bg-surface:  var(--color-dashboard-panel);
+  --bg-elevated: var(--color-dashboard-panel-solid);
+  --bg-subtle:   rgba(255, 255, 255, 0.65);
+
+  /* 文字：墨绿标题 */
+  --text-primary:   var(--color-dashboard-title);
+  --text-secondary: var(--color-dashboard-subtitle);
+  --text-tertiary:  var(--color-neutral-400);
+
+  /* 边框：绿调微透 */
+  --border-default: var(--color-dashboard-border);
+  --border-strong:  rgba(22, 163, 74, 0.30);
+
+  /* 字号放大 1.15x（远距可读） */
+  --font-size-base:  16px;
+  --font-size-md:    18px;
+  --font-size-lg:    20px;
+  --font-size-xl:    22px;
+  --font-size-2xl:   28px;
+  --font-size-3xl:   32px;
+  --font-size-hero:  42px;
+
+  /* 圆角：12px 面板 */
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* 阴影：中等 + 生态绿光晕（替代原蓝色光晕） */
+  --shadow-sm: var(--shadow-green-sm);
+  --shadow-md: var(--shadow-green-md);
+  --shadow-lg: var(--shadow-green-lg);
+
+  /* 过渡：数据入场（无弹跳） */
+  --transition-base: 0.35s var(--ease-out);
+  --transition-slow: 0.5s var(--ease-out);
+}
+
+/* ---- 后台管理端：南丰风格（浅灰 #f0f2f5 底，专业紧凑，绿色点缀）---- */
+[data-end="backend"] {
+  /* 背景：浅灰蓝（参考南丰后台 body-bg #F0F2F5） */
+  --bg-page:     #f0f2f5;
+  --bg-surface:  var(--color-neutral-0);
+  --bg-elevated: var(--color-neutral-0);
+  --bg-subtle:   var(--color-neutral-50);
+
+  /* 字号：标准 14px（使用 :root 默认值，无需覆盖）*/
+
+  /* 圆角：8px 紧凑专业 */
+  --radius-md: 8px;
+  --radius-lg: 8px;
+
+  /* 阴影：轻微 */
+  /* 使用 :root 默认值 */
+
+  /* 过渡：极简 */
+  --transition-base: 0.15s ease;
+  --transition-slow: 0.25s ease;
+}
+
+/* ---- 村干部端：高效工作风（浅色清爽底）----
+   注：cadre.css 的 body 硬编码 #F8FAFC（偏蓝灰）为第二批清理项，
+   本令牌先就位，供第二批替换。 */
+[data-end="cadre"] {
+  --bg-page:     #f6f7f4;   /* 暖白微绿 */
+  --bg-surface:  var(--color-neutral-0);
+  --bg-elevated: var(--color-neutral-0);
+  --bg-subtle:   var(--color-neutral-50);
+
+  /* 字号：标准 14px（使用 :root 默认值）*/
+
+  /* 圆角：12px */
+  --radius-md: 12px;
+  --radius-lg: 12px;
+
+  /* 阴影：轻微 */
+  /* 使用 :root 默认值 */
+
+  /* 过渡：简洁 */
+  --transition-base: 0.2s ease;
+}
+
+/* ---- 村民端：亲和便民风（暖白 + 浅绿底，大字号、亲和圆角）---- */
+[data-end="citizen"] {
+  --bg-page:     #faf9f5;   /* 暖白 */
+  --bg-surface:  var(--color-neutral-0);
+  --bg-elevated: var(--color-neutral-0);
+  --bg-subtle:   var(--color-primary-50);   /* 浅绿底 */
+
+  /* 字号：偏大 15px 基准（中老年可读） */
+  --font-size-xs:   12px;
+  --font-size-sm:   13px;
+  --font-size-base: 15px;
+  --font-size-md:   17px;
+  --font-size-lg:   19px;
+  --font-size-xl:   22px;
+  --font-size-2xl:  26px;
+  --font-size-3xl:  30px;
+
+  /* 圆角：12-24px 亲和圆润 */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* 阴影：中等 + 生态绿光晕（替代原蓝色光晕） */
+  --shadow-sm: var(--shadow-green-sm);
+  --shadow-md: var(--shadow-green-md);
+
+  /* 过渡：轻微弹性（已软化，无强弹跳） */
+  --transition-base: 0.25s var(--ease-out);
+  --transition-slow: 0.4s var(--ease-bounce);
+}
+
+
+/* ============================================
+   K. ANIMATION KEYFRAMES — 动画关键帧
+   仅保留必要入场（fadeIn 级）；已删除 bounceIn 强弹跳与数字滚动等炫技。
+   ============================================ */
+
+/* 大屏端数据入场 */
+@keyframes dashFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dashScaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes dashSlideRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 通用动画 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* 动画工具类 */
+.animate-dash-fade-up   { animation: dashFadeUp 0.4s var(--ease-out) both; }
+.animate-dash-scale-in   { animation: dashScaleIn 0.35s var(--ease-out) both; }
+.animate-dash-slide-right { animation: dashSlideRight 0.4s var(--ease-out) both; }
+.animate-fade-in          { animation: fadeIn 0.2s ease both; }
+.animate-scale-in         { animation: scaleIn 0.2s ease both; }
+/* 兼容旧类名：原 bounceIn 强弹跳已移除，改为柔和 scaleIn 入场 */
+.animate-bounce-in        { animation: scaleIn 0.3s var(--ease-out) both; }
+
+
+/* ============================================
+   M. REDUCED MOTION — 无障碍动画兜底
+   尊重用户系统偏好，禁用非必要动画/过渡
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ============================================
+   L. RESET — 四端通用重置
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 数字等宽工具类 — 用于表格数字列、KPI 数值 */
+.nums { font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Focus visible — 生态绿聚焦环（原为蓝色） */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Scrollbar — 薄而低调（暖灰） */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+/* Selection — 生态绿选中（原为蓝色） */
+::selection {
+  background: var(--color-primary-100);
+  color: var(--color-primary-900);
+}

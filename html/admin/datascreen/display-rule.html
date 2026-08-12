@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>展示规则 - 数据大屏管理</title>
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="../css/admin.css">
+  
+  <style>
+    body { background: var(--color-neutral-100); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    /* 页头（对齐南丰参数配置页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      padding: 20px 24px;
+      background: #fff;
+      border-bottom: 1px solid #eef0f3;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .page-header .page-header-actions { display: flex; align-items: center; gap: 8px; }
+    /* 卡片标题（对齐南丰：14px/600） */
+    .page-card .card-title { font-size: 14px; font-weight: 600; color: #1f2937; }
+    .page-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .rule-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--color-neutral-100); }
+    .rule-row:last-child { border-bottom: none; }
+    .switch { position: relative; width: 40px; height: 22px; background: var(--color-neutral-300); border-radius: 11px; cursor: pointer; transition: background 0.2s; }
+    .switch.on { background: var(--color-primary-500); }
+    .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .switch.on::after { transform: translateX(18px); }
+    .color-swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+    .color-swatch.active { border-color: var(--color-neutral-800); }
+  
+    .flex{display:flex;}
+.flex-1{flex:1 1 0%;}
+.grid{display:grid;}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.items-center{align-items:center;}
+.justify-between{justify-content:space-between;}
+.block{display:block;}
+.relative{position:relative;}
+.overflow-hidden{overflow:hidden;}
+.cursor-pointer{cursor:pointer;}
+.m-0{margin:0;}
+.p-0{padding:0;}
+.uppercase{text-transform:uppercase;}
+.transition-colors{transition:color .15s, background-color .15s, border-color .15s;}
+.text-left{text-align:left;}
+.text-right{text-align:right;}
+.m-0{margin:0;}
+.mb-2{margin-bottom:8px;}
+.mb-3{margin-bottom:12px;}
+.mb-5{margin-bottom:20px;}
+.mr-2{margin-right:8px;}
+.mt-0\.5{margin-top:2.0px;}
+.mt-1{margin-top:4px;}
+.mt-2{margin-top:8px;}
+.p-0{padding:0;}
+.p-3{padding:12px;}
+.p-4{padding:16px;}
+.p-5{padding:20px;}
+.p-6{padding:24px;}
+.pl-8{padding-left:32px;}
+.pr-3{padding-right:12px;}
+.px-3{padding-left:12px;padding-right:12px;}
+.px-4{padding-left:16px;padding-right:16px;}
+.px-5{padding-left:20px;padding-right:20px;}
+.px-6{padding-left:24px;padding-right:24px;}
+.py-1{padding-top:4px;padding-bottom:4px;}
+.py-1\.5{padding-top:6.0px;padding-bottom:6.0px;}
+.py-2{padding-top:8px;padding-bottom:8px;}
+.py-3{padding-top:12px;padding-bottom:12px;}
+.py-3\.5{padding-top:14.0px;padding-bottom:14.0px;}
+.py-4{padding-top:16px;padding-bottom:16px;}
+.gap-1{gap:4px;}
+.gap-1\.5{gap:6px;}
+.gap-2{gap:8px;}
+.gap-3{gap:12px;}
+.gap-4{gap:16px;}
+.space-y-2 > * + * {margin-top:8px;}
+.space-y-4 > * + * {margin-top:16px;}
+.bg-primary{background:var(--color-primary-500);}
+.border-primary{border-color:var(--color-primary-500);}
+.bg-gray-50{background:var(--color-neutral-50);}
+.bg-gray-100{background:var(--color-neutral-100);}
+.bg-white{background:#fff;}
+.text-white{color:#fff;}
+.text-gray-400{color:var(--color-neutral-400);}
+.text-gray-500{color:var(--color-neutral-500);}
+.text-gray-600{color:var(--color-neutral-600);}
+.text-gray-700{color:var(--color-neutral-700);}
+.text-gray-800{color:var(--color-neutral-800);}
+.text-red-500{color:var(--color-error);}
+.text-green-600{color:var(--color-success-dark);}
+.text-yellow-600{color:var(--color-accent-700);}
+.border-gray-100{border-color:var(--color-neutral-100);}
+.border-gray-200{border-color:var(--color-neutral-200);}
+.border-gray-300{border-color:var(--color-neutral-300);}
+.divide-gray-100{border-color:var(--color-neutral-100);}
+.border{border-width:1px;border-style:solid;}
+.border-2{border-width:2px;border-style:solid;}
+.border-b{border-bottom-width:1px;border-bottom-style:solid;}
+.border-t{border-top-width:1px;border-top-style:solid;}
+.rounded{border-radius:4px;}
+.rounded-lg{border-radius:8px;}
+.font-bold{font-weight:700;}
+.font-semibold{font-weight:600;}
+.font-medium{font-weight:500;}
+.text-xs{font-size:12px;}
+.text-sm{font-size:14px;}
+.text-base{font-size:16px;}
+.text-lg{font-size:18px;}
+.w-full{width:100%;}
+.w-56{width:224px;}
+.divide-y > * + * { border-top-width: 1px; border-top-style: solid; border-top-color: var(--color-neutral-100); }
+.focus\:ring-primary:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:ring-2:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:border-transparent:focus{border-color:transparent;}
+.hover\:bg-primary-hover:hover{background:var(--color-primary-600);}
+.hover\:bg-gray-200:hover{background:var(--color-neutral-200);}
+.hover\:bg-gray-50:hover{background:var(--color-neutral-50);}
+.hover\:border-gray-300:hover{border-color:var(--color-neutral-300);}
+.hover\:text-primary:hover{color:var(--color-primary-600);}
+.hover\:text-red-500:hover{color:var(--color-error);}
+  </style>
+</head>
+<body class="m-0 p-0" data-no-pg-toolbar data-end="backend" data-page-title="展示规则" data-page-subtitle="数据大屏管理">
+
+  <!-- 页面头部 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>展示规则</h2>
+      <p>配置大屏自动轮播、数据刷新、色彩主题等展示规则</p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn btn-primary" onclick="openModal('saveRuleModal')"><iconify-icon icon="ri:save-line"></iconify-icon> 保存规则</button>
+    </div>
+  </div>
+
+  <!-- 内容区域 -->
+  <div class="p-6 space-y-4">
+
+    <!-- 轮播配置 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="card-title flex items-center gap-2">
+          <iconify-icon icon="ri:slideshow-line" style="color: var(--color-primary-600);"></iconify-icon>
+          轮播配置
+        </h2>
+      </div>
+      <div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">自动轮播</div>
+            <div class="text-xs text-gray-500 mt-1">大屏自动切换页面</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">轮播间隔</div>
+            <div class="text-xs text-gray-500 mt-1">每个页面停留时间</div>
+          </div>
+          <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <option>30秒（推荐）</option>
+            <option>15秒</option>
+            <option>60秒</option>
+            <option>不自动轮播</option>
+          </select>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">切换动画</div>
+            <div class="text-xs text-gray-500 mt-1">页面切换时的过渡效果</div>
+          </div>
+          <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <option>淡入淡出（推荐）</option>
+            <option>左滑</option>
+            <option>无动画</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据刷新配置 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="card-title flex items-center gap-2">
+          <iconify-icon icon="ri:refresh-line" style="color: var(--color-primary-600);"></iconify-icon>
+          数据刷新
+        </h2>
+      </div>
+      <div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">自动刷新</div>
+            <div class="text-xs text-gray-500 mt-1">定时刷新图表数据</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">刷新频率</div>
+            <div class="text-xs text-gray-500 mt-1">数据自动刷新间隔</div>
+          </div>
+          <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary">
+            <option>60秒（推荐）</option>
+            <option>30秒</option>
+            <option>5分钟</option>
+            <option>不自动刷新</option>
+          </select>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">指标数据入场动效</div>
+            <div class="text-xs text-gray-500 mt-1">指标数值淡入显示</div>
+          </div>
+          <div class="switch" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">数据更新提示</div>
+            <div class="text-xs text-gray-500 mt-1">数据更新时显示提示标识</div>
+          </div>
+          <div class="switch" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 色彩主题 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="card-title flex items-center gap-2">
+          <iconify-icon icon="ri:palette-line" style="color: var(--color-primary-600);"></iconify-icon>
+          色彩主题
+        </h2>
+      </div>
+      <div class="p-5">
+        <div class="text-sm font-medium text-gray-700 mb-3">主色调</div>
+        <div class="flex items-center gap-3 mb-5">
+          <div class="color-swatch active" style="background: #16a34a;" title="生态绿"></div>
+          <div class="color-swatch" style="background: #4ade80;" title="浅绿"></div>
+          <div class="color-swatch" style="background: #f59e0b;" title="琥珀"></div>
+          <div class="color-swatch" style="background: #d97706;" title="陶土"></div>
+          <div class="color-swatch" style="background: #14532d;" title="墨绿"></div>
+        </div>
+
+        <div class="text-sm font-medium text-gray-700 mb-3">图表配色方案</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="border-2 border-primary rounded-lg p-3 cursor-pointer">
+            <div class="flex items-center gap-1 mb-2">
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #16a34a;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #d97706;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #f59e0b;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #10b981;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #84cc16;"></div>
+            </div>
+            <div class="text-xs text-gray-600">生态绿（当前）</div>
+          </div>
+          <div class="border-2 border-gray-200 rounded-lg p-3 cursor-pointer hover:border-gray-300">
+            <div class="flex items-center gap-1 mb-2">
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #16a34a;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #10b981;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #d97706;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #f59e0b;"></div>
+              <div style="width: 16px; height: 16px; border-radius: 3px; background: #84cc16;"></div>
+            </div>
+            <div class="text-xs text-gray-600">田园丰收</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 显示选项 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="card-title flex items-center gap-2">
+          <iconify-icon icon="ri:settings-3-line" style="color: var(--color-primary-600);"></iconify-icon>
+          显示选项
+        </h2>
+      </div>
+      <div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">全屏模式</div>
+            <div class="text-xs text-gray-500 mt-1">大屏默认全屏显示</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">显示时间</div>
+            <div class="text-xs text-gray-500 mt-1">顶部显示实时时间和日期</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">显示天气</div>
+            <div class="text-xs text-gray-500 mt-1">顶部显示当地天气信息</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">分辨率自适应</div>
+            <div class="text-xs text-gray-500 mt-1">自动适配不同屏幕分辨率</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="rule-row">
+          <div>
+            <div class="text-sm font-medium text-gray-800">设备预警推送</div>
+            <div class="text-xs text-gray-500 mt-1">实时推送设备监控预警到大屏</div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 保存规则弹窗 -->
+  <div class="modal-overlay" id="saveRuleModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>保存规则</h3>
+        <button type="button" class="modal-close" onclick="closeModal('saveRuleModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">保存后将按所选方式生效于监测大屏展示规则。</p>
+        <form id="saveRuleForm" onsubmit="return false">
+          <div class="form-group">
+            <label>规则名称 <span style="color:#dc2626">*</span></label>
+            <input type="text" class="form-input" value="大屏展示规则" placeholder="请输入规则名称…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>生效范围 <span style="color:#dc2626">*</span></label>
+            <select class="form-select">
+              <option selected>全部页面</option>
+              <option>仅当前页面</option>
+              <option>指定页面（村情总览/产业兴旺）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>生效方式 <span style="color:#dc2626">*</span></label>
+            <select class="form-select">
+              <option selected>保存后立即生效</option>
+              <option>定时发布</option>
+              <option>仅保存不发布</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>规则备注</label>
+            <textarea class="form-textarea" rows="3" placeholder="选填，记录本次规则说明…" autocomplete="off"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('saveRuleModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('saveRuleModal');showToast('展示规则已保存','success')">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    function showToast(msg, type) {
+      if (window.parent && window.parent !== window && window.parent.showToast) {
+        window.parent.showToast(msg, type || 'info');
+      } else {
+        alert(msg);
+      }
+    }
+  </script>
+</body>
+</html>

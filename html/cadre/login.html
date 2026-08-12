@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡村振兴数字平台 · 登陆</title>
+  <script src="../shared/js/icons-local.js"></script>
+  <script src="../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="css/cadre.css">
+  <style>
+    /* 登录页样式：参照村民移动端登录页（villager/login.html）风格与布局 */
+    .login-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 32px;
+      background: var(--bg-page);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-page .login-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 36px;
+      color: #fff;
+      box-shadow: var(--shadow-primary);
+      position: relative;
+      z-index: 1;
+    }
+    .login-page .login-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .login-page .login-sub {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    .login-page .login-demo {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      background: var(--color-neutral-50, #f8fafc);
+      border: 1px dashed var(--color-neutral-200, #e5e7eb);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      width: 100%;
+      text-align: center;
+      line-height: 1.7;
+      cursor: pointer;
+    }
+    .login-page .login-demo b { color: var(--color-primary-600); }
+    .login-page .login-input-wrap {
+      width: 100%;
+      position: relative;
+      margin-bottom: 14px;
+    }
+    .login-page .login-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px 0 42px;
+      border: 1px solid var(--color-neutral-200, #e5e7eb);
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+    .login-page .login-input:focus {
+      border-color: var(--color-primary-500);
+      box-shadow: 0 0 0 3px var(--color-primary-50, #f0fdf4);
+    }
+    .login-page .login-input-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #9ca3af;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .login-page .login-pass-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #9ca3af;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .login-page .login-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .login-page .login-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .login-page .login-row input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--color-primary-600);
+      cursor: pointer;
+    }
+    .login-page .login-row a {
+      color: var(--color-primary-600);
+      text-decoration: none;
+    }
+    .login-page .login-btn {
+      width: 100%;
+      height: 44px;
+      line-height: 44px;
+      text-align: center;
+      background: var(--color-primary-500);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-primary);
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .login-page .login-btn:active {
+      box-shadow: var(--shadow-green-sm);
+      transform: translateY(1px);
+    }
+    .login-page .login-other {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-top: 4px;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+    .login-page .login-agreement {
+      margin-top: 36px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+    .login-page .login-agreement a {
+      color: var(--color-primary-600);
+      text-decoration: none;
+    }
+    /* 忘记密码弹窗：补齐 cadre.css 未覆盖的显隐规则（参照村民端 villager.css） */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 375px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: modalOverlayIn 0.25s ease;
+    }
+    @keyframes modalOverlayIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      width: 280px;
+      background: #FFFFFF;
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      animation: modalBoxIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalBoxIn {
+      0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-box .modal-title {
+      padding: 24px 16px 8px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1F2937;
+    }
+    .modal-box .modal-body {
+      padding: 8px 16px 24px;
+      text-align: center;
+      font-size: 14px;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+    .modal-box .modal-footer {
+      display: flex;
+      border-top: 1px solid #F3F4F6;
+    }
+    .modal-box .modal-footer .modal-btn {
+      flex: 1;
+      height: 48px;
+      line-height: 48px;
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .modal-box .modal-footer .modal-btn:hover { background: var(--color-neutral-50); }
+    .modal-box .modal-footer .modal-confirm { color: var(--color-primary-600); font-weight: 500; }
+  </style>
+</head>
+<body data-end="cadre">
+  <div class="phone-container">
+    <main class="login-page" aria-label="村干部登录">
+      <header style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <div class="login-logo">
+          <iconify-icon icon="ri:user-star-line" style="font-size:38px"></iconify-icon>
+        </div>
+        <h1 class="login-title">村干部工作台</h1>
+        <p class="login-sub">乡村振兴 · 幸福村移动治理</p>
+      </header>
+
+      <div class="login-demo" onclick="fillDemo()" role="button" tabindex="0" aria-label="一键填入演示账号">
+        演示账号：<b>cadre@xingfu</b>　密码：<b>123456</b><br><span style="color:#9ca3af">点击自动填入</span>
+      </div>
+
+      <div class="login-input-wrap">
+        <span class="login-input-icon"><iconify-icon icon="ri:user-line"></iconify-icon></span>
+        <input class="login-input" id="loginUser" type="text" placeholder="请输入用户名" autocomplete="username" aria-label="用户名">
+      </div>
+      <div class="login-input-wrap">
+        <span class="login-input-icon"><iconify-icon icon="ri:lock-password-line"></iconify-icon></span>
+        <input class="login-input" id="loginPass" type="password" placeholder="请输入密码" autocomplete="current-password" aria-label="密码">
+        <button type="button" class="login-pass-toggle" onclick="togglePass()" aria-label="显示或隐藏密码">
+          <iconify-icon id="passEye" icon="ri:eye-line"></iconify-icon>
+        </button>
+      </div>
+
+      <div class="login-row">
+        <label><input type="checkbox" id="rememberUser" checked> 记住账号</label>
+        <a role="link" href="javascript:void(0)" onclick="openForgotModal()" style="cursor:pointer">忘记密码？</a>
+      </div>
+
+      <button class="login-btn" onclick="handleLogin()">登 录</button>
+
+      <div class="login-other" style="cursor:pointer;" onclick="window.location.href='../villager/login.html'">切换至村民端登录</div>
+
+      <div class="login-agreement">
+        登录即表示同意<a role="link" href="javascript:void(0)">《用户服务协议》</a>和<a role="link" href="javascript:void(0)">《隐私政策》</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- 忘记密码指引弹窗 -->
+  <div class="modal-overlay" id="forgotModal" aria-hidden="true">
+    <div class="modal-box" style="width:300px" role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
+      <div class="modal-title" id="forgotTitle">忘记密码</div>
+      <div class="modal-body" style="text-align:left;padding:8px 16px 20px;font-size:13px;color:#4b5563;line-height:1.7;">
+        <p style="margin:0 0 12px;text-align:center;color:#6b7280;">如忘记登录密码，请按以下步骤找回：</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
+          <span style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">1</span>
+          <span>联系系统管理员，说明您的账号及身份信息；</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
+          <span style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">2</span>
+          <span>管理员核实身份后，将密码重置为初始密码 <b style="color:#15803d;">123456</b>；</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start;">
+          <span style="width:20px;height:20px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">3</span>
+          <span>登录后请及时修改个人密码，妥善保管账号安全。</span>
+        </div>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;font-size:12px;color:#374151;line-height:1.7;text-align:center;">
+          系统管理员：<b style="color:#15803d;">王管理员</b><br>联系电话：<b style="color:#15803d;">138 0000 0000</b>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-btn modal-confirm" onclick="closeForgotModal()">我知道了</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 演示账号（与平台概览页角色配置一致）
+    var DEMO_ACCOUNT = 'cadre@xingfu';
+    var DEMO_PASSWORD = '123456';
+
+    function qs(name) {
+      var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+      return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    function fillDemo() {
+      document.getElementById('loginUser').value = DEMO_ACCOUNT;
+      document.getElementById('loginPass').value = DEMO_PASSWORD;
+      showToast('已填入演示账号');
+    }
+
+    function togglePass() {
+      var input = document.getElementById('loginPass');
+      var eye = document.getElementById('passEye');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.setAttribute('icon', 'ri:eye-off-line');
+      } else {
+        input.type = 'password';
+        eye.setAttribute('icon', 'ri:eye-line');
+      }
+    }
+
+    function saveCadreSession(account) {
+      try {
+        var payload = {
+          account: account,
+          role: 'cadre',
+          roleName: '村干部',
+          tier: 'cadre',
+          end: 'mini',
+          org: '幸福村'
+        };
+        localStorage.setItem('drt_session', JSON.stringify(payload));
+        localStorage.setItem('drt_account', account);
+        localStorage.setItem('drt_role', 'cadre');
+      } catch (e) {}
+    }
+
+    function handleLogin() {
+      var user = document.getElementById('loginUser').value.trim();
+      var pass = document.getElementById('loginPass').value;
+      if (!user || !pass) {
+        showToast('请输入用户名和密码');
+        return;
+      }
+      if (user !== DEMO_ACCOUNT || pass !== DEMO_PASSWORD) {
+        showToast('用户名或密码错误');
+        return;
+      }
+      saveCadreSession(user);
+      showToast('登录成功，欢迎回来', 1500);
+      setTimeout(function () { window.location.href = 'index.html'; }, 600);
+    }
+
+    // 回车提交
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') handleLogin();
+    });
+
+    // 忘记密码弹窗
+    function openForgotModal() {
+      var modal = document.getElementById('forgotModal');
+      if (!modal) return;
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function closeForgotModal() {
+      var modal = document.getElementById('forgotModal');
+      if (!modal) return;
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    (function () {
+      var modal = document.getElementById('forgotModal');
+      if (!modal) return;
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeForgotModal();
+      });
+    })();
+
+    // 初始化：读取 URL 携带的账号（来自平台概览页角色入口）并回填
+    (function () {
+      var acc = qs('account');
+      var user = document.getElementById('loginUser');
+      if (acc) {
+        user.value = acc;
+        document.getElementById('loginPass').value = DEMO_PASSWORD;
+        user.focus();
+      } else {
+        try {
+          var saved = localStorage.getItem('drt_account');
+          if (saved) user.value = saved;
+        } catch (e) {}
+      }
+    })();
+  </script>
+  <script src="js/cadre.js"></script>
+</body>
+</html>

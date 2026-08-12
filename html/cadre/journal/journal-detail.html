@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日志详情</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="journal-list.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">日志详情</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 日期 -->
+    <div class="card">
+      <div class="text-center" style="font-size:18px;font-weight:600;color:#333;">2026年7月1日工作日志</div>
+      <div class="text-center text-sm text-gray mt-8">08:00 - 18:00</div>
+      <div class="text-center text-sm text-gray mt-4">记录人：张建国</div>
+    </div>
+
+    <!-- 工作内容全文 -->
+    <div class="card">
+      <div class="card-title">工作内容</div>
+      <p style="font-size:14px;color:#333;line-height:1.8;">
+        <b>上午：村庄卫生清洁整治</b><br>
+        08:00 组织保洁员和志愿者共8人在村口集合，开展村庄卫生清洁整治活动。重点清理了村口至村委会沿线道路两侧的积存垃圾和杂草，清理农贸市场周边卫生死角3处。至12:00，共清理垃圾约2吨，沿线环境面貌明显改善。
+      </p>
+      <p style="font-size:14px;color:#333;line-height:1.8;margin-top:12px;">
+        <b>下午：低保户走访核查</b><br>
+        14:00 走访了第一组和第二组共4户低保家庭，核实其家庭经济状况和实际生活情况。其中2户家庭情况符合低保标准，1户子女已就业需调整，1户老人身体状况较差已记录上报。
+      </p>
+      <p style="font-size:14px;color:#333;line-height:1.8;margin-top:12px;">
+        <b>其他工作：</b><br>
+        回到村委会处理了2件村民诉求，回复了1条关于医保政策的咨询。登记了今日巡查发现的问题1处（村东桥头路面破损），已安排明日报修。
+      </p>
+    </div>
+
+    <!-- 照片 -->
+    <div class="card">
+      <div class="card-title">工作照片（4张）</div>
+      <div class="photo-grid">
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cleaners%20volunteers%20cleaning%20village%20market%20street%20garbage%20rural%20China%20realistic%20photo&image_size=landscape_4_3" alt="卫生清洁现场" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=group%20photo%20village%20volunteers%20in%20uniform%20smiling%20rural%20China%20realistic%20photo&image_size=landscape_4_3" alt="志愿者合影" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cadre%20visiting%20elderly%20low%20income%20household%20rural%20village%20home%20realistic%20photo&image_size=landscape_4_3" alt="低保户走访" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+        <div class="photo-item"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=damaged%20pothole%20on%20village%20bridge%20road%20rural%20China%20realistic%20photo&image_size=landscape_4_3" alt="桥头路面破损" style="width:100%;height:80px;object-fit:cover;border-radius:8px;"></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+<script>
+(function(){var p=new URLSearchParams(window.location.search);var id=p.get('id')||'1';var hint=document.createElement('div');hint.style.cssText='text-align:center;font-size:12px;color:#9CA3AF;padding:8px;background:#F3F4F6;margin:12px 16px;border-radius:8px;';hint.textContent='当前查看：第 '+id+' 条记录';var main=document.querySelector('.page-content')||document.querySelector('main');if(main)main.insertBefore(hint,main.firstChild);})();
+</script>
+</body>
+</html>

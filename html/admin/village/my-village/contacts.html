@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>便民通讯录 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <!-- 本页样式对齐「运营人员」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 分页：默认 10 条/页 + 页码数字；弹窗：白底圆角、标题 18px -->
+  <style>
+    body { background: #f0f2f5; }
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-page-title="便民通讯录" data-page-subtitle="村干部、网格员等便民联系方式管理" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧），导出（右侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>便民通讯录</h2>
+        <p>管理村内便民通讯录，支持按姓名、分类与状态筛选，可新增、编辑、启停与导出</p>
+      </div>
+      <button type="button" class="btn btn-export" onclick="openExportModal()">
+        <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+      </button>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fName">姓名</label>
+        <input type="text" id="fName" class="form-input" placeholder="请输入姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fCategory">分类</label>
+        <select id="fCategory" class="form-select">
+          <option value="">全部</option>
+          <option>村干部</option>
+          <option>网格员</option>
+          <option>医务人员</option>
+          <option>治安</option>
+          <option>便民服务</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>禁用</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="renderContactRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetContactFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 新增按钮 -->
+      <div class="table-actions-header">
+        <h3>通讯录列表</h3>
+        <button type="button" class="btn btn-primary" onclick="openModal('addContactModal')">
+          <iconify-icon icon="ri:user-add-line"></iconify-icon> 新增联系人
+        </button>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>职务/身份</th>
+              <th>联系电话</th>
+              <th>分类</th>
+              <th>排序</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="contactTbody">
+            <tr data-category="村干部" data-status="正常">
+              <td class="town-name">李建国</td>
+              <td>村党支部书记</td>
+              <td class="nums">138****5678</td>
+              <td><span class="tag tag-blue">村干部</span></td>
+              <td class="nums">1</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="村干部" data-status="正常">
+              <td class="town-name">周小敏</td>
+              <td>村委委员</td>
+              <td class="nums">135****9012</td>
+              <td><span class="tag tag-blue">村干部</span></td>
+              <td class="nums">2</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="网格员" data-status="正常">
+              <td class="town-name">张伟明</td>
+              <td>第一网格网格员</td>
+              <td class="nums">137****0001</td>
+              <td><span class="tag tag-green">网格员</span></td>
+              <td class="nums">3</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="医务人员" data-status="正常">
+              <td class="town-name">陈大山</td>
+              <td>村卫生室医生</td>
+              <td class="nums">136****8901</td>
+              <td><span class="tag tag-orange">医务人员</span></td>
+              <td class="nums">4</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="治安" data-status="禁用">
+              <td class="town-name">杨春花</td>
+              <td>村治安巡逻员</td>
+              <td class="nums">139****2233</td>
+              <td><span class="tag tag-purple">治安</span></td>
+              <td class="nums">5</td>
+              <td><span class="tag tag-red">禁用</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="便民服务" data-status="正常">
+              <td class="town-name">钱有财</td>
+              <td>便民服务代办员</td>
+              <td class="nums">188****2345</td>
+              <td><span class="tag tag-blue">便民服务</span></td>
+              <td class="nums">6</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="网格员" data-status="正常">
+              <td class="town-name">王秀英</td>
+              <td>第二网格网格员</td>
+              <td class="nums">139****6789</td>
+              <td><span class="tag tag-green">网格员</span></td>
+              <td class="nums">7</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="治安" data-status="正常">
+              <td class="town-name">孙志强</td>
+              <td>村治保主任</td>
+              <td class="nums">188****2345</td>
+              <td><span class="tag tag-purple">治安</span></td>
+              <td class="nums">8</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="村干部" data-status="正常">
+              <td class="town-name">赵铁柱</td>
+              <td>村委会主任</td>
+              <td class="nums">137****7890</td>
+              <td><span class="tag tag-blue">村干部</span></td>
+              <td class="nums">9</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="医务人员" data-status="正常">
+              <td class="town-name">刘桂芳</td>
+              <td>村卫生室护士</td>
+              <td class="nums">136****3333</td>
+              <td><span class="tag tag-orange">医务人员</span></td>
+              <td class="nums">10</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="便民服务" data-status="禁用">
+              <td class="town-name">郑海燕</td>
+              <td>便民缴费代办员</td>
+              <td class="nums">138****6666</td>
+              <td><span class="tag tag-blue">便民服务</span></td>
+              <td class="nums">11</td>
+              <td><span class="tag tag-red">禁用</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="网格员" data-status="正常">
+              <td class="town-name">吴德发</td>
+              <td>第三网格网格员</td>
+              <td class="nums">138****2345</td>
+              <td><span class="tag tag-green">网格员</span></td>
+              <td class="nums">12</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="村干部" data-status="正常">
+              <td class="town-name">徐春兰</td>
+              <td>村党支部副书记</td>
+              <td class="nums">138****4321</td>
+              <td><span class="tag tag-blue">村干部</span></td>
+              <td class="nums">13</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="网格员" data-status="正常">
+              <td class="town-name">高志远</td>
+              <td>第四网格网格员</td>
+              <td class="nums">137****8765</td>
+              <td><span class="tag tag-green">网格员</span></td>
+              <td class="nums">14</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+            <tr data-category="医务人员" data-status="正常">
+              <td class="town-name">罗福来</td>
+              <td>村卫生室全科医生</td>
+              <td class="nums">136****6789</td>
+              <td><span class="tag tag-orange">医务人员</span></td>
+              <td class="nums">15</td>
+              <td><span class="tag tag-green">正常</span></td>
+              <td class="op-cell"></td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">15</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增联系人弹窗 -->
+  <div class="modal-overlay" id="addContactModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:user-add-line"></iconify-icon> 新增联系人</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addContactModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coName"><span class="req">*</span>姓名</label>
+              <input type="text" id="coName" class="form-input" placeholder="请输入姓名…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="coPost"><span class="req">*</span>职务/身份</label>
+              <input type="text" id="coPost" class="form-input" placeholder="请输入职务/身份…" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coPhone"><span class="req">*</span>联系电话</label>
+              <input type="tel" id="coPhone" class="form-input" placeholder="请输入联系电话…" required autocomplete="tel" inputmode="tel">
+            </div>
+            <div class="form-group">
+              <label for="coCategory"><span class="req">*</span>分类</label>
+              <select id="coCategory" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>村干部</option>
+                <option>网格员</option>
+                <option>医务人员</option>
+                <option>治安</option>
+                <option>便民服务</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coSort"><span class="req">*</span>排序</label>
+              <input type="text" id="coSort" class="form-input" placeholder="请输入排序号…" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="coStatus"><span class="req">*</span>状态</label>
+              <select id="coStatus" class="form-select" required>
+                <option value="正常">正常</option>
+                <option value="禁用">禁用</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addContactModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAddContact()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看联系人弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewContactModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-user-line"></iconify-icon> 联系人详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewContactModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">姓名</span><span class="detail-value" id="viewCoName">—</span></div>
+          <div class="detail-item"><span class="detail-label">职务/身份</span><span class="detail-value" id="viewCoPost">—</span></div>
+          <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewCoPhone">—</span></div>
+          <div class="detail-item"><span class="detail-label">分类</span><span class="detail-value" id="viewCoCategory">—</span></div>
+          <div class="detail-item"><span class="detail-label">排序</span><span class="detail-value" id="viewCoSort">—</span></div>
+          <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewCoStatus">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewContactModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑联系人弹窗 -->
+  <div class="modal-overlay" id="editContactModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑联系人</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editContactModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editCoName"><span class="req">*</span>姓名</label>
+              <input type="text" id="editCoName" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editCoPost"><span class="req">*</span>职务/身份</label>
+              <input type="text" id="editCoPost" class="form-input" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editCoPhone"><span class="req">*</span>联系电话</label>
+              <input type="tel" id="editCoPhone" class="form-input" required autocomplete="tel" inputmode="tel">
+            </div>
+            <div class="form-group">
+              <label for="editCoCategory"><span class="req">*</span>分类</label>
+              <select id="editCoCategory" class="form-select" required>
+                <option>村干部</option>
+                <option>网格员</option>
+                <option>医务人员</option>
+                <option>治安</option>
+                <option>便民服务</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editCoSort"><span class="req">*</span>排序</label>
+              <input type="text" id="editCoSort" class="form-input" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-group">
+              <label for="editCoStatus"><span class="req">*</span>状态</label>
+              <select id="editCoStatus" class="form-select" required>
+                <option>正常</option>
+                <option>禁用</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editContactModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditContact()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出通讯录</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前筛选结果导出通讯录列表。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="便民通讯录" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- 搜索筛选：姓名 / 分类 / 状态 + 分页（默认 10 条/页） ---- */
+      var tbody = document.getElementById('contactTbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+      var pageSize = 10;
+      var currentPage = 1;
+
+      function getVisibleRows() {
+        var name = document.getElementById('fName').value.trim().toLowerCase();
+        var category = document.getElementById('fCategory').value;
+        var status = document.getElementById('fStatus').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var show = true;
+          if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+          if (show && category && row.getAttribute('data-category') !== category) show = false;
+          if (show && status && row.getAttribute('data-status') !== status) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); renderRows(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; renderRows(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      window.renderContactRows = function () { currentPage = 1; renderRows(); };
+      window.resetContactFilter = function () {
+        document.getElementById('fName').value = '';
+        document.getElementById('fCategory').value = '';
+        document.getElementById('fStatus').value = '';
+        renderContactRows();
+      };
+
+      renderRows();
+
+      /* ---- 操作列渲染：查看 / 编辑 / 启停 / 删除 ---- */
+      function renderOpCell(row) {
+        var cell = row.querySelector('.op-cell');
+        var status = row.getAttribute('data-status');
+        var isEnabled = status !== '禁用';
+        var html =
+          '<button type="button" class="btn-op" onclick="viewContact(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-edit" onclick="openEditContact(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+          '<span class="op-divider"></span>' +
+          (isEnabled
+            ? '<button type="button" class="btn-op btn-op-danger" onclick="toggleContact(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>禁用</button>'
+            : '<button type="button" class="btn-op btn-op-edit" onclick="toggleContact(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>启用</button>') +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="deleteContact(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+        cell.innerHTML = html;
+      }
+      tbody.querySelectorAll('tr').forEach(function (r) { renderOpCell(r); });
+
+      /* ---- 查看 ---- */
+      window.viewContact = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewCoName').textContent = td[0].textContent.trim();
+        document.getElementById('viewCoPost').textContent = td[1].textContent.trim();
+        document.getElementById('viewCoPhone').textContent = td[2].textContent.trim();
+        document.getElementById('viewCoCategory').innerHTML = td[3].innerHTML;
+        document.getElementById('viewCoSort').textContent = td[4].textContent.trim();
+        document.getElementById('viewCoStatus').innerHTML = td[5].innerHTML;
+        openModal('viewContactModal');
+      };
+
+      /* ---- 编辑 ---- */
+      window.openEditContact = function (btn) {
+        var row = btn.closest('tr');
+        window._editRow = row;
+        var td = row.cells;
+        document.getElementById('editCoName').value = td[0].textContent.trim();
+        document.getElementById('editCoPost').value = td[1].textContent.trim();
+        document.getElementById('editCoPhone').value = td[2].textContent.trim();
+        document.getElementById('editCoCategory').value = td[3].textContent.trim();
+        document.getElementById('editCoSort').value = td[4].textContent.trim();
+        document.getElementById('editCoStatus').value = td[5].textContent.trim();
+        openModal('editContactModal');
+      };
+
+      window.submitEditContact = function () {
+        var name = document.getElementById('editCoName').value.trim();
+        var post = document.getElementById('editCoPost').value.trim();
+        var phone = document.getElementById('editCoPhone').value.trim();
+        if (!name || !post || !phone) { showToast('请完整填写必填信息', 'warning'); return; }
+        var row = window._editRow;
+        if (row) {
+          var category = document.getElementById('editCoCategory').value;
+          var sort = document.getElementById('editCoSort').value.trim();
+          var status = document.getElementById('editCoStatus').value;
+          row.cells[0].textContent = name;
+          row.cells[1].textContent = post;
+          row.cells[2].textContent = phone;
+          var catTag = row.cells[3].querySelector('.tag');
+          catTag.className = 'tag ' + categoryTagClass(category);
+          catTag.textContent = category;
+          row.setAttribute('data-category', category);
+          row.cells[4].textContent = sort;
+          var stTag = row.cells[5].querySelector('.tag');
+          stTag.className = 'tag ' + (status === '正常' ? 'tag-green' : 'tag-red');
+          stTag.textContent = status;
+          row.setAttribute('data-status', status);
+          renderOpCell(row);
+        }
+        closeModal('editContactModal');
+        renderRows();
+        showToast('保存成功', 'success');
+      };
+
+      function categoryTagClass(cat) {
+        var map = { '村干部': 'tag-blue', '网格员': 'tag-green', '医务人员': 'tag-orange', '治安': 'tag-purple', '便民服务': 'tag-blue' };
+        return map[cat] || 'tag-gray';
+      }
+
+      /* ---- 启用 / 禁用 ---- */
+      window.toggleContact = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        var isEnabled = row.getAttribute('data-status') !== '禁用';
+        showConfirm({
+          title: isEnabled ? '禁用确认' : '启用确认',
+          message: isEnabled ? '确定禁用联系人「' + name + '」吗？禁用后将不在通讯录中展示。' : '确定启用联系人「' + name + '」吗？启用后将恢复展示。',
+          confirmText: isEnabled ? '确认禁用' : '确认启用',
+          danger: isEnabled,
+          onConfirm: function () {
+            var status = isEnabled ? '禁用' : '正常';
+            row.setAttribute('data-status', status);
+            var tag = row.cells[5].querySelector('.tag');
+            tag.className = 'tag ' + (status === '正常' ? 'tag-green' : 'tag-red');
+            tag.textContent = status;
+            renderOpCell(row);
+            renderRows();
+            showToast(status === '正常' ? '已启用' : '已禁用', 'success');
+          }
+        });
+      };
+
+      /* ---- 删除 ---- */
+      window.deleteContact = function (btn) {
+        var row = btn.closest('tr');
+        var name = row.cells[0].textContent.trim();
+        showConfirm({
+          title: '删除确认',
+          message: '确定删除联系人「' + name + '」吗？删除后不可恢复。',
+          confirmText: '确认删除',
+          danger: true,
+          onConfirm: function () {
+            row.parentNode.removeChild(row);
+            renderRows();
+            showToast('删除成功', 'success');
+          }
+        });
+      };
+
+      /* ---- 新增联系人 ---- */
+      window.submitAddContact = function () {
+        var name = document.getElementById('coName').value.trim();
+        var post = document.getElementById('coPost').value.trim();
+        var phone = document.getElementById('coPhone').value.trim();
+        var category = document.getElementById('coCategory').value;
+        var sort = document.getElementById('coSort').value.trim();
+        var status = document.getElementById('coStatus').value;
+        if (!name || !post || !phone || !category || !sort) { showToast('请完整填写必填信息', 'warning'); return; }
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-category', category);
+        tr.setAttribute('data-status', status);
+        tr.innerHTML =
+          '<td class="town-name">' + escapeHtml(name) + '</td>' +
+          '<td>' + escapeHtml(post) + '</td>' +
+          '<td class="nums">' + escapeHtml(phone) + '</td>' +
+          '<td><span class="tag ' + categoryTagClass(category) + '">' + escapeHtml(category) + '</span></td>' +
+          '<td class="nums">' + escapeHtml(sort) + '</td>' +
+          '<td><span class="tag ' + (status === '正常' ? 'tag-green' : 'tag-red') + '">' + escapeHtml(status) + '</span></td>' +
+          '<td class="op-cell"></td>';
+        renderOpCell(tr);
+        tbody.insertBefore(tr, tbody.firstChild);
+        ['coName', 'coPost', 'coPhone', 'coCategory', 'coSort'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el.tagName === 'SELECT') el.value = '';
+          else el.value = '';
+        });
+        document.getElementById('coStatus').value = '正常';
+        resetContactFilter();
+        closeModal('addContactModal');
+        showToast('保存成功', 'success');
+      };
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () {
+        openModal('exportModal');
+      };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '便民通讯录';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+    })();
+  </script>
+</body>
+</html>

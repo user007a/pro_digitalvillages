@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据概览</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+  <style>
+    /* ===== 数据概览页美化 ===== */
+    .overview-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 0; }
+    .overview-head-title { font-size: 18px; font-weight: 700; color: #1F2937; }
+    .overview-head-sub { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+    .overview-head-badge { font-size: 11px; color: var(--color-primary-600); background: var(--color-primary-50); padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+    .overview-grid { grid-template-columns: repeat(3, 1fr); }
+    .overview-card { border-radius: 14px; padding: 12px 6px 10px; transition: transform .2s ease, box-shadow .2s ease; }
+    .overview-card:active { transform: scale(0.96); }
+    .overview-card .ov-num { font-size: 22px; }
+    .overview-card .ov-sub { font-size: 10px; }
+    .accent-green::before { background: #10B981; }
+    .accent-info::before { background: var(--color-info); }
+    .accent-orange::before { background: #F59E0B; }
+    .accent-purple::before { background: var(--color-accent-600); }
+    .tab-panel { animation: panelFadeIn .3s ease; }
+    @keyframes panelFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    /* 水平分布条 */
+    .stat-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .stat-bar-row:last-child { margin-bottom: 0; }
+    .stat-bar-label { width: 56px; font-size: 12px; color: #6B7280; flex-shrink: 0; }
+    .stat-bar-track { flex: 1; height: 8px; background: var(--color-primary-50); border-radius: 4px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-400)); }
+    .stat-bar-val { width: 36px; text-align: right; font-size: 12px; color: var(--color-primary-600); font-weight: 600; flex-shrink: 0; }
+  </style>
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="../index.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">数据概览</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 顶部概览头 -->
+    <div class="overview-head">
+      <div>
+        <div class="overview-head-title">数据概览</div>
+        <div class="overview-head-sub">幸福村 · 2026年6月数据</div>
+      </div>
+      <div class="overview-head-badge">村干部端</div>
+    </div>
+
+    <!-- 6个维度统计卡片 -->
+    <div class="overview-grid">
+      <!-- 产业总数 -->
+      <div class="overview-card accent-green">
+        <div class="ov-num text-green">12</div>
+        <div class="ov-sub">总产值 1,286万元</div>
+        <div class="ov-label">产业总数</div>
+      </div>
+
+      <!-- 事件处置率 -->
+      <div class="overview-card accent-info">
+        <div class="ov-num" style="color:var(--color-info);">85.7%</div>
+        <div class="ov-sub">已处置 6/7 件</div>
+        <div class="ov-label">事件处置率</div>
+      </div>
+
+      <!-- 积分参与率 -->
+      <div class="overview-card accent-orange">
+        <div class="ov-num text-orange">72%</div>
+        <div class="ov-sub">参与 86/120 人</div>
+        <div class="ov-label">积分参与率</div>
+      </div>
+
+      <!-- 事件平均时长 -->
+      <div class="overview-card accent-info">
+        <div class="ov-num" style="color:var(--color-info);">18</div>
+        <div class="ov-sub">环比缩短 2.5h</div>
+        <div class="ov-label">事件平均时长(小时)</div>
+      </div>
+
+      <!-- 本月发放积分 -->
+      <div class="overview-card accent-purple">
+        <div class="ov-num text-purple">1,240</div>
+        <div class="ov-sub">累计 28,600 分</div>
+        <div class="ov-label">本月发放积分</div>
+      </div>
+
+      <!-- 人均收入 -->
+      <div class="overview-card accent-green">
+        <div class="ov-num text-green">28,600</div>
+        <div class="ov-sub">单位：元/年</div>
+        <div class="ov-label">人均收入</div>
+      </div>
+    </div>
+
+    <!-- 分类详情Tab -->
+    <div class="tab-switch" role="tablist" style="position:static;">
+      <div class="tab-btn active" role="tab" aria-selected="true">产业发展</div>
+      <div class="tab-btn" role="tab">事件处置</div>
+      <div class="tab-btn" role="tab">积分管理</div>
+    </div>
+
+    <!-- 产业发展详情 -->
+    <div class="tab-panel">
+      <div class="card">
+        <div class="card-title">产业发展概况</div>
+        <div class="info-row">
+          <div class="info-label">种植产业</div>
+          <div class="info-value">5个 | 产值 480万元</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">养殖产业</div>
+          <div class="info-value">3个 | 产值 320万元</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">加工产业</div>
+          <div class="info-value">2个 | 产值 286万元</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">服务产业</div>
+          <div class="info-value">2个 | 产值 200万元</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 事件处置详情 -->
+    <div class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="card-title">本月事件分类（合计 7 件）</div>
+        <div class="info-row">
+          <div class="info-label">环境卫生</div>
+          <div class="info-value">3件 | 已处置 3件</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">公共安全</div>
+          <div class="info-value">2件 | 已处置 2件</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">设施维修</div>
+          <div class="info-value">1件 | 已处置 1件</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">纠纷调解</div>
+          <div class="info-value">1件 | 处置中</div>
+        </div>
+      </div>
+
+      <!-- 月度趋势 -->
+      <div class="card">
+        <div class="card-title">月度事件处置趋势</div>
+        <div style="display:flex;align-items:flex-end;height:120px;gap:8px;padding:10px 0;">
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:40%;opacity:0.6;"></div>
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:60%;opacity:0.7;"></div>
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:50%;opacity:0.7;"></div>
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:80%;opacity:0.8;"></div>
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:70%;opacity:0.8;"></div>
+          <div style="flex:1;background:var(--color-primary-500);border-radius:4px 4px 0 0;height:90%;"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <div style="flex:1;text-align:center;font-size:11px;color:#999;">1月</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:#999;">2月</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:#999;">3月</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:#999;">4月</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:#999;">5月</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:var(--color-primary-600);font-weight:600;">6月</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 积分管理详情 -->
+    <div class="tab-panel" style="display:none;">
+      <div class="card">
+        <div class="card-title">积分发放概况</div>
+        <div class="info-row">
+          <div class="info-label">本月发放</div>
+          <div class="info-value">1,240 分</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">本月兑换</div>
+          <div class="info-value">860 分</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">待审核</div>
+          <div class="info-value">5 条</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">参与村民</div>
+          <div class="info-value">86 人</div>
+        </div>
+      </div>
+
+      <!-- 获取来源分布 -->
+      <div class="card">
+        <div class="card-title">积分获取来源分布</div>
+        <div class="stat-bar-row"><span class="stat-bar-label">志愿服务</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:35%;"></div></div><span class="stat-bar-val">35%</span></div>
+        <div class="stat-bar-row"><span class="stat-bar-label">每日签到</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:20%;"></div></div><span class="stat-bar-val">20%</span></div>
+        <div class="stat-bar-row"><span class="stat-bar-label">村民会议</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:15%;"></div></div><span class="stat-bar-val">15%</span></div>
+        <div class="stat-bar-row"><span class="stat-bar-label">卫生达标</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:12%;"></div></div><span class="stat-bar-val">12%</span></div>
+        <div class="stat-bar-row"><span class="stat-bar-label">举报/建议</span><div class="stat-bar-track"><div class="stat-bar-fill" style="width:18%;"></div></div><span class="stat-bar-val">18%</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

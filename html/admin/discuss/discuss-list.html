@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>村民说事</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body data-page-title="村民说事" data-page-subtitle="乡村振兴数字平台 · 后台管理" data-no-pg-toolbar>
+<div class="admin-page">
+  <div class="page-header">
+    <h2>村民说事</h2>
+    <span class="text-muted">村民议题发布与回复管理</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-blue">
+      <div class="stat-label">本月议题</div>
+      <div class="stat-value">32 <span class="text-sm">个</span></div>
+      <div class="stat-desc">本月村民共发布议题</div>
+    </div>
+    <div class="stat-card card-red">
+      <div class="stat-label">待审核</div>
+      <div class="stat-value">4 <span class="text-sm">个</span></div>
+      <div class="stat-desc">需要尽快审核</div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">已发布</div>
+      <div class="stat-value">26 <span class="text-sm">个</span></div>
+      <div class="stat-desc">已审核通过发布</div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">已关闭</div>
+      <div class="stat-value">2 <span class="text-sm">个</span></div>
+      <div class="stat-desc">已处理关闭议题</div>
+    </div>
+  </div>
+
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>分类</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>村务建议</option>
+        <option>生活求助</option>
+        <option>政策咨询</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>待审核</option>
+        <option>已发布</option>
+        <option>已关闭</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>关键字</label>
+      <input type="text" class="form-input" placeholder="标题/发布人…">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>议题标题</th>
+          <th>发布人</th>
+          <th>所属网格</th>
+          <th>浏览数</th>
+          <th>回复数</th>
+          <th>发布时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>村口路灯损坏希望尽快维修</td>
+          <td>李大华</td>
+          <td>第一网格</td>
+          <td>156</td>
+          <td>8</td>
+          <td>2026-08-05 09:12</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>建议增设垃圾分类投放点</td>
+          <td>王小明</td>
+          <td>第二网格</td>
+          <td>98</td>
+          <td>5</td>
+          <td>2026-08-04 14:30</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>家里老人医保报销遇到困难</td>
+          <td>刘桂芳</td>
+          <td>第三网格</td>
+          <td>45</td>
+          <td>3</td>
+          <td>2026-08-03 10:20</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>咨询宅基地翻建政策</td>
+          <td>陈志刚</td>
+          <td>第二网格</td>
+          <td>87</td>
+          <td>6</td>
+          <td>2026-08-02 16:40</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>水渠堵塞影响农田灌溉</td>
+          <td>杨春花</td>
+          <td>第三网格</td>
+          <td>132</td>
+          <td>9</td>
+          <td>2026-08-01 08:15</td>
+          <td><span class="tag tag-gray">已关闭</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>希望开通村内夜间公交</td>
+          <td>吴德福</td>
+          <td>第一网格</td>
+          <td>210</td>
+          <td>15</td>
+          <td>2026-07-31 19:50</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>反映养殖场异味扰民</td>
+          <td>赵德海</td>
+          <td>第一网格</td>
+          <td>176</td>
+          <td>11</td>
+          <td>2026-07-30 11:05</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr>
+          <td>建议修缮村文化广场设施</td>
+          <td>郑十一</td>
+          <td>第二网格</td>
+          <td>64</td>
+          <td>4</td>
+          <td>2026-07-29 15:35</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('reviewModal')"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-info" onclick="showToast('已置顶','success')"><iconify-icon icon="ri:pushpin-line"></iconify-icon>置顶</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-danger" onclick="showConfirm({title:'关闭议题',message:'确定关闭该议题吗？',onConfirm:function(){showToast('议题已关闭','success')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 32 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn">2</button>
+        <button type="button" class="page-btn">3</button>
+        <button type="button" class="page-btn">4</button>
+        <button type="button" class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗 -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>议题审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('reviewModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">审核结果</label>
+        <select class="form-select">
+          <option>通过</option>
+          <option>驳回</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">审核意见</label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入审核意见…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reviewModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('reviewModal');showToast('审核完成','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/admin.js"></script>
+</body>
+</html>

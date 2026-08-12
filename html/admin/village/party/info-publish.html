@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>党员管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>党员管理</h2>
+      <span class="text-muted">党建信息发布与党员信息档案统一管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：党建信息发布 → 党员管理 -->
+  <div class="tab-bar dv-tabbar" id="partyTabs">
+    <div class="tab-item active" onclick="switchPartyTab(this)" data-tab="info">党建信息发布</div>
+    <div class="tab-item" onclick="switchPartyTab(this)" data-tab="member">党员管理</div>
+  </div>
+
+  <!-- ==================== Tab 面板：党建信息发布 ==================== -->
+  <div class="tab-panel" id="tab-info">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fTitle">标题</label>
+        <input type="text" id="fTitle" name="title" class="form-input" placeholder="请输入标题…" style="width:220px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fCategory">信息分类</label>
+        <select id="fCategory" name="category" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>党建动态</option>
+          <option>通知公告</option>
+          <option>学习教育</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">状态</label>
+        <select id="fStatus" name="status" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>已发布</option>
+          <option>草稿</option>
+          <option>已下架</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryInfoRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetInfoFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:megaphone-line"></iconify-icon>党建信息发布列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addInfoModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增信息</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('党建信息发布')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>信息分类</th>
+              <th>发布范围</th>
+              <th>发布时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="infoTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="infoRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：党员管理 ==================== -->
+  <div class="tab-panel" id="tab-member" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="memFName">姓名</label>
+        <input type="text" id="memFName" name="name" class="form-input" placeholder="请输入姓名…" style="width:140px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="memFType">党员类型</label>
+        <select id="memFType" name="type" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>正式</option>
+          <option>预备</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="memFStatus">状态</label>
+        <select id="memFStatus" name="status" class="form-select" style="width:120px">
+          <option value="">全部</option>
+          <option>在职</option>
+          <option>离村</option>
+          <option>退休</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryMemberRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetMemberFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:user-3-line"></iconify-icon>党员信息列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addMemberModal')"><iconify-icon icon="ri:user-add-line"></iconify-icon> 新增党员</button>
+          <button type="button" class="btn btn-outline" onclick="showToast('请选择Excel文件进行导入','info')"><iconify-icon icon="ri:upload-2-line"></iconify-icon> 批量导入</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('党员管理')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>性别</th>
+              <th>手机号</th>
+              <th>入党日期</th>
+              <th>党龄</th>
+              <th>所属支部</th>
+              <th>党员类型</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="memberTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="memberRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：党建信息发布 ==================== -->
+
+<!-- 新增信息弹窗 -->
+<div class="modal-overlay" id="addInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:file-add-line"></iconify-icon>新增信息</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="infoForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="infoTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="infoTitle" name="infoTitle" class="form-input" placeholder="请输入标题…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="infoCategory"><span class="req">*</span>信息分类</label>
+            <select id="infoCategory" name="infoCategory" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>党建动态</option>
+              <option>通知公告</option>
+              <option>学习教育</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="infoScope"><span class="req">*</span>发布范围</label>
+            <select id="infoScope" name="infoScope" class="form-select" required onchange="document.getElementById('teamList').style.display=this.value==='指定队组'?'block':'none'">
+              <option value="本村" selected>本村</option>
+              <option value="指定队组">指定队组</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="teamList" style="display:none">
+          <label>指定队组列表</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 0">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="team" value="第一队组"> 第一队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="team" value="第二队组"> 第二队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="team" value="第三队组"> 第三队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="team" value="第四队组"> 第四队组</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="infoContent"><span class="req">*</span>内容</label>
+          <textarea id="infoContent" name="infoContent" class="form-input" rows="5" placeholder="请输入信息内容（支持富文本）…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>封面图</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择封面图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传封面图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 750×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addInfoModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddInfo()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看信息弹窗 -->
+<div class="modal-overlay detail-modal" id="viewInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>信息详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">标题</span><span class="detail-value" id="viewInfoTitle">—</span></div>
+        <div class="detail-item"><span class="detail-label">信息分类</span><span class="detail-value" id="viewInfoCategory">—</span></div>
+        <div class="detail-item"><span class="detail-label">发布范围</span><span class="detail-value" id="viewInfoScope">—</span></div>
+        <div class="detail-item"><span class="detail-label">发布时间</span><span class="detail-value" id="viewInfoTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewInfoStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">内容</span><span class="detail-value" id="viewInfoContent">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewInfoModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑信息弹窗 -->
+<div class="modal-overlay" id="editInfoModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-line"></iconify-icon>编辑信息</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editInfoModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editTitle"><span class="req">*</span>标题</label>
+          <input type="text" id="editTitle" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editCategory"><span class="req">*</span>信息分类</label>
+            <select id="editCategory" class="form-select" required>
+              <option>党建动态</option>
+              <option>通知公告</option>
+              <option>学习教育</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editScope"><span class="req">*</span>发布范围</label>
+            <select id="editScope" class="form-select" required onchange="document.getElementById('editTeamList').style.display=this.value==='指定队组'?'block':'none'">
+              <option>本村</option>
+              <option>指定队组</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="editTeamList" style="display:none">
+          <label>指定队组列表</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 0">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="editTeam" value="第一队组"> 第一队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="editTeam" value="第二队组"> 第二队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="editTeam" value="第三队组"> 第三队组</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal"><input type="checkbox" name="editTeam" value="第四队组"> 第四队组</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editContent"><span class="req">*</span>内容</label>
+          <textarea id="editContent" class="form-input" rows="5" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>封面图</label>
+          <div class="upload-area" style="border:1px dashed #d9d9d9;border-radius:6px;padding:24px;text-align:center;color:#999;cursor:pointer" onclick="showToast('请选择封面图片','info')">
+            <iconify-icon icon="ri:upload-cloud-2-line" style="font-size:32px"></iconify-icon>
+            <div style="margin-top:8px">点击上传封面图片</div>
+            <div style="font-size:12px;margin-top:4px">支持 jpg/png，建议尺寸 750×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editInfoModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditInfo()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：党员管理 ==================== -->
+
+<!-- 新增党员弹窗 -->
+<div class="modal-overlay" id="addMemberModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:user-add-line"></iconify-icon>新增党员</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addMemberModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="memberForm" onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mName"><span class="req">*</span>姓名</label>
+            <input type="text" id="mName" name="mName" class="form-input" placeholder="请输入姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="mGender"><span class="req">*</span>性别</label>
+            <select id="mGender" name="mGender" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>男</option>
+              <option>女</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mPhone"><span class="req">*</span>手机号</label>
+            <input type="tel" id="mPhone" name="mPhone" class="form-input" placeholder="请输入手机号…" required autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="mJoinDate"><span class="req">*</span>入党日期</label>
+            <input type="date" id="mJoinDate" name="mJoinDate" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mOrg"><span class="req">*</span>所属支部</label>
+            <select id="mOrg" name="mOrg" class="form-select" required>
+              <option value="幸福村党支部" selected>幸福村党支部</option>
+              <option value="幸福村第二党支部">幸福村第二党支部</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="mType"><span class="req">*</span>党员类型</label>
+            <select id="mType" name="mType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>正式</option>
+              <option>预备</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="mStatus"><span class="req">*</span>状态</label>
+          <select id="mStatus" name="mStatus" class="form-select" required>
+            <option value="">请选择…</option>
+            <option>在职</option>
+            <option>离村</option>
+            <option>退休</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addMemberModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddMember()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看党员弹窗 -->
+<div class="modal-overlay detail-modal" id="viewMemberModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>党员详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewMemberModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">姓名</span><span class="detail-value" id="viewMName">—</span></div>
+        <div class="detail-item"><span class="detail-label">性别</span><span class="detail-value" id="viewMGender">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewMPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">入党日期</span><span class="detail-value" id="viewMJoinDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">党龄</span><span class="detail-value" id="viewMAge">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属支部</span><span class="detail-value" id="viewMOrg">—</span></div>
+        <div class="detail-item"><span class="detail-label">党员类型</span><span class="detail-value" id="viewMType">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewMStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewMemberModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑党员弹窗 -->
+<div class="modal-overlay" id="editMemberModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-line"></iconify-icon>编辑党员</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editMemberModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editMName"><span class="req">*</span>姓名</label>
+            <input type="text" id="editMName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editMGender"><span class="req">*</span>性别</label>
+            <select id="editMGender" class="form-select" required>
+              <option>男</option>
+              <option>女</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editMPhone"><span class="req">*</span>手机号</label>
+            <input type="tel" id="editMPhone" class="form-input" required autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="editMJoinDate"><span class="req">*</span>入党日期</label>
+            <input type="date" id="editMJoinDate" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editMOrg"><span class="req">*</span>所属支部</label>
+            <select id="editMOrg" class="form-select" required>
+              <option value="幸福村党支部">幸福村党支部</option>
+              <option value="幸福村第二党支部">幸福村第二党支部</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editMType"><span class="req">*</span>党员类型</label>
+            <select id="editMType" class="form-select" required>
+              <option>正式</option>
+              <option>预备</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editMStatus"><span class="req">*</span>状态</label>
+          <select id="editMStatus" class="form-select" required>
+            <option>在职</option>
+            <option>离村</option>
+            <option>退休</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editMemberModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditMember()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 导出弹窗（共享） ==================== -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签导出对应记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="党员管理记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 ---- */
+  function switchPartyTab(tab) {
+    document.querySelectorAll('#partyTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 党建信息发布：筛选 + 分页 ==================== */
+    var infoTbody = document.getElementById('infoTbody');
+    var infoPager = makePager(infoTbody, document.getElementById('infoRowCount'), pagerRefs('#tab-info'), function () {
+      var title = document.getElementById('fTitle').value.trim().toLowerCase();
+      var category = document.getElementById('fCategory').value;
+      var status = document.getElementById('fStatus').value;
+      var out = [];
+      infoTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (title && row.cells[0].textContent.trim().toLowerCase().indexOf(title) === -1) show = false;
+        if (show && category && row.getAttribute('data-category') !== category) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryInfoRows = function () { infoPager.reset(); };
+    window.resetInfoFilter = function () {
+      document.getElementById('fTitle').value = '';
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fStatus').value = '';
+      queryInfoRows();
+    };
+
+    /* ==================== 党员管理：筛选 + 分页 ==================== */
+    var memberTbody = document.getElementById('memberTbody');
+    var memberPager = makePager(memberTbody, document.getElementById('memberRowCount'), pagerRefs('#tab-member'), function () {
+      var name = document.getElementById('memFName').value.trim().toLowerCase();
+      var type = document.getElementById('memFType').value;
+      var status = document.getElementById('memFStatus').value;
+      var out = [];
+      memberTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryMemberRows = function () { memberPager.reset(); };
+    window.resetMemberFilter = function () {
+      document.getElementById('memFName').value = '';
+      document.getElementById('memFType').value = '';
+      document.getElementById('memFStatus').value = '';
+      queryMemberRows();
+    };
+
+    /* ==================== 状态标签 / 工具函数 ==================== */
+    function infoStatusTag(status) {
+      return '<span class="tag ' + (status === '已发布' ? 'tag-green' : status === '草稿' ? 'tag-orange' : 'tag-red') + '">' + status + '</span>';
+    }
+    function memberStatusTag(status) {
+      return '<span class="tag ' + (status === '在职' ? 'tag-green' : status === '离村' ? 'tag-blue' : 'tag-gray') + '">' + status + '</span>';
+    }
+    function typeTag(type) {
+      return type === '预备' ? '<span class="tag tag-orange">预备</span>' : '正式';
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function fmtToday() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function calcPartyYears(joinDate) {
+      if (!joinDate) return '—';
+      var y = parseInt(joinDate.slice(0, 4), 10);
+      if (isNaN(y)) return '—';
+      var years = 2026 - y;
+      return years >= 1 ? years + '年' : '—';
+    }
+
+    /* ==================== 操作列渲染 ==================== */
+    function renderInfoOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewInfo(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditInfo(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="takeDownInfo(this)"><iconify-icon icon="ri:arrow-down-line"></iconify-icon>下架</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="delInfo(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+    function renderMemberOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewMember(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditMember(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="delMember(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+
+    /* ==================== 查看 / 编辑 / 新增 / 删除（党建信息发布） ==================== */
+    window.viewInfo = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewInfoTitle').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewInfoCategory').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewInfoScope').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewInfoTime').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewInfoStatus').innerHTML = row.cells[4].innerHTML;
+      document.getElementById('viewInfoContent').textContent = row.getAttribute('data-content') || '';
+      openModal('viewInfoModal');
+    };
+
+    window.openEditInfo = function (btn) {
+      var row = btn.closest('tr');
+      window._editInfoRow = row;
+      document.getElementById('editTitle').value = row.cells[0].textContent.trim();
+      document.getElementById('editCategory').value = row.cells[1].textContent.trim();
+      var scopeCell = row.cells[2].textContent.trim();
+      var scope = scopeCell.indexOf('指定队组') === 0 ? '指定队组' : '本村';
+      document.getElementById('editScope').value = scope;
+      document.getElementById('editContent').value = row.getAttribute('data-content') || '';
+      document.getElementById('editTeamList').style.display = scope === '指定队组' ? 'block' : 'none';
+      openModal('editInfoModal');
+    };
+
+    window.submitEditInfo = function () {
+      var row = window._editInfoRow;
+      if (!row) { closeModal('editInfoModal'); return; }
+      var title = document.getElementById('editTitle').value.trim();
+      var category = document.getElementById('editCategory').value;
+      var scope = document.getElementById('editScope').value;
+      var content = document.getElementById('editContent').value.trim();
+      if (!title || !category || !content) { showToast('请完整填写必填信息', 'warning'); return; }
+      var scopeText = scope;
+      if (scope === '指定队组') {
+        var teams = [];
+        document.querySelectorAll('#editTeamList input[name="editTeam"]:checked').forEach(function (c) { teams.push(c.value); });
+        if (teams.length) scopeText = '指定队组（' + teams.join('、') + '）';
+      }
+      row.cells[0].textContent = title;
+      row.cells[1].textContent = category;
+      row.cells[2].textContent = scopeText;
+      row.setAttribute('data-category', category);
+      row.setAttribute('data-scope', scope);
+      row.setAttribute('data-content', content);
+      infoPager.render();
+      closeModal('editInfoModal');
+      showToast('保存成功', 'success');
+    };
+
+    window.submitAddInfo = function () {
+      var title = document.getElementById('infoTitle').value.trim();
+      var category = document.getElementById('infoCategory').value;
+      var scope = document.getElementById('infoScope').value;
+      var content = document.getElementById('infoContent').value.trim();
+      if (!title || !category || !scope || !content) { showToast('请完整填写必填信息', 'warning'); return; }
+      var scopeText = scope;
+      if (scope === '指定队组') {
+        var teams = [];
+        document.querySelectorAll('#addInfoModal input[name="team"]:checked').forEach(function (c) { teams.push(c.value); });
+        if (teams.length) scopeText = '指定队组（' + teams.join('、') + '）';
+      }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-scope', scope);
+      tr.setAttribute('data-status', '草稿');
+      tr.setAttribute('data-content', content);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(title) + '</td>' +
+        '<td>' + escapeHtml(category) + '</td>' +
+        '<td>' + escapeHtml(scopeText) + '</td>' +
+        '<td class="nums">' + fmtToday() + ' 09:00</td>' +
+        '<td>' + infoStatusTag('草稿') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderInfoOp(tr);
+      infoTbody.insertBefore(tr, infoTbody.firstChild);
+      document.getElementById('infoTitle').value = '';
+      document.getElementById('infoCategory').value = '';
+      document.getElementById('infoScope').value = '本村';
+      document.getElementById('infoContent').value = '';
+      document.getElementById('teamList').style.display = 'none';
+      queryInfoRows();
+      closeModal('addInfoModal');
+      showToast('保存成功', 'success');
+    };
+
+    window.takeDownInfo = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '下架确认',
+        message: '确定下架「' + name + '」吗？下架后村民将无法查看。',
+        confirmText: '确认下架',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已下架');
+          row.cells[4].innerHTML = infoStatusTag('已下架');
+          infoPager.render();
+          showToast('下架成功', 'success');
+        }
+      });
+    };
+
+    window.delInfo = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」信息记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          if (panel && panel.id === 'tab-info') infoPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 查看 / 编辑 / 新增 / 删除（党员管理） ==================== */
+    window.viewMember = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewMName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewMGender').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewMPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewMJoinDate').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewMAge').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewMOrg').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewMType').innerHTML = row.cells[6].innerHTML;
+      document.getElementById('viewMStatus').innerHTML = row.cells[7].innerHTML;
+      openModal('viewMemberModal');
+    };
+
+    window.openEditMember = function (btn) {
+      var row = btn.closest('tr');
+      window._editMemberRow = row;
+      document.getElementById('editMName').value = row.cells[0].textContent.trim();
+      document.getElementById('editMGender').value = row.cells[1].textContent.trim();
+      document.getElementById('editMPhone').value = row.cells[2].textContent.trim();
+      document.getElementById('editMJoinDate').value = row.cells[3].textContent.trim();
+      document.getElementById('editMOrg').value = row.cells[5].textContent.trim();
+      document.getElementById('editMType').value = row.cells[6].textContent.trim();
+      document.getElementById('editMStatus').value = row.cells[7].textContent.trim();
+      openModal('editMemberModal');
+    };
+
+    window.submitEditMember = function () {
+      var row = window._editMemberRow;
+      if (!row) { closeModal('editMemberModal'); return; }
+      var name = document.getElementById('editMName').value.trim();
+      var gender = document.getElementById('editMGender').value;
+      var phone = document.getElementById('editMPhone').value.trim();
+      var joinDate = document.getElementById('editMJoinDate').value;
+      var org = document.getElementById('editMOrg').value;
+      var type = document.getElementById('editMType').value;
+      var status = document.getElementById('editMStatus').value;
+      if (!name || !gender || !phone || !joinDate || !org || !type || !status) { showToast('请完整填写必填信息', 'warning'); return; }
+      row.cells[0].textContent = name;
+      row.cells[1].textContent = gender;
+      row.cells[2].textContent = phone;
+      row.cells[3].textContent = joinDate;
+      row.cells[4].textContent = calcPartyYears(joinDate);
+      row.cells[5].textContent = org;
+      row.cells[6].innerHTML = typeTag(type);
+      row.cells[7].innerHTML = memberStatusTag(status);
+      row.setAttribute('data-type', type);
+      row.setAttribute('data-status', status);
+      memberPager.render();
+      closeModal('editMemberModal');
+      showToast('保存成功', 'success');
+    };
+
+    window.submitAddMember = function () {
+      var name = document.getElementById('mName').value.trim();
+      var gender = document.getElementById('mGender').value;
+      var phone = document.getElementById('mPhone').value.trim();
+      var joinDate = document.getElementById('mJoinDate').value;
+      var org = document.getElementById('mOrg').value;
+      var type = document.getElementById('mType').value;
+      var status = document.getElementById('mStatus').value;
+      if (!name || !gender || !phone || !joinDate || !org || !type || !status) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(gender) + '</td>' +
+        '<td class="nums">' + escapeHtml(phone) + '</td>' +
+        '<td class="nums">' + joinDate + '</td>' +
+        '<td class="nums">' + calcPartyYears(joinDate) + '</td>' +
+        '<td>' + escapeHtml(org) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + memberStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      renderMemberOp(tr);
+      memberTbody.insertBefore(tr, memberTbody.firstChild);
+      document.getElementById('mName').value = '';
+      document.getElementById('mGender').value = '';
+      document.getElementById('mPhone').value = '';
+      document.getElementById('mJoinDate').value = '';
+      document.getElementById('mType').value = '';
+      document.getElementById('mStatus').value = '';
+      queryMemberRows();
+      closeModal('addMemberModal');
+      showToast('保存成功', 'success');
+    };
+
+    window.delMember = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除党员「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          if (panel && panel.id === 'tab-member') memberPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '党员管理') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '党员管理记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，默认10条/页 → 3 页） ==================== */
+    function fmtDate(offset) {
+      var d = new Date(2026, 7, 11 - offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var infoStatuses = ['已发布', '草稿', '已下架'];
+    var infoTimes = ['09:00', '10:30', '14:00', '15:30'];
+    var infoCategories = ['党建动态', '通知公告', '学习教育'];
+    var infoContents = ['请全体党员认真阅读并抓好贯彻落实，相关材料留存支部存档。', '面向全村党员公开，欢迎提出意见建议，公示期为5个工作日。', '组织党员群众开展集中学习与讨论，持续巩固学习教育成果。', '相关安排以党支部正式通知为准，如有疑问请联系支部党务工作者。'];
+
+    // 党建信息发布（6 条基础 + 19 条生成）
+    var infoRows = [
+      ['幸福村党支部开展"七一"建党节主题党日活动', '党建动态', '本村', '2026-07-01 09:00', '已发布', '为庆祝中国共产党成立105周年，幸福村党支部于7月1日开展"七一"建党节主题党日活动，组织全体党员重温入党誓词、学习党的光辉历程，进一步增强党组织的凝聚力和战斗力。'],
+      ['幸福村2026年第二季度党员大会纪要', '党建动态', '本村', '2026-07-08 14:30', '已发布', '会议通报二季度党建工作情况，讨论通过党员积分制考核办法，部署三季度主题党日学习安排。'],
+      ['关于开展党史学习教育通知', '学习教育', '本村', '2026-07-12 10:00', '已发布', '定于每周三下午组织全体党员开展党史学习教育，学习《中国共产党简史》及相关辅导材料，请全体党员准时参加。'],
+      ['幸福村党支部8月主题党日活动方案（草稿）', '党建动态', '本村', '2026-07-25 16:00', '草稿', '拟定8月中旬赴红色教育基地开展主题党日活动，方案正在征求意见中。'],
+      ['关于征集党员志愿服务岗的通知（草稿）', '通知公告', '本村', '2026-07-28 11:00', '草稿', '面向全体党员征集志愿服务岗位意向，涵盖环境整治、助老帮扶、文明宣传等岗位。'],
+      ['幸福村党支部6月理论学习安排', '学习教育', '本村', '2026-06-15 09:30', '已下架', '6月理论学习以党纪学习教育为主线，安排集中学习4次、个人自学若干次。']
+    ];
+    var infoTitles = ['党员先锋岗评选结果公示', '发展对象集中培训报名通知', '党纪学习教育专题计划', '党员积分制考核通报', '党组织生活会议题预告', '党员志愿服务队招募公告', '重温入党誓词活动安排', '党员责任区划分公示', '党务公开栏内容更新通知', '党员联系服务群众走访安排', '主题党日集中学习清单', '党内关怀帮扶慰问名单公示', '入党积极分子考察公告', '党员警示教育学习材料', '党支部换届选举工作安排', '微党课视频征集通知', '党员星级评定结果公示', '村党群服务中心开放公告', '党员亮身份志愿服务倡议'];
+    infoRows.forEach(function (r) { buildInfoRow(infoTbody, r[0], r[1], r[2], r[3], r[4], r[5]); });
+    for (var pi = 0; pi < 19; pi++) {
+      buildInfoRow(infoTbody, infoTitles[pi % infoTitles.length], infoCategories[pi % 3], '本村', fmtDate(17 - pi) + ' ' + infoTimes[pi % 4], infoStatuses[pi % 3], infoContents[pi % infoContents.length]);
+    }
+
+    // 党员管理（6 条基础 + 19 条生成）
+    var memberRows = [
+      ['李建国', '男', '138****5678', '2008-07-01', '18年', '幸福村党支部', '正式', '在职'],
+      ['王桂花', '女', '139****6789', '2010-06-15', '16年', '幸福村党支部', '正式', '在职'],
+      ['赵铁柱', '男', '137****7890', '2012-12-01', '14年', '幸福村党支部', '正式', '离村'],
+      ['孙富贵', '男', '136****8901', '2006-06-30', '20年', '幸福村党支部', '正式', '退休'],
+      ['周小敏', '女', '135****9012', '2018-07-01', '8年', '幸福村党支部', '正式', '在职'],
+      ['吴德发', '男', '188****2345', '2025-07-01', '—', '幸福村党支部', '预备', '在职']
+    ];
+    var memberNames = ['郑国庆', '冯秀英', '陈志强', '蒋春华', '沈国良', '韩丽娟', '杨立新', '朱文静', '秦大山', '尤慧敏', '许建军', '何秀兰', '吕文斌', '施桂芳', '刘志远', '罗晓梅', '唐建国', '马春花', '董家明'];
+    var memberTypes = ['正式', '正式', '预备'];
+    var memberStatuses = ['在职', '离村', '退休'];
+    var memberOrgs = ['幸福村党支部', '幸福村党支部', '幸福村党支部', '幸福村第二党支部'];
+    memberRows.forEach(function (r) { buildMemberRow(memberTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var mi = 0; mi < 19; mi++) {
+      var mType = memberTypes[mi % 3];
+      // 预备党员（近期新入党）状态应为在职，不得为退休/离村
+      var mStatus = mType === '预备' ? '在职' : memberStatuses[mi % 3];
+      var mOrg = memberOrgs[mi % memberOrgs.length];
+      var mGender = mi % 2 === 0 ? '男' : '女';
+      var mPhone = '13' + (5 + (mi % 4)) + '****' + String(1000 + ((mi * 1379) % 9000));
+      var mJoinDate;
+      if (mType === '预备') {
+        mJoinDate = (2024 + (mi % 3)) + fmtDate(17 - mi).slice(4);
+      } else {
+        mJoinDate = (2006 + (mi % 17)) + fmtDate(17 - mi).slice(4);
+      }
+      buildMemberRow(memberTbody, memberNames[mi % memberNames.length], mGender, mPhone, mJoinDate, calcPartyYears(mJoinDate), mOrg, mType, mStatus);
+    }
+
+    function buildInfoRow(tbody, title, category, scope, time, status, content) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-category', category);
+      tr.setAttribute('data-scope', scope);
+      tr.setAttribute('data-status', status);
+      tr.setAttribute('data-content', content);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(title) + '</td>' +
+        '<td>' + escapeHtml(category) + '</td>' +
+        '<td>' + escapeHtml(scope) + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + infoStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderInfoOp(tr);
+    }
+    function buildMemberRow(tbody, name, gender, phone, joinDate, partyYears, org, type, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(gender) + '</td>' +
+        '<td class="nums">' + escapeHtml(phone) + '</td>' +
+        '<td class="nums">' + joinDate + '</td>' +
+        '<td class="nums">' + escapeHtml(partyYears) + '</td>' +
+        '<td>' + escapeHtml(org) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + memberStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderMemberOp(tr);
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    infoPager.render();
+    memberPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#partyTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchPartyTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

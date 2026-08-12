@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>巡查统计</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="patrol-plan.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">巡查统计</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- 统计卡片 -->
+    <div class="stat-cards" style="margin-top:16px;">
+      <div class="stat-card">
+        <div class="stat-num text-blue">10</div>
+        <div class="stat-unit">次</div>
+        <div class="stat-label">本月巡查次数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num text-orange">5</div>
+        <div class="stat-unit">个</div>
+        <div class="stat-label">本月发现问题数</div>
+      </div>
+    </div>
+
+    <!-- 说明文字 -->
+    <div class="card">
+      <div class="text-center text-gray">
+        统计周期：2026年6月
+      </div>
+    </div>
+
+    <!-- 明细统计 -->
+    <div class="card">
+      <div class="card-title">各网格巡查情况</div>
+      <div class="info-row">
+        <div class="info-label">第一网格</div>
+        <div class="info-value text-green">4次 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">第二网格</div>
+        <div class="info-value text-green">3次 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">第三网格</div>
+        <div class="info-value text-green">2次</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">第四网格</div>
+        <div class="info-value text-orange">1次（少1次）</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">问题处理情况</div>
+      <div class="info-row">
+        <div class="info-label">已处理</div>
+        <div class="info-value text-green">3个</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">处理中</div>
+        <div class="info-value text-orange">2个</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

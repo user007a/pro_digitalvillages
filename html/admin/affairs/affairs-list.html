@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>村务公开 - 内容列表</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body data-page-title="村务公开" data-page-subtitle="内容列表">
+<div class="admin-page">
+  <!-- 操作按钮 -->
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openModal('addAffairsModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增公开内容</button>
+    <button class="btn btn-danger" onclick="showConfirm({title:'批量删除确认',message:'确定删除所选内容吗？此操作不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon> 批量删除</button>
+    <button class="btn btn-outline" onclick="showToast('导出成功','success')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出列表</button>
+  </div>
+
+  <!-- Tab筛选 -->
+  <div class="tab-bar">
+    <div class="tab-item active">全部</div>
+    <div class="tab-item">待审核 <span class="tab-badge">3</span></div>
+    <div class="tab-item">已发布</div>
+    <div class="tab-item">草稿/已撤回</div>
+  </div>
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>标题</label>
+      <input type="text" class="form-input" placeholder="请输入标题关键词…">
+    </div>
+    <div class="filter-item">
+      <label>分类</label>
+      <select class="form-select">
+        <option value="">全部分类</option>
+        <option>党务公开</option>
+        <option>村务公开</option>
+        <option>财务公开</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select class="form-select">
+        <option value="">全部状态</option>
+        <option>草稿</option>
+        <option>待审核</option>
+        <option>已发布</option>
+        <option>已撤回</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>发布时间</label>
+      <div class="date-range-group">
+        <input type="date" class="form-input">
+        <span>至</span>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>发布人</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>张国平</option>
+        <option>李卫东</option>
+        <option>王会计</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm">查询</button>
+      <button class="btn btn-search-reset btn-sm">重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="text-center"><input type="checkbox"></th>
+          <th>标题</th>
+          <th>分类</th>
+          <th>发布人</th>
+          <th>发布时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-title="2026年第二季度党支部工作总结" data-category="党务公开" data-type="主动公开" data-status="已发布" data-author="张国平" data-date="2026-06-28">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>2026年第二季度党支部工作总结</td>
+          <td><span class="tag tag-red">党务公开</span></td>
+          <td>张国平</td>
+          <td>2026-06-28</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该内容吗？',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>撤回</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="关于2026年度财务预算执行情况的报告" data-category="财务公开" data-type="主动公开" data-status="待审核" data-author="王会计" data-date="2026-06-27">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>关于2026年度财务预算执行情况的报告</td>
+          <td><span class="tag tag-orange">财务公开</span></td>
+          <td>王会计</td>
+          <td>2026-06-27</td>
+          <td><span class="tag tag-yellow">待审核</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openModal('editAffairsModal');fillAffairsEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="openModal('auditAffairsModal')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="幸福村道路硬化工程招标公告" data-category="村务公开" data-type="主动公开" data-status="已发布" data-author="李卫东" data-date="2026-06-26">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>幸福村道路硬化工程招标公告</td>
+          <td><span class="tag tag-blue">村务公开</span></td>
+          <td>李卫东</td>
+          <td>2026-06-26</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该内容吗？',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>撤回</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="关于发展新党员的公示" data-category="党务公开" data-type="主动公开" data-status="待审核" data-author="张国平" data-date="2026-06-25">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>关于发展新党员的公示</td>
+          <td><span class="tag tag-red">党务公开</span></td>
+          <td>张国平</td>
+          <td>2026-06-25</td>
+          <td><span class="tag tag-yellow">待审核</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openModal('editAffairsModal');fillAffairsEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="openModal('auditAffairsModal')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="2026年6月村集体收入支出明细" data-category="财务公开" data-type="主动公开" data-status="草稿" data-author="王会计" data-date="2026-06-24">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>2026年6月村集体收入支出明细</td>
+          <td><span class="tag tag-orange">财务公开</span></td>
+          <td>王会计</td>
+          <td>2026-06-24</td>
+          <td><span class="tag tag-gray">草稿</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openModal('editAffairsModal');fillAffairsEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="openModal('auditAffairsModal')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="村委会议事决策结果公告（第12期）" data-category="村务公开" data-type="主动公开" data-status="已发布" data-author="李卫东" data-date="2026-06-20">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>村委会议事决策结果公告（第12期）</td>
+          <td><span class="tag tag-blue">村务公开</span></td>
+          <td>李卫东</td>
+          <td>2026-06-20</td>
+          <td><span class="tag tag-green">已发布</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'撤回确认',message:'确定撤回该内容吗？',onConfirm:function(){showToast('已撤回','success')}})"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>撤回</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="关于做好防汛抗旱工作的紧急通知" data-category="村务公开" data-type="主动公开" data-status="已撤回" data-author="李卫东" data-date="2026-06-18">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>关于做好防汛抗旱工作的紧急通知</td>
+          <td><span class="tag tag-blue">村务公开</span></td>
+          <td>李卫东</td>
+          <td>2026-06-18</td>
+          <td><span class="tag tag-red">已撤回</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openModal('editAffairsModal');fillAffairsEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="openModal('auditAffairsModal')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+        <tr data-title="幸福村2026年上半年党建工作报告" data-category="党务公开" data-type="主动公开" data-status="待审核" data-author="张国平" data-date="2026-06-15">
+          <td class="text-center"><input type="checkbox"></td>
+          <td>幸福村2026年上半年党建工作报告</td>
+          <td><span class="tag tag-red">党务公开</span></td>
+          <td>张国平</td>
+          <td>2026-06-15</td>
+          <td><span class="tag tag-yellow">待审核</span></td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewAffairsModal');fillAffairsDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="openModal('editAffairsModal');fillAffairsEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-warning" onclick="openModal('auditAffairsModal')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该内容吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div class="pagination">
+      <span class="page-total">共 8 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn disabled">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function fillAffairsDetail(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('viewAffairsModal');
+  if (!row || !modal) return;
+  var title = row.dataset.title || (row.cells[1] ? row.cells[1].textContent.trim() : '');
+  var category = row.dataset.category || '';
+  var type = row.dataset.type || '';
+  var status = row.dataset.status || '';
+  var author = row.dataset.author || '';
+  var date = row.dataset.date || '';
+  // 弹窗标题
+  var titleEl = modal.querySelector('.detail-title');
+  if (titleEl) titleEl.textContent = title;
+  // 元信息（分类 / 状态 / 发布时间）
+  var meta = modal.querySelector('.detail-meta');
+  if (meta) {
+    var metaTags = meta.querySelectorAll('.tag');
+    if (metaTags.length > 0) metaTags[0].textContent = category;
+    if (metaTags.length > 1) metaTags[1].textContent = status;
+    var timeEl = meta.querySelector('.detail-time');
+    if (timeEl) timeEl.textContent = '发布时间：' + date;
+  }
+  // 详情网格（分类/公开类型/发布人/发布时间/状态）
+  var m = {
+    '分类': category,
+    '公开类型': type,
+    '发布人': author,
+    '发布时间': date,
+    '状态': status
+  };
+  modal.querySelectorAll('.detail-item').forEach(function(item) {
+    var l = item.querySelector('.detail-label');
+    var v = item.querySelector('.detail-value');
+    if (l && v && m[l.textContent] !== undefined) v.textContent = m[l.textContent];
+  });
+  // 正文内容区（无 data-content 时按标题生成通用文本，保证不同行内容不同）
+  var content = modal.querySelector('.editor-area-readonly');
+  if (content) {
+    content.textContent = row.dataset.content || ('「' + title + '」的详细内容：\n为保障村民知情权、参与权与监督权，现将本事项情况予以公开，欢迎广大村民查阅并监督。如有疑问或异议，请及时向村务监督委员会反映。');
+  }
+}
+function fillAffairsEdit(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('editAffairsModal');
+  if (!row || !modal) return;
+  var titleInput = modal.querySelector('.form-input');
+  if (titleInput) titleInput.value = row.dataset.title || '';
+  var catSelect = modal.querySelectorAll('.form-select')[0];
+  if (catSelect) { for (var i=0;i<catSelect.options.length;i++) { if (catSelect.options[i].text === (row.dataset.category||'')) catSelect.selectedIndex = i; } }
+}
+</script>
+<script src="../js/admin.js"></script>
+
+<!-- 新增村务公开内容弹窗 -->
+<div class="modal-overlay" id="addAffairsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>新增村务公开内容</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addAffairsModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">标题 <span class="text-danger">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入标题…" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">内容分类</label>
+          <select class="form-select">
+            <option value="">请选择分类</option>
+            <option>财务公开</option>
+            <option>事务公开</option>
+            <option>政务公开</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">公开类型</label>
+          <select class="form-select">
+            <option>主动公开</option>
+            <option>依申请公开</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">内容概述</label>
+        <textarea class="form-textarea" rows="3" placeholder="请输入内容概述…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">详细内容</label>
+        <div class="editor-toolbar">
+          <button class="editor-btn toolbar-btn" data-cmd="bold" title="加粗"><b>B</b></button>
+          <button class="editor-btn toolbar-btn" data-cmd="italic" title="斜体"><i>I</i></button>
+          <button class="editor-btn toolbar-btn" data-cmd="underline" title="下划线"><u>U</u></button>
+          <button class="editor-btn toolbar-btn" data-cmd="insertOrderedList" title="有序列表">编号</button>
+          <button class="editor-btn toolbar-btn" data-cmd="insertUnorderedList" title="无序列表">圆点</button>
+        </div>
+        <div class="editor-area editor-area-editable" contenteditable="true"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">附件上传</label>
+        <div class="upload-area">
+          <div class="upload-icon">+</div>
+          <div class="upload-text">点击或拖拽文件到此区域</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">发布状态</label>
+          <select class="form-select">
+            <option>草稿</option>
+            <option>立即发布</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addAffairsModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addAffairsModal');showToast('保存成功','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看村务公开详情弹窗 -->
+<div class="modal-overlay detail-modal" id="viewAffairsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>村务公开详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewAffairsModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h4 class="detail-title">2026年第二季度党支部工作总结</h4>
+      <div class="detail-meta">
+        <span class="tag tag-red">党务公开</span>
+        <span class="tag tag-green">已发布</span>
+        <span class="detail-time">发布时间：2026-06-28</span>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">分类</span>
+          <span class="detail-value">党务公开</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">公开类型</span>
+          <span class="detail-value">主动公开</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">发布人</span>
+          <span class="detail-value">张国平</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">发布时间</span>
+          <span class="detail-value">2026-06-28</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">阅读次数</span>
+          <span class="detail-value">128</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">状态</span>
+          <span class="detail-value"><span class="tag tag-green">已发布</span></span>
+        </div>
+      </div>
+      <div class="form-group detail-content-group">
+        <label class="form-label">内容详情</label>
+        <div class="editor-area editor-area-readonly">2026年第二季度，党支部紧紧围绕乡村振兴战略目标，深入开展各项党建工作，包括组织党员学习、开展主题党日活动、推进村民自治等重点工作。</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('viewAffairsModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑村务公开内容弹窗 -->
+<div class="modal-overlay" id="editAffairsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>编辑村务公开内容</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editAffairsModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">标题 <span class="text-danger">*</span></label>
+        <input type="text" class="form-input" value="关于2026年度财务预算执行情况的报告" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">内容分类</label>
+          <select class="form-select">
+            <option>财务公开</option>
+            <option>事务公开</option>
+            <option>政务公开</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">公开类型</label>
+          <select class="form-select">
+            <option>主动公开</option>
+            <option>依申请公开</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">内容概述</label>
+        <textarea class="form-textarea" rows="3">关于2026年度全村财务预算执行情况，包括各项收入和支出的详细说明。</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">详细内容</label>
+        <div class="editor-toolbar">
+          <button class="editor-btn toolbar-btn" data-cmd="bold" title="加粗"><b>B</b></button>
+          <button class="editor-btn toolbar-btn" data-cmd="italic" title="斜体"><i>I</i></button>
+          <button class="editor-btn toolbar-btn" data-cmd="underline" title="下划线"><u>U</u></button>
+          <button class="editor-btn toolbar-btn" data-cmd="insertOrderedList" title="有序列表">编号</button>
+          <button class="editor-btn toolbar-btn" data-cmd="insertUnorderedList" title="无序列表">圆点</button>
+        </div>
+        <div class="editor-area editor-area-editable" contenteditable="true">一、收入情况：本年度村集体收入共计86.5万元...<br>二、支出情况：本年度村集体支出共计72.3万元...</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">附件上传</label>
+        <div class="upload-area">
+          <div class="upload-icon">+</div>
+          <div class="upload-text">点击或拖拽文件到此区域</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">发布状态</label>
+          <select class="form-select">
+            <option>草稿</option>
+            <option>立即发布</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editAffairsModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('editAffairsModal');showToast('保存成功','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗 -->
+<div class="modal-overlay" id="auditAffairsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>内容审核</h3>
+      <button type="button" class="modal-close" onclick="closeModal('auditAffairsModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">审核意见 <span class="text-danger">*</span></label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入审核意见…" required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">审核结果</label>
+        <div class="form-group radio-group">
+          <label class="radio-label">
+            <input type="radio" name="auditResult" value="pass" checked> 通过
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="auditResult" value="reject"> 驳回
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('auditAffairsModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('auditAffairsModal');showToast('审核已提交','success')">提交审核</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,545 @@
+/* ============================================
+   南丰蜜桔后台风格组件（Nanfeng Backend Style Components）
+   ------------------------------------------------------------
+   依赖：tokens.css（设计令牌），使用前必须先引入：
+     @import url("tokens.css");
+     @import url("nanfeng.css");
+   或按顺序 <link> 引入两个文件。
+
+   提供与「南丰蜜桔模型管理系统」后台一致的组件样式：
+   - 页面底 #f0f2f5、卡片白底 12px 圆角 + 细边框
+   - 页面标题区（主标题 20px 粗体 + 副标题 13px 灰字）
+   - 功能按钮（绿底圆角）/ 搜索筛选区（白卡 + 紧凑控件 + 绿色按钮）
+   - 表格（浅灰表头 / 行分隔）/ 统计卡片（数值 + 右侧圆形图标）
+   - 数据列表操作区（绿色查看、蓝色编辑、紫色警告、红色删除文字按钮）
+   - 分页（激活绿底白字）、Tab（绿色下划线）、上传区（拖拽虚线）
+   - 弹窗（白底圆角、去装饰条、footer 绿色按钮、确认弹窗左对齐）
+   注：本组件面向后台管理端，按需引入，避免影响其它端。
+   ============================================ */
+
+/* --- 页面底 --- */
+body {
+  background: #f0f2f5;
+}
+
+/* --- 卡片系：白底 + 细边框 + 12px 圆角 + 轻阴影（参考 rounded-xl border-gray-100） --- */
+.card,
+.table-wrap,
+.detail-card,
+.detail-panel,
+.split-left,
+.split-right,
+.tree-panel,
+.toolbar,
+.search-filter,
+.filter-bar,
+.role-toolbar,
+.pagination {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* --- 卡片标题：去除左侧竖条，改为「图标 + 文字」 --- */
+.card-title,
+.dv-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+.card-title::before,
+.dv-panel-title::before {
+  display: none;
+}
+
+/* --- 页面标题区（对齐参考 text-xl font-bold text-gray-800） --- */
+.page-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* --- 按钮：圆角 8px、主按钮绿、次按钮白底灰边 --- */
+.btn {
+  border-radius: 8px;
+  font-size: 13px;
+}
+.btn-primary {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+.btn-primary:hover {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+}
+.btn-outline {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: var(--text-secondary);
+}
+.btn-outline:hover {
+  border-style: solid;
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+.btn-search-reset {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: var(--text-secondary);
+}
+.btn-search-reset:hover {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+/* --- 表单控件：灰边框、圆角、绿色聚焦环 --- */
+.form-input,
+.form-select,
+.form-textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  outline: none;
+}
+
+/* --- 表格：表头浅灰小号 + 行分隔（参考 bg-gray-50 / divide-y / px-6） --- */
+.data-table thead th,
+.table-wrap table thead th,
+.config-table thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+}
+.data-table tbody td,
+.table-wrap table tbody td,
+.config-table tbody td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* --- 统计卡片：数值/趋势 + 右侧圆形图标（参考南丰首页） --- */
+.stat-card {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.stat-icon {
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 26px;
+}
+.stat-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+.stat-change {
+  font-size: 12px;
+}
+
+/* --- 分页：激活绿底白字 --- */
+.pagination .page-btn.active {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: #fff;
+}
+
+/* --- 弹窗：白底圆角 + 去除头部左竖条 --- */
+.modal {
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+}
+.modal-header::before {
+  display: none;
+}
+
+/* --- 标签：圆角全（参考 rounded-full 徽章） --- */
+.tag {
+  border-radius: 999px;
+}
+
+/* --- 表格内文字操作按钮 --- */
+.op-cell .btn-op {
+  border-radius: 6px;
+}
+
+
+/* ============================================
+   页面级模板（Page Template）
+   - 页面标题区（主标题 + 副标题）
+   - 操作按钮行 / 搜索筛选区紧凑横排 + 小灰标签 + 绿色按钮
+   - Tab 绿色下划线、操作区彩色文字按钮、分页、上传区、弹窗 footer
+   ============================================ */
+
+/* --- 页面容器 --- */
+.admin-page { padding: 24px; }
+.content-wrapper { padding: 24px; min-height: 100vh; overflow-y: auto; box-sizing: border-box; }
+
+/* --- 页面标题区（南丰 h1 主标题 + p 副标题） --- */
+.page-header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+.page-header p,
+.page-header .text-muted { font-size: 13px; color: #6b7280; margin: 0; }
+
+/* --- 操作按钮行（action-bar）与工具栏按钮组 --- */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 数据列表操作按钮靠右（新增/导出/导入等） */
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.action-bar .btn,
+.toolbar .btn {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 13px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* 工具栏操作按钮同样靠右对齐（与 action-bar 一致，对齐南丰列表操作区） */
+.toolbar {
+  justify-content: flex-end;
+}
+
+/* --- 搜索筛选区：白卡 + 紧凑控件 + 小灰标签 + 绿色查询按钮 --- */
+.filter-bar,
+.search-filter {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+.filter-bar .filter-item,
+.search-filter .filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+.filter-bar .filter-item label,
+.search-filter .filter-item label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+.filter-bar .filter-item .form-input,
+.filter-bar .filter-item .form-select,
+.search-filter .filter-item .form-input,
+.search-filter .filter-item .form-select {
+  height: 34px;
+  font-size: 13px;
+  border-radius: 8px;
+  border-color: #d1d5db;
+}
+.filter-bar .filter-actions,
+.search-filter .filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  align-items: flex-end;
+}
+.filter-bar .filter-actions .btn,
+.search-filter .filter-actions .btn {
+  height: 34px;
+  font-size: 13px;
+  padding: 0 16px;
+  border-radius: 8px;
+}
+
+/* --- Tab（南丰：白卡 + 激活绿色下划线） --- */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eef0f3;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  padding: 0 16px;
+}
+.tab-item {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-item:hover { color: #374151; }
+.tab-item.active,
+.tab-item.active-menu { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+/* --- 操作区：南丰彩色文字按钮（蓝/紫/红/灰） --- */
+.op-cell { gap: 4px; }
+.op-cell .op-divider,
+.op-cell .btn-op-divider { display: none; }
+.op-cell .btn-op { color: #16a34a; }              /* 查看 = 绿（对齐南丰蜜桔后台） */
+.op-cell .btn-op:hover { background: #f0fdf4; color: #15803d; }
+.op-cell .btn-op.btn-op-edit { color: #2563eb; }  /* 编辑 = 蓝（南丰语义色，例外保留） */
+.op-cell .btn-op.btn-op-edit:hover { background: #eff6ff; color: #1d4ed8; }
+.op-cell .btn-op.btn-op-danger { color: #dc2626; }
+.op-cell .btn-op.btn-op-danger:hover { background: #fef2f2; color: #b91c1c; }
+.op-cell .btn-op.btn-op-warning { color: #9333ea; }
+.op-cell .btn-op.btn-op-warning:hover { background: #f5f3ff; color: #7e22ce; }
+.op-cell .btn-op.btn-op-info { color: #6b7280; }
+.op-cell .btn-op.btn-op-info:hover { background: #f3f4f6; color: #4b5563; }
+
+/* --- 分页 --- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 12px 20px;
+  margin-top: 12px;
+}
+.pagination .page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+}
+.pagination .page-btn:hover:not(.active):not(.disabled) {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+.pagination .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+
+/* --- 上传区（南丰拖拽上传） --- */
+.upload-area {
+  background: #fafafa;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.upload-area:hover,
+.upload-area.dragging { border-color: #16a34a; background: #f0fdf4; }
+.upload-icon { font-size: 40px; color: #9ca3af; margin-bottom: 12px; }
+.upload-text { font-size: 14px; color: #4b5563; margin-bottom: 4px; }
+.upload-hint { font-size: 12px; color: #9ca3af; }
+
+/* --- 导出弹窗：格式选择卡片（图片 / Excel / PDF / TXT） --- */
+.modal-tip { font-size: 13px; color: #6b7280; margin: 0 0 14px; line-height: 1.6; }
+.export-format-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.export-format {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #4b5563;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.export-format iconify-icon { font-size: 26px; color: #9ca3af; transition: color 0.15s; }
+.export-format:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+.export-format:hover iconify-icon { color: #16a34a; }
+.export-format.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+.export-format.active iconify-icon { color: #16a34a; }
+
+/* --- 弹窗：表单标签 / footer 按钮对齐南丰 --- */
+.modal-body .form-group label { font-size: 13px; color: #4b5563; }
+.modal-footer .btn { border-radius: 8px; }
+.modal-footer .btn-primary { background: #16a34a; border-color: #16a34a; }
+.modal-footer .btn-primary:hover { background: #15803d; border-color: #15803d; }
+
+/* --- 确认弹窗：南丰左对齐（图标 + 文字 + 底部按钮条） --- */
+.confirm-modal .modal-body { text-align: left; padding: 24px; }
+.confirm-flex { display: flex; align-items: flex-start; gap: 14px; }
+.confirm-text { flex: 1; min-width: 0; }
+.confirm-modal .confirm-icon { width: 48px; height: 48px; margin: 0; flex-shrink: 0; }
+.confirm-modal .confirm-title { font-size: 16px; font-weight: 600; color: #1f2937; margin: 0 0 4px; }
+.confirm-modal .confirm-message { font-size: 13px; color: #6b7280; line-height: 1.6; }
+.confirm-modal .modal-footer {
+  justify-content: flex-end;
+  padding: 14px 24px;
+  border-top: 1px solid #f0f2f5;
+  background: #fafafa;
+  border-radius: 0 0 12px 12px;
+}
+
+/* --- 数据表格：列表名称标题 + 南丰分页控件 --- */
+.table-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  padding: 16px 20px 12px;
+  margin: 0;
+  border-bottom: 1px solid #f0f2f5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 数据列表表头：标题左、操作按钮右（与列表标题同行对齐，对齐南丰） */
+.table-actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  margin: 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.table-actions-header .table-title {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+  display: block;
+}
+.table-actions-header .toolbar,
+.table-actions-header .action-bar,
+.table-actions-header .pg-toolbar-actions {
+  margin-bottom: 0;
+}
+
+/* 去掉数据表格的选择列（checkbox 列） */
+th.checkbox-cell,
+td.checkbox-cell { display: none; }
+th:has(> input[type="checkbox"]),
+td:has(> input[type="checkbox"]) { display: none; }
+.pagination.pg-pager { justify-content: space-between; align-items: center; }
+.pagination.pg-pager .page-total { margin-right: auto; font-size: 13px; color: #6b7280; }
+.pagination.pg-pager .pg-page-range,
+.pagination.pg-pager .pg-page-count { color: #374151; font-weight: 600; }
+.pagination.pg-pager .page-size-select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #374151;
+  background: #fff;
+}
+.pagination.pg-pager .page-btns { display: inline-flex; align-items: center; gap: 6px; }
+.pagination.pg-pager .pg-prev,
+.pagination.pg-pager .pg-next { min-width: auto; height: 32px; padding: 0 12px; }
+
+
+/* ============================================
+   图片摆放（对齐南丰：白卡内、圆角、细边框、等比缩放、缩略图 hover 轻上浮）
+   ============================================ */
+.figure {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  padding: 8px;
+  overflow: hidden;
+}
+.figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 单张缩略图 */
+.figure-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  border: 1px solid #eef0f3;
+  object-fit: cover;
+  background: #f9fafb;
+  display: block;
+}
+
+/* 缩略图网格（hover 轻上浮） */
+.figure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+.figure-grid .figure-thumb {
+  width: 100%;
+  height: 96px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.figure-grid .figure-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+
+/* ============================================
+   详情弹窗：顶部绿色渐变头（对齐南丰 detail-header）
+   用法：在目标 .modal-overlay 上追加 class "detail-modal" 即可启用
+   ============================================ */
+.detail-modal .modal-header {
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 100%);
+  color: #fff;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+.detail-modal .modal-header::before { display: none; }
+.detail-modal .modal-header h3 {
+  color: #fff;
+  padding-left: 0;
+}
+.detail-modal .modal-close { color: rgba(255, 255, 255, 0.9); }
+.detail-modal .modal-close:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }

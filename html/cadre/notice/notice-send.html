@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布通知</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="notice-sent.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">发布通知</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <form data-validate onsubmit="return false">
+    <!-- 通知标题 -->
+    <div class="form-group">
+      <div class="form-label">通知标题</div>
+      <input type="text" name="title" class="form-input" placeholder="请输入通知标题…" value="关于幸福村2026年第三季度村民议事日程安排的通知" required autocomplete="off">
+    </div>
+
+    <!-- 通知内容 -->
+    <div class="form-group">
+      <div class="form-label">通知内容</div>
+      <!-- 模拟富文本工具栏 -->
+      <div class="toolbar">
+        <div class="tool-btn"><b>B</b></div>
+        <div class="tool-btn"><i>I</i></div>
+        <div class="tool-btn"><u>U</u></div>
+        <div class="tool-btn">&#8226;</div>
+        <div class="tool-btn">1.</div>
+        <div class="tool-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>
+      </div>
+      <textarea name="content" class="form-textarea" placeholder="请输入通知内容…" rows="6" style="border:none;border-radius:0;" required autocomplete="off"></textarea>
+    </div>
+
+    <!-- 附件上传 -->
+    <div class="form-group">
+      <div class="form-label">附件上传</div>
+      <div class="upload-area">
+        <div class="upload-add" onclick="showToast('选择附件')">
+          <span class="upload-icon">+</span>
+          <span>添加附件</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 推送范围 -->
+    <div class="form-group">
+      <div class="form-label">推送范围</div>
+      <div class="radio-group mt-8">
+        <label class="radio-item" onclick="document.getElementById('groupSelect').classList.add('hidden')">
+          <input type="radio" name="scope" value="all" checked> 全村
+        </label>
+        <label class="radio-item" onclick="document.getElementById('groupSelect').classList.toggle('hidden')">
+          <input type="radio" name="scope" value="group"> 指定组
+        </label>
+        <label class="radio-item" onclick="document.getElementById('groupSelect').classList.add('hidden')">
+          <input type="radio" name="scope" value="person"> 指定人
+        </label>
+      </div>
+      <div id="groupSelect" class="hidden" style="margin-top:10px;">
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" checked> 第一组</label>
+          <label class="checkbox-item"><input type="checkbox"> 第二组</label>
+          <label class="checkbox-item"><input type="checkbox"> 第三组</label>
+          <label class="checkbox-item"><input type="checkbox"> 第四组</label>
+          <label class="checkbox-item"><input type="checkbox"> 第五组</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模板按钮 -->
+    <div class="form-group">
+      <div class="form-label">快捷模板</div>
+    </div>
+    <div class="template-row">
+      <div class="tpl-btn" onclick="document.querySelector('.form-input').value='关于召开村民代表大会的通知';document.querySelector('.form-textarea').value='各位村民：\n\n经村委会研究决定，定于2026年7月15日上午9:00在村委会会议室召开村民代表大会，请各位村民代表准时参加。\n\n会议议题：\n1. 审议2026年上半年村务公开报告\n2. 讨论下半年工作计划\n\n特此通知。'">会议通知</div>
+      <div class="tpl-btn" onclick="document.querySelector('.form-input').value='关于开展文化惠民活动的通知';document.querySelector('.form-textarea').value='各位村民：\n\n为丰富村民文化生活，定于2026年7月20日在村文化广场举办文化惠民演出活动，欢迎各位村民踊跃参加。\n\n活动时间：7月20日 18:00-21:00\n活动地点：村文化广场\n\n幸福村村委会'">活动通知</div>
+      <div class="tpl-btn" onclick="document.querySelector('.form-input').value='关于2026年度城乡居民基本医疗保险缴费的通知';document.querySelector('.form-textarea').value='各位村民：\n\n2026年度城乡居民基本医疗保险缴费工作已开始，请各位村民在规定时间内完成缴费。\n\n缴费标准：每人每年380元\n缴费截止时间：2026年12月31日\n缴费方式：通过微信/支付宝搜索"城乡居民医保"进行缴费\n\n逾期未缴费将影响明年医保待遇，请及时缴费。\n\n幸福村村委会'">政策宣传</div>
+    </div>
+    </form>
+
+    <!-- 发送按钮 -->
+    <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="showModal('确认发送', '确认立即发送此通知？', function(){ showToast('发送成功'); })">立即发送</button>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

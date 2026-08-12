@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乡村振兴数字平台 · 幸福村数据大屏</title>
+  <meta name="theme-color" content="#14532d">
+  <script src="../shared/js/icons-local.js"></script>
+  <script src="../shared/js/iconify-icon.min.js"></script>
+  <script src="../shared/js/echarts.min.js"></script>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <style>
+    /* v3.0 生态绿覆盖：dashboard.css 蓝系硬编码为第二批清理项，本页先行覆盖为生态绿/暖棕 */
+    .tab-hero::after {
+      background: linear-gradient(120deg, rgba(20,83,45,0.72) 0%, rgba(20,83,45,0.42) 45%, rgba(22,163,74,0.24) 100%);
+    }
+    .tab-hero::before {
+      background: linear-gradient(to top, var(--color-dashboard-bg) 0%, rgba(246,250,244,0) 100%);
+    }
+    .kpi-item:hover { transform: none; }
+    .panel-card:hover { transform: none; }
+    .panel-card::after { background: transparent; }
+    .dash-live-dot { animation: none; }
+    .dash-logo { background: var(--color-primary-500); box-shadow: none; }
+    .panel-title::before { background: var(--color-primary-500); }
+    .village-gis { background: var(--color-primary-50); }
+    .ic-blue   { background: rgba(22, 163, 74, 0.10); }
+    .ic-cyan   { background: rgba(15, 118, 110, 0.10); color: var(--color-info); }
+    .ic-purple { background: rgba(217, 119, 6, 0.12);  color: var(--color-accent-700); }
+    .progress-fill-bar.fill-blue  { background: var(--color-primary-500); }
+    .progress-fill-bar.fill-cyan  { background: var(--color-info); }
+    .progress-fill-bar.fill-green { background: var(--color-success); }
+    .flow-bar-fill.fill-blue  { background: var(--color-primary-500); }
+    .flow-bar-fill.fill-cyan  { background: var(--color-info); }
+    .flow-bar-fill.fill-amber { background: var(--color-accent-500); }
+    .flow-bar-fill.fill-green { background: var(--color-success); }
+    /* 屏蔽 dashboard.css 蓝网格伪元素与蓝青光晕浮动动画（蓝系实渲） */
+    .dashboard::before, .dashboard::after { display: none; }
+  </style>
+</head>
+<body data-end="dashboard">
+  <a href="#dash-main" class="skip-link">跳转到主要内容</a>
+  <div class="dashboard">
+
+    <!-- ======== Header (72px) ======== -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <div class="dash-logo"><iconify-icon icon="ri:community-line"></iconify-icon></div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">幸福村数字乡村</h1>
+          <span class="dash-subtitle">幸福村村情数据总览</span>
+        </div>
+      </div>
+
+      <div class="dash-header-right">
+        <div class="dash-live"><span class="dash-live-dot"></span>数据已更新</div>
+        <div class="dash-datetime">
+          <div class="dash-date">
+            <iconify-icon icon="ri:calendar-line"></iconify-icon>
+            <span class="dash-date-text">2026年08月06日</span>
+          </div>
+          <span class="dash-time">00:00:00</span>
+        </div>
+        <button class="dash-btn-fullscreen" aria-label="切换全屏" data-tip="全屏显示">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======== Tab Bar (48px) ======== -->
+    <nav class="dash-tabbar" role="tablist" aria-label="数据面板切换">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="0"><iconify-icon icon="ri:community-line"></iconify-icon>村情总览</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="1"><iconify-icon icon="ri:plant-line"></iconify-icon>产业兴旺</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="2"><iconify-icon icon="ri:leaf-line"></iconify-icon>生态宜居</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="3"><iconify-icon icon="ri:book-open-line"></iconify-icon>乡风文明</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="4"><iconify-icon icon="ri:shield-check-line"></iconify-icon>治理有效</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="5"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon>生活富裕</button>
+    </nav>
+
+    <!-- ======== Main Content ======== -->
+    <main class="dash-main" id="dash-main">
+
+      <!-- ==========================================
+           Tab 1: 村情总览
+           ========================================== -->
+      <div class="tab-content active" data-tab="0">
+        <!-- Hero -->
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title">
+              <h2>村情总览</h2>
+              <p>全村 5 个自然村 · 1,024 户</p>
+              <span class="tab-hero-tag">幸福村 · 村情数据</span>
+            </div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:group-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">总人口</span>
+                  <span><span class="kpi-item-value">3,846</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:home-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">户数</span>
+                  <span><span class="kpi-item-value">1,024</span><span class="kpi-item-unit">户</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:flag-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">党员</span>
+                  <span><span class="kpi-item-value">128</span><span class="kpi-item-unit">人</span></span>
+                </div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:hand-heart-line"></iconify-icon></div>
+                <div class="kpi-item-text">
+                  <span class="kpi-item-label">脱贫户</span>
+                  <span><span class="kpi-item-value">36</span><span class="kpi-item-unit">户</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-column body -->
+        <div class="tab-body">
+          <!-- Left -->
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>人口结构</div>
+              <div class="panel-body"><div id="chart-pop-structure" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:shield-check-line"></iconify-icon>治理指标</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card">
+                    <div class="data-card-icon ic-blue"><iconify-icon icon="ri:grid-line"></iconify-icon></div>
+                    <div class="data-card-info"><span class="data-card-value">98%</span><span class="data-card-label">网格覆盖率</span></div>
+                  </div>
+                  <div class="data-card">
+                    <div class="data-card-icon ic-cyan"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon></div>
+                    <div class="data-card-info"><span class="data-card-value">95%</span><span class="data-card-label">事件处理率</span></div>
+                  </div>
+                  <div class="data-card">
+                    <div class="data-card-icon ic-amber"><iconify-icon icon="ri:road-map-line"></iconify-icon></div>
+                    <div class="data-card-info"><span class="data-card-value">86%</span><span class="data-card-label">道路硬化率</span></div>
+                  </div>
+                  <div class="data-card">
+                    <div class="data-card-icon ic-green"><iconify-icon icon="ri:wifi-line"></iconify-icon></div>
+                    <div class="data-card-info"><span class="data-card-value">95%</span><span class="data-card-label">宽带覆盖率</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Village GIS Map -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:map-2-line"></iconify-icon>村庄GIS电子地图<span class="panel-title-extra">幸福村全域</span></div>
+              <div class="panel-body" style="padding: 12px;">
+                <div class="village-gis">
+                  <svg aria-hidden="true" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet">
+                    <!-- Background grid -->
+                    <defs>
+                      <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(22,163,74,0.08)" stroke-width="1"/>
+                      </pattern>
+                      <linearGradient id="river-grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#bbf7d0" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#4ade80" stop-opacity="0.4"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="600" height="400" fill="url(#grid-pattern)"/>
+
+                    <!-- River -->
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="url(#river-grad)" stroke-width="28" stroke-linecap="round" opacity="0.5"/>
+                    <path d="M 0,180 Q 150,200 300,160 T 600,200" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+
+                    <!-- Residential zone -->
+                    <rect x="180" y="100" width="160" height="90" rx="8" fill="rgba(22,163,74,0.08)" stroke="rgba(22,163,74,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="260" y="150" text-anchor="middle" fill="#14532d" font-size="13" font-weight="600">居民区</text>
+
+                    <!-- Agricultural zone -->
+                    <rect x="60" y="240" width="180" height="120" rx="8" fill="rgba(22,163,74,0.08)" stroke="rgba(22,163,74,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="150" y="305" text-anchor="middle" fill="#14532d" font-size="13" font-weight="600">农业区</text>
+
+                    <!-- Industrial zone -->
+                    <rect x="400" y="240" width="140" height="100" rx="8" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.2)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="470" y="295" text-anchor="middle" fill="#b45309" font-size="13" font-weight="600">产业区</text>
+
+                    <!-- Tourism zone -->
+                    <rect x="400" y="80" width="140" height="80" rx="8" fill="rgba(217,119,6,0.08)" stroke="rgba(217,119,6,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="470" y="125" text-anchor="middle" fill="#92400e" font-size="13" font-weight="600">旅游区</text>
+
+                    <!-- Roads -->
+                    <line x1="0" y1="200" x2="600" y2="200" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+                    <line x1="300" y1="0" x2="300" y2="400" stroke="rgba(22,163,74,0.15)" stroke-width="6" stroke-linecap="round"/>
+
+                    <!-- Grid divisions -->
+                    <rect x="180" y="100" width="80" height="45" rx="4" fill="none" stroke="rgba(22,163,74,0.3)" stroke-width="1"/>
+                    <rect x="260" y="100" width="80" height="45" rx="4" fill="none" stroke="rgba(22,163,74,0.3)" stroke-width="1"/>
+                    <rect x="180" y="145" width="80" height="45" rx="4" fill="none" stroke="rgba(22,163,74,0.3)" stroke-width="1"/>
+                    <rect x="260" y="145" width="80" height="45" rx="4" fill="none" stroke="rgba(22,163,74,0.3)" stroke-width="1"/>
+
+                    <!-- Markers -->
+                    <g class="gis-marker">
+                      <circle cx="260" cy="125" r="8" fill="#16a34a" stroke="#fff" stroke-width="2"/>
+                      <text x="260" y="113" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">村委会</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="340" cy="160" r="8" fill="#d97706" stroke="#fff" stroke-width="2"/>
+                      <text x="355" y="158" fill="#14532d" font-size="11" font-weight="600">文化礼堂</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="200" cy="140" r="8" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+                      <text x="200" y="175" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">卫生所</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="470" cy="295" r="8" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+                      <text x="470" y="325" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">加工厂</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="150" cy="305" r="8" fill="#10b981" stroke="#fff" stroke-width="2"/>
+                      <text x="150" y="335" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">蔬菜大棚</text>
+                    </g>
+                    <g class="gis-marker">
+                      <circle cx="470" cy="110" r="8" fill="#0f766e" stroke="#fff" stroke-width="2"/>
+                      <text x="470" y="98" text-anchor="middle" fill="#14532d" font-size="11" font-weight="600">农家乐</text>
+                    </g>
+
+                    <!-- Camera markers -->
+                    <circle cx="320" cy="90" r="5" fill="#f59e0b" stroke="#fff" stroke-width="1.5"/>
+                    <circle cx="160" cy="280" r="5" fill="#f59e0b" stroke="#fff" stroke-width="1.5"/>
+                    <circle cx="440" cy="340" r="5" fill="#f59e0b" stroke="#fff" stroke-width="1.5"/>
+                  </svg>
+                  <div class="gis-legend">
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#16a34a;"></span>村委会</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#d97706;"></span>文化设施</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#10b981;"></span>农业设施</div>
+                    <div class="gis-legend-item"><span class="gis-legend-dot" style="background:#f59e0b;"></span>监控点</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>年龄段分布</div>
+              <div class="panel-body"><div id="chart-age-dist" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:user-heart-line"></iconify-icon>重点人群</div>
+              <div class="panel-body">
+                <div class="stat-mini-grid">
+                  <div class="stat-mini"><div class="stat-mini-val">28</div><div class="stat-mini-label">低保户</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">15</div><div class="stat-mini-label">残疾人</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">12</div><div class="stat-mini-label">留守儿童</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">8</div><div class="stat-mini-label">独居老人</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           Tab 2: 产业兴旺
+           ========================================== -->
+      <div class="tab-content" data-tab="1">
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title"><h2>产业兴旺</h2><p>种植 · 养殖 · 加工 · 乡村旅游</p><span class="tab-hero-tag">幸福村 · 村情数据</span></div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">总产值</span><span><span class="kpi-item-value">1.2</span><span class="kpi-item-unit">亿元</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:store-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">产业数</span><span><span class="kpi-item-value">12</span><span class="kpi-item-unit">个</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:team-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">就业</span><span><span class="kpi-item-value">860</span><span class="kpi-item-unit">人</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:line-chart-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">增收率</span><span><span class="kpi-item-value">15.6</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-body">
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>产业链结构</div>
+              <div class="panel-body"><div id="chart-industry-structure" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:apps-line"></iconify-icon>产业分布</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:plant-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">合作社</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:building-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">8</span><span class="data-card-label">企业</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:store-2-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">35</span><span class="data-card-label">个体户</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:shopping-cart-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">520</span><span class="data-card-label">带动农户</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-grouped-line"></iconify-icon>近5年产业产值趋势<span class="panel-title-extra">单位：万元</span></div>
+              <div class="panel-body"><div id="chart-industry-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up" style="flex: 2;">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-2-line"></iconify-icon>主要产业产值排行<span class="panel-title-extra">单位：万元</span></div>
+              <div class="panel-body"><div id="chart-industry-rank" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:medal-line"></iconify-icon>品牌认证</div>
+              <div class="panel-body">
+                <div class="info-list">
+                  <div class="info-item info-success"><iconify-icon icon="ri:checkbox-circle-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">幸福有机米 — 绿色食品认证</div><div class="info-meta">年销量120吨</div></div></div>
+                  <div class="info-item info-success"><iconify-icon icon="ri:checkbox-circle-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">高山核桃 — 有机产品认证</div><div class="info-meta">年销量85吨</div></div></div>
+                  <div class="info-item info-info"><iconify-icon icon="ri:award-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">土蜂蜜 — 地理标志产品</div><div class="info-meta">年销量12吨</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           Tab 3: 生态宜居
+           ========================================== -->
+      <div class="tab-content" data-tab="2">
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title"><h2>生态宜居</h2><p>绿化率 68% · 水质保持 II 类</p><span class="tab-hero-tag">幸福村 · 村情数据</span></div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:plant-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">绿化率</span><span><span class="kpi-item-value">68</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:water-flash-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">水质</span><span><span class="kpi-item-value">II</span><span class="kpi-item-unit">类</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:cloudy-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">空气优良率</span><span><span class="kpi-item-value">92</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:recycle-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">垃圾处理率</span><span><span class="kpi-item-value">100</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-body">
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:line-chart-line"></iconify-icon>环境事件月度趋势</div>
+              <div class="panel-body"><div id="chart-env-trend" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:water-flash-line"></iconify-icon>河长制巡河</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:route-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">156</span><span class="data-card-label">巡河次数</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:footprint-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">328</span><span class="data-card-label">巡河里程</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:error-warning-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">发现问题</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">已处置</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:radar-line"></iconify-icon>环境指标五维评估</div>
+              <div class="panel-body"><div id="chart-env-radar" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:recycle-line"></iconify-icon>垃圾分类参与率</div>
+              <div class="panel-body"><div id="chart-waste-rate" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:leaf-line"></iconify-icon>生态修复项目</div>
+              <div class="panel-body">
+                <div class="progress-list">
+                  <div class="progress-item"><div class="progress-header"><span class="progress-label">河道清淤工程</span><span class="progress-val text-blue">85%</span></div><div class="progress-track"><div class="progress-fill-bar fill-blue" style="width:85%;"></div></div></div>
+                  <div class="progress-item"><div class="progress-header"><span class="progress-label">荒山绿化项目</span><span class="progress-val text-green">72%</span></div><div class="progress-track"><div class="progress-fill-bar fill-green" style="width:72%;"></div></div></div>
+                  <div class="progress-item"><div class="progress-header"><span class="progress-label">湿地保护工程</span><span class="progress-val text-cyan">60%</span></div><div class="progress-track"><div class="progress-fill-bar fill-cyan" style="width:60%;"></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           Tab 4: 乡风文明
+           ========================================== -->
+      <div class="tab-content" data-tab="3">
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title"><h2>乡风文明</h2><p>文明户 186 户 · 志愿者 156 人</p><span class="tab-hero-tag">幸福村 · 村情数据</span></div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:medal-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">文明户</span><span><span class="kpi-item-value">186</span><span class="kpi-item-unit">户</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:calendar-event-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">活动</span><span><span class="kpi-item-value">48</span><span class="kpi-item-unit">场</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:heart-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">志愿者</span><span><span class="kpi-item-value">156</span><span class="kpi-item-unit">人</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:emotion-happy-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">满意度</span><span><span class="kpi-item-value">96</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-body">
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>文明实践活动统计<span class="panel-title-extra">单位：场</span></div>
+              <div class="panel-body"><div id="chart-culture-activity" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:exchange-line"></iconify-icon>移风易俗</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:restaurant-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">12</span><span class="data-card-label">红白理事会简办</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:money-dollar-circle-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">38万</span><span class="data-card-label">节约资金</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:file-list-3-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">6</span><span class="data-card-label">村规民约修订</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-purple"><iconify-icon icon="ri:chat-heart-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">24</span><span class="data-card-label">道德讲堂</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:line-chart-line"></iconify-icon>活动参与趋势<span class="panel-title-extra">单位：人次</span></div>
+              <div class="panel-body"><div id="chart-culture-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up" style="flex: 2;">
+              <div class="panel-title"><iconify-icon icon="ri:trophy-line"></iconify-icon>志愿服务时长排行<span class="panel-title-extra">单位：小时</span></div>
+              <div class="panel-body"><div id="chart-volunteer-rank" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:scales-3-line"></iconify-icon>道德红黑榜</div>
+              <div class="panel-body">
+                <div class="info-list">
+                  <div class="info-item info-success"><iconify-icon icon="ri:thumb-up-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">王建国 — 见义勇为救落水儿童</div><div class="info-meta">红榜 · 2026-07</div></div></div>
+                  <div class="info-item info-success"><iconify-icon icon="ri:thumb-up-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">李秀兰 — 十年如一日赡养孤寡老人</div><div class="info-meta">红榜 · 2026-07</div></div></div>
+                  <div class="info-item info-danger"><iconify-icon icon="ri:thumb-down-fill" class="info-icon"></iconify-icon><div class="info-content"><div class="info-text">赵国强 — 随意倾倒建筑垃圾</div><div class="info-meta">黑榜 · 已整改</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           Tab 5: 治理有效
+           ========================================== -->
+      <div class="tab-content" data-tab="4">
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title"><h2>治理有效</h2><p>网格服务全覆盖 · 诉求 4 小时响应</p><span class="tab-hero-tag">幸福村 · 村情数据</span></div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">事件处理率</span><span><span class="kpi-item-value">95</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:map-pin-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">巡查覆盖率</span><span><span class="kpi-item-value">98</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:timer-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">诉求响应</span><span><span class="kpi-item-value">4</span><span class="kpi-item-unit">小时</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:scales-3-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">调解率</span><span><span class="kpi-item-value">92</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-body">
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>网格巡查统计<span class="panel-title-extra">单位：次</span></div>
+              <div class="panel-body"><div id="chart-grid-patrol" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:customer-service-2-line"></iconify-icon>诉求分析</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:mail-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">86</span><span class="data-card-label">本月诉求</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">82</span><span class="data-card-label">已办结</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:time-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">4</span><span class="data-card-label">办理中</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-cyan"><iconify-icon icon="ri:thumb-up-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">96%</span><span class="data-card-label">满意率</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Event Flow Diagram -->
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:flow-chart"></iconify-icon>事件处置流程<span class="panel-title-extra">本月数据</span></div>
+              <div class="panel-body">
+                <div class="event-flow">
+                  <div class="flow-row">
+                    <div class="flow-node">
+                      <div class="flow-node-circle" style="background: var(--color-primary-500);"><iconify-icon icon="ri:eye-line"></iconify-icon></div>
+                      <div class="flow-node-label">发现</div>
+                      <div class="flow-node-count">186件</div>
+                    </div>
+                    <div class="flow-arrow"><iconify-icon icon="ri:arrow-right-line"></iconify-icon></div>
+                    <div class="flow-node">
+                      <div class="flow-node-circle" style="background: var(--color-info);"><iconify-icon icon="ri:upload-2-line"></iconify-icon></div>
+                      <div class="flow-node-label">上报</div>
+                      <div class="flow-node-count">178件</div>
+                    </div>
+                    <div class="flow-arrow"><iconify-icon icon="ri:arrow-right-line"></iconify-icon></div>
+                    <div class="flow-node">
+                      <div class="flow-node-circle" style="background: var(--color-accent-600);"><iconify-icon icon="ri:send-plane-line"></iconify-icon></div>
+                      <div class="flow-node-label">派发</div>
+                      <div class="flow-node-count">175件</div>
+                    </div>
+                    <div class="flow-arrow"><iconify-icon icon="ri:arrow-right-line"></iconify-icon></div>
+                    <div class="flow-node">
+                      <div class="flow-node-circle" style="background: var(--color-accent-500);"><iconify-icon icon="ri:tools-line"></iconify-icon></div>
+                      <div class="flow-node-label">处置</div>
+                      <div class="flow-node-count">170件</div>
+                    </div>
+                    <div class="flow-arrow"><iconify-icon icon="ri:arrow-right-line"></iconify-icon></div>
+                    <div class="flow-node">
+                      <div class="flow-node-circle" style="background: var(--color-success);"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon></div>
+                      <div class="flow-node-label">验收</div>
+                      <div class="flow-node-count">167件</div>
+                    </div>
+                  </div>
+                  <!-- Conversion bars -->
+                  <div style="width: 100%; margin-top: var(--space-4); display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: var(--font-size-xs); color: var(--text-secondary);"><span>发现 → 上报</span><span class="text-blue">95.7%</span></div>
+                      <div class="flow-bar"><div class="flow-bar-fill fill-blue" style="width: 95.7%;"></div></div>
+                    </div>
+                    <div>
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: var(--font-size-xs); color: var(--text-secondary);"><span>上报 → 派发</span><span class="text-cyan">98.3%</span></div>
+                      <div class="flow-bar"><div class="flow-bar-fill fill-cyan" style="width: 98.3%;"></div></div>
+                    </div>
+                    <div>
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: var(--font-size-xs); color: var(--text-secondary);"><span>派发 → 处置</span><span class="text-amber">97.1%</span></div>
+                      <div class="flow-bar"><div class="flow-bar-fill fill-amber" style="width: 97.1%;"></div></div>
+                    </div>
+                    <div>
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: var(--font-size-xs); color: var(--text-secondary);"><span>处置 → 验收</span><span class="text-green">98.2%</span></div>
+                      <div class="flow-bar"><div class="flow-bar-fill fill-green" style="width: 98.2%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>事件类型分布</div>
+              <div class="panel-body"><div id="chart-event-type" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:fire-line"></iconify-icon>本月事件排行</div>
+              <div class="panel-body">
+                <div class="rank-list">
+                  <div class="rank-item"><span class="rank-num">1</span><span class="rank-name">环境卫生问题</span><span class="rank-value">42件</span></div>
+                  <div class="rank-item"><span class="rank-num">2</span><span class="rank-name">基础设施损坏</span><span class="rank-value">28件</span></div>
+                  <div class="rank-item"><span class="rank-num">3</span><span class="rank-name">邻里纠纷调解</span><span class="rank-value">22件</span></div>
+                  <div class="rank-item"><span class="rank-num">4</span><span class="rank-name">安全隐患排查</span><span class="rank-value">18件</span></div>
+                  <div class="rank-item"><span class="rank-num">5</span><span class="rank-name">便民服务请求</span><span class="rank-value">15件</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           Tab 6: 生活富裕
+           ========================================== -->
+      <div class="tab-content" data-tab="5">
+        <div class="tab-hero" style="background: linear-gradient(rgba(20,83,45,0.62), rgba(22,163,74,0.28)), url('../images/village-aerial.jpg') center/cover no-repeat;">
+          <div class="tab-hero-content">
+            <div class="tab-hero-title"><h2>生活富裕</h2><p>人均收入 3.2 万元 · 就业率 96%</p><span class="tab-hero-tag">幸福村 · 村情数据</span></div>
+            <div class="kpi-strip">
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:wallet-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">人均收入</span><span><span class="kpi-item-value">3.2</span><span class="kpi-item-unit">万元</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:bank-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">集体收入</span><span><span class="kpi-item-value">280</span><span class="kpi-item-unit">万元</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:shield-user-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">参保率</span><span><span class="kpi-item-value">98</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+              <div class="kpi-item">
+                <div class="kpi-item-icon"><iconify-icon icon="ri:briefcase-line"></iconify-icon></div>
+                <div class="kpi-item-text"><span class="kpi-item-label">就业率</span><span><span class="kpi-item-value">96</span><span class="kpi-item-unit">%</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-body">
+          <div class="tab-col tab-col-left">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:pie-chart-line"></iconify-icon>收入结构</div>
+              <div class="panel-body"><div id="chart-income-structure" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:heart-pulse-line"></iconify-icon>民生保障</div>
+              <div class="panel-body">
+                <div class="data-cards">
+                  <div class="data-card"><div class="data-card-icon ic-blue"><iconify-icon icon="ri:hospital-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">98%</span><span class="data-card-label">医保参保率</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-green"><iconify-icon icon="ri:shield-check-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">96%</span><span class="data-card-label">养老参保率</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-amber"><iconify-icon icon="ri:user-heart-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">286</span><span class="data-card-label">低保覆盖人</span></div></div>
+                  <div class="data-card"><div class="data-card-icon ic-purple"><iconify-icon icon="ri:cake-line"></iconify-icon></div><div class="data-card-info"><span class="data-card-value">542</span><span class="data-card-label">60岁以上</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-center">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:line-chart-line"></iconify-icon>近5年收入趋势对比<span class="panel-title-extra">单位：万元</span></div>
+              <div class="panel-body"><div id="chart-income-trend" class="chart-box"></div></div>
+            </div>
+          </div>
+
+          <div class="tab-col tab-col-right">
+            <div class="panel-card animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>就业分布<span class="panel-title-extra">单位：人</span></div>
+              <div class="panel-body"><div id="chart-employment-dist" class="chart-box"></div></div>
+            </div>
+            <div class="panel-card panel-fixed animate-dash-fade-up">
+              <div class="panel-title"><iconify-icon icon="ri:shield-star-line"></iconify-icon>社会保障</div>
+              <div class="panel-body">
+                <div class="stat-mini-grid">
+                  <div class="stat-mini"><div class="stat-mini-val">98%</div><div class="stat-mini-label">医保覆盖</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">96%</div><div class="stat-mini-label">养老覆盖</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">32</div><div class="stat-mini-label">公益岗位</div></div>
+                  <div class="stat-mini"><div class="stat-mini-val">128万</div><div class="stat-mini-label">惠农资金</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ======== Footer Status Bar ======== -->
+    <footer class="dash-footer">
+      <div class="dash-footer-left"><iconify-icon icon="ri:database-2-line"></iconify-icon>数据来源：村级数字乡村数据平台 · <span id="dash-refresh-time">更新于 --:--:--</span></div>
+      <div class="dash-footer-right"><iconify-icon icon="ri:focus-3-line"></iconify-icon>1920×1080 大屏适配 · 30s 自动轮播</div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="dash-tooltip"></div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

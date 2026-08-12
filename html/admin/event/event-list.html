@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件管理 - 村级管理</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ===== 统计卡片：对齐「病虫害模型·防控方案」页面风格（每行 4 个） ===== */
+    .stat-cards.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-cards.cols-4 .stat-card {
+      position: relative;
+      display: block;
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-left: none;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 20px 76px 20px 20px;
+      min-height: 112px;
+      transition: box-shadow 0.2s ease;
+    }
+    .stat-cards.cols-4 .stat-card:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+      transform: none;
+    }
+    .stat-cards.cols-4 .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .stat-cards.cols-4 .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; line-height: 1.2; }
+    .stat-cards.cols-4 .stat-value .text-sm { font-size: 13px; font-weight: 400; color: #9ca3af; margin-left: 2px; }
+    .stat-cards.cols-4 .stat-desc { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+    .stat-cards.cols-4 .stat-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .stat-cards.cols-4 .stat-card.card-red .stat-icon { background: #fef2f2; color: #dc2626; }
+    .stat-cards.cols-4 .stat-card.card-yellow .stat-icon { background: #fffbeb; color: #d97706; }
+    .stat-cards.cols-4 .stat-card.card-green .stat-icon { background: #f0fdf4; color: #16a34a; }
+    .stat-cards.cols-4 .stat-card.card-blue .stat-icon { background: #f0fdfa; color: #0f766e; }
+    @media (max-width: 992px) { .stat-cards.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .stat-cards.cols-4 { grid-template-columns: 1fr; } }
+  </style></head>
+<body data-page-title="事件管理" data-page-subtitle="事件上报、分派与处置闭环管理">
+<div class="admin-page">
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-red">
+      <div class="stat-label">待分派</div>
+      <div class="stat-value">2 <span class="text-sm">件</span></div>
+      <div class="stat-desc">需要尽快处理</div>
+      <div class="stat-icon"><iconify-icon icon="ri:inbox-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">处置中</div>
+      <div class="stat-value">4 <span class="text-sm">件</span></div>
+      <div class="stat-desc">正在跟进处理</div>
+      <div class="stat-icon"><iconify-icon icon="ri:refresh-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">本月已完成</div>
+      <div class="stat-value">42 <span class="text-sm">件</span></div>
+      <div class="stat-desc">环比 +12.5%</div>
+      <div class="stat-icon"><iconify-icon icon="ri:check-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-blue">
+      <div class="stat-label">平均处置时长</div>
+      <div class="stat-value">18 <span class="text-sm">小时</span></div>
+      <div class="stat-desc">较上月缩短 2h</div>
+      <div class="stat-icon"><iconify-icon icon="ri:timer-line"></iconify-icon></div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openModal('addEventModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增事件</button>
+    <button class="btn btn-warning" onclick="openBatchDispatch()"><iconify-icon icon="ri:share-forward-line"></iconify-icon> 批量分派</button>
+    <button class="btn" onclick="showToast('导出成功','success')"><iconify-icon icon="ri:download-line"></iconify-icon> 导出列表</button>
+  </div>
+
+  <!-- 搜索筛选（两行） -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>事件标题</label>
+      <input type="text" class="form-input" placeholder="请输入事件标题…">
+    </div>
+    <div class="filter-item">
+      <label>事件类型</label>
+      <select class="form-select">
+        <option value="">全部类型</option>
+        <option>环境卫生</option>
+        <option>基础设施</option>
+        <option>邻里纠纷</option>
+        <option>安全隐患</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select>
+        <option value="">全部状态</option>
+        <option>待分派</option>
+        <option>已分派</option>
+        <option>处置中</option>
+        <option>已完成</option>
+        <option>已关闭</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>优先级</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>紧急</option>
+        <option>高</option>
+        <option>中</option>
+        <option>低</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>上报人</label>
+      <input type="text" class="form-input" placeholder="请输入上报人…">
+    </div>
+    <div class="filter-item">
+      <label>处理人</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>王建国</option>
+        <option>李秀兰</option>
+        <option>张明远</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>上报时间</label>
+      <div class="date-range-group">
+        <input type="date" class="form-input">
+        <span>至</span>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>所属网格</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>第一网格</option>
+        <option>第二网格</option>
+        <option>第三网格</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>事件编号</th>
+          <th>事件标题</th>
+          <th>事件类型</th>
+          <th>优先级</th>
+          <th>事件状态</th>
+          <th>上报人</th>
+          <th>处理人</th>
+          <th>上报时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-id="EV-20260630-0001" data-title="村口垃圾堆积问题" data-type="环境卫生" data-priority="紧急" data-status="处置中" data-reporter="李大华" data-handler="王建国" data-time="2026-06-30 08:30" data-grid="第一网格" data-desc="村口大路旁垃圾桶已满溢出，周围散落大量生活垃圾，影响村容村貌，且已散发异味，村民反映强烈，希望尽快清理。">
+          <td>EV-20260630-0001</td>
+          <td>村口垃圾堆积问题</td>
+          <td><span class="tag tag-green">环境卫生</span></td>
+          <td><span class="tag tag-red">紧急</span></td>
+          <td><span class="tag tag-yellow">处置中</span></td>
+          <td>李大华</td>
+          <td>王建国</td>
+          <td>2026-06-30 08:30</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260630-0002" data-title="三组道路路面塌陷" data-type="基础设施" data-priority="高" data-status="处置中" data-reporter="王小明" data-handler="李秀兰" data-time="2026-06-30 16:20" data-grid="第二网格" data-desc="三组主干道路面出现大面积塌陷，塌陷区域约3平方米，存在较大安全隐患，影响车辆和行人通行。">
+          <td>EV-20260630-0002</td>
+          <td>三组道路路面塌陷</td>
+          <td><span class="tag tag-blue">基础设施</span></td>
+          <td><span class="tag tag-orange">高</span></td>
+          <td><span class="tag tag-yellow">处置中</span></td>
+          <td>王小明</td>
+          <td>李秀兰</td>
+          <td>2026-06-30 16:20</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260628-0003" data-title="村民反映水渠堵塞" data-type="基础设施" data-priority="高" data-status="待分派" data-reporter="刘桂芳" data-handler="—" data-time="2026-06-28 10:45" data-grid="第三网格" data-desc="村民反映第三网格水渠严重堵塞，导致灌溉用水无法正常流通，影响周边农田灌溉。">
+          <td>EV-20260628-0003</td>
+          <td>村民反映水渠堵塞</td>
+          <td><span class="tag tag-blue">基础设施</span></td>
+          <td><span class="tag tag-orange">高</span></td>
+          <td><span class="tag tag-gray">待分派</span></td>
+          <td>刘桂芳</td>
+          <td>—</td>
+          <td>2026-06-28 10:45</td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('dispatchEventModal');fillEventDispatch(this)"><iconify-icon icon="ri:share-forward-line"></iconify-icon>分派</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260627-0004" data-title="二组邻里排水纠纷" data-type="邻里纠纷" data-priority="中" data-status="已完成" data-reporter="陈志刚" data-handler="张明远" data-time="2026-06-27 14:00" data-grid="第二网格" data-desc="二组两户村民因排水沟走向问题发生纠纷，双方情绪激动，需要调解处理。">
+          <td>EV-20260627-0004</td>
+          <td>二组邻里排水纠纷</td>
+          <td><span class="tag tag-purple">邻里纠纷</span></td>
+          <td><span class="tag tag-yellow">中</span></td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td>陈志刚</td>
+          <td>张明远</td>
+          <td>2026-06-27 14:00</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="closeEvent(this)"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260626-0005" data-title="老电线杆倾斜隐患" data-type="安全隐患" data-priority="紧急" data-status="已分派" data-reporter="杨春花" data-handler="王建国" data-time="2026-06-26 09:10" data-grid="第一网格" data-desc="村口老电线杆严重倾斜，电线低垂，随时可能倒伏，对过往行人和车辆构成严重安全隐患。">
+          <td>EV-20260626-0005</td>
+          <td>老电线杆倾斜隐患</td>
+          <td><span class="tag tag-red">安全隐患</span></td>
+          <td><span class="tag tag-red">紧急</span></td>
+          <td><span class="tag tag-blue">已分派</span></td>
+          <td>杨春花</td>
+          <td>王建国</td>
+          <td>2026-06-26 09:10</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260625-0006" data-title="广场花坛破损" data-type="基础设施" data-priority="低" data-status="已完成" data-reporter="赵德海" data-handler="李秀兰" data-time="2026-06-25 11:30" data-grid="第一网格" data-desc="村广场花坛边沿出现多处破损，石材脱落，影响村容美观，需要修缮。">
+          <td>EV-20260625-0006</td>
+          <td>广场花坛破损</td>
+          <td><span class="tag tag-blue">基础设施</span></td>
+          <td><span class="tag tag-gray">低</span></td>
+          <td><span class="tag tag-green">已完成</span></td>
+          <td>赵德海</td>
+          <td>李秀兰</td>
+          <td>2026-06-25 11:30</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="closeEvent(this)"><iconify-icon icon="ri:close-circle-line"></iconify-icon>关闭</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260624-0007" data-title="一组河水污染问题" data-type="环境卫生" data-priority="高" data-status="处置中" data-reporter="吴德福" data-handler="张明远" data-time="2026-06-24 08:50" data-grid="第一网格" data-desc="一组河水出现明显浑浊和异味，疑似附近养殖场排放污水所致，村民担心饮用水安全。">
+          <td>EV-20260624-0007</td>
+          <td>一组河水污染问题</td>
+          <td><span class="tag tag-green">环境卫生</span></td>
+          <td><span class="tag tag-orange">高</span></td>
+          <td><span class="tag tag-yellow">处置中</span></td>
+          <td>吴德福</td>
+          <td>张明远</td>
+          <td>2026-06-24 08:50</td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr data-id="EV-20260623-0008" data-title="路灯不亮反馈" data-type="基础设施" data-priority="中" data-status="待分派" data-reporter="郑十一" data-handler="—" data-time="2026-06-23 19:40" data-grid="第三网格" data-desc="第三网格路段连续多晚路灯不亮，夜间出行不便，村民多次反映希望尽快维修。">
+          <td>EV-20260623-0008</td>
+          <td>路灯不亮反馈</td>
+          <td><span class="tag tag-blue">基础设施</span></td>
+          <td><span class="tag tag-yellow">中</span></td>
+          <td><span class="tag tag-gray">待分派</span></td>
+          <td>郑十一</td>
+          <td>—</td>
+          <td>2026-06-23 19:40</td>
+          <td class="op-cell">
+            <button class="btn-op btn-op-warning" onclick="openModal('dispatchEventModal');fillEventDispatch(this)"><iconify-icon icon="ri:share-forward-line"></iconify-icon>分派</button>
+            <span class="op-divider"></span>
+            <button class="btn-op" onclick="openModal('viewEventModal');fillEventDetail(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 8 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn disabled">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function fillEventDetail(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('viewEventModal');
+  if (!row || !modal) return;
+  var m = {
+    '事件标题': row.dataset.title, '事件编号': row.dataset.id, '事件类型': row.dataset.type,
+    '优先级': row.dataset.priority, '状态': row.dataset.status, '上报人': row.dataset.reporter,
+    '处理人': row.dataset.handler, '上报时间': row.dataset.time, '所属网格': row.dataset.grid
+  };
+  modal.querySelectorAll('.detail-item').forEach(function(item) {
+    var l = item.querySelector('.detail-label');
+    var v = item.querySelector('.detail-value');
+    if (l && v && m[l.textContent]) {
+      if (l.textContent === '事件标题' || l.textContent === '事件类型' || l.textContent === '优先级' || l.textContent === '状态') {
+        v.innerHTML = '<span class="tag tag-' + getTagClass(m[l.textContent]) + '">' + m[l.textContent] + '</span>';
+      } else {
+        v.textContent = m[l.textContent];
+      }
+    }
+  });
+  // Fill description
+  var descItem = modal.querySelector('.detail-item.detail-full:last-child .detail-value');
+  if (descItem && row.dataset.desc) descItem.textContent = row.dataset.desc;
+  // Update timeline reporter
+  var tlReporters = modal.querySelectorAll('.timeline-desc span:first-child');
+  if (tlReporters[0]) tlReporters[0].textContent = row.dataset.reporter || '';
+}
+function fillEventDispatch(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('dispatchEventModal');
+  if (!row || !modal) return;
+  window._dispatchRow = row;
+}
+function openBatchDispatch() {
+  window._dispatchRow = null;
+  window._batchDispatch = true;
+  var sel = document.querySelector('#dispatchEventModal .form-select');
+  if (sel) sel.value = '';
+  openModal('dispatchEventModal');
+}
+function setRowDispatched(row, handler) {
+  row.dataset.status = '已分派';
+  row.dataset.handler = handler;
+  var tds = row.querySelectorAll('td');
+  if (tds[4]) tds[4].innerHTML = '<span class="tag tag-blue">已分派</span>';
+  if (tds[6]) tds[6].textContent = handler;
+  var opCell = tds[8];
+  if (opCell) {
+    var btn = opCell.querySelector('.btn-op-warning');
+    var divider = btn ? btn.nextElementSibling : null;
+    if (btn) { if (divider && divider.classList.contains('op-divider')) divider.remove(); btn.remove(); }
+  }
+}
+function confirmEventDispatch() {
+  var modal = document.getElementById('dispatchEventModal');
+  var sel = modal.querySelector('.form-select');
+  var handler = sel ? sel.value : '';
+  if (!handler) { showToast('请选择处理人', 'warning'); return; }
+  var rows = [];
+  if (window._batchDispatch) {
+    var tbody = document.querySelector('table tbody');
+    rows = tbody.querySelectorAll('tr[data-status="待分派"]');
+    window._batchDispatch = false;
+  } else if (window._dispatchRow) {
+    rows = [window._dispatchRow];
+    window._dispatchRow = null;
+  }
+  var count = 0;
+  rows.forEach(function (row) { setRowDispatched(row, handler); count++; });
+  closeModal('dispatchEventModal');
+  showToast('分派成功，已分派 ' + count + ' 个事件', 'success');
+}
+function closeEvent(btn) {
+  var row = btn.closest('tr');
+  showConfirm({
+    title: '关闭事件',
+    message: '确定关闭该事件吗？',
+    onConfirm: function () {
+      row.dataset.status = '已关闭';
+      var tds = row.querySelectorAll('td');
+      if (tds[4]) tds[4].innerHTML = '<span class="tag tag-gray">已关闭</span>';
+      var opCell = tds[8];
+      if (opCell) {
+        var closeBtn = opCell.querySelector('.btn-op-warning');
+        var divider = closeBtn ? closeBtn.nextElementSibling : null;
+        if (closeBtn) { if (divider && divider.classList.contains('op-divider')) divider.remove(); closeBtn.remove(); }
+      }
+      showToast('事件已关闭', 'success');
+    }
+  });
+}
+function getTagClass(text) {
+  if (['环境卫生'].indexOf(text) >= 0) return 'green';
+  if (['基础设施'].indexOf(text) >= 0) return 'blue';
+  if (['邻里纠纷'].indexOf(text) >= 0) return 'purple';
+  if (['安全隐患'].indexOf(text) >= 0) return 'red';
+  if (['紧急'].indexOf(text) >= 0) return 'red';
+  if (['高'].indexOf(text) >= 0) return 'orange';
+  if (['中'].indexOf(text) >= 0) return 'yellow';
+  if (['低'].indexOf(text) >= 0) return 'gray';
+  if (['待分派'].indexOf(text) >= 0) return 'gray';
+  if (['已分派'].indexOf(text) >= 0) return 'blue';
+  if (['处置中'].indexOf(text) >= 0) return 'yellow';
+  if (['已完成'].indexOf(text) >= 0) return 'green';
+  return 'gray';
+}
+</script>
+<script src="../js/admin.js"></script>
+
+<!-- 新增事件弹窗 -->
+<div class="modal-overlay" id="addEventModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>新增事件</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addEventModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">事件标题 <span class="text-danger">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入事件标题…" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">事件类型</label>
+          <select class="form-select">
+            <option value="">请选择类型</option>
+            <option>环境卫生</option>
+            <option>基础设施</option>
+            <option>邻里纠纷</option>
+            <option>安全隐患</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">优先级</label>
+          <select class="form-select">
+            <option>紧急</option>
+            <option>高</option>
+            <option>中</option>
+            <option>低</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">上报人</label>
+          <input type="text" class="form-input" placeholder="请输入上报人姓名…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">所属网格</label>
+          <select class="form-select">
+            <option value="">请选择网格</option>
+            <option>第一网格</option>
+            <option>第二网格</option>
+            <option>第三网格</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">事件描述</label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入事件描述…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">现场照片</label>
+        <div class="upload-area">
+          <div class="upload-icon">+</div>
+          <div class="upload-text">点击或拖拽文件到此区域</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addEventModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addEventModal');showToast('事件已提交','success')">提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看事件详情弹窗 -->
+<div class="modal-overlay detail-modal" id="viewEventModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>事件详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewEventModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-layout">
+        <div class="detail-main">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">事件标题</span>
+              <span class="detail-value">村口垃圾堆积问题</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">事件类型</span>
+              <span class="detail-value"><span class="tag tag-green">环境卫生</span></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">优先级</span>
+              <span class="detail-value"><span class="tag tag-red">紧急</span></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">状态</span>
+              <span class="detail-value"><span class="tag tag-yellow">处置中</span></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">上报人</span>
+              <span class="detail-value">李大华</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">处理人</span>
+              <span class="detail-value">王建国</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">上报时间</span>
+              <span class="detail-value">2026-06-30 08:30</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">处理时间</span>
+              <span class="detail-value">2026-06-30 09:15</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">所属网格</span>
+              <span class="detail-value">第一网格</span>
+            </div>
+            <div class="detail-item detail-full">
+              <span class="detail-label">事件描述</span>
+              <span class="detail-value">村口大路旁垃圾桶已满溢出，周围散落大量生活垃圾，影响村容村貌，且已散发异味，村民反映强烈，希望尽快清理。</span>
+            </div>
+          </div>
+        </div>
+        <div class="detail-side">
+          <div class="detail-card">
+            <h4>处理流程</h4>
+            <div class="timeline">
+              <div class="timeline-item done">
+                <div class="timeline-title">事件上报</div>
+                <div class="timeline-desc"><span>李大华</span><span>2026-06-30 08:30</span></div>
+              </div>
+              <div class="timeline-item done">
+                <div class="timeline-title">事件分派</div>
+                <div class="timeline-desc"><span>分派给 王建国</span><span>2026-06-30 09:00</span></div>
+              </div>
+              <div class="timeline-item current">
+                <div class="timeline-title">处置中</div>
+                <div class="timeline-desc"><span>王建国 已受理</span><span>2026-06-30 09:15</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="detail-card">
+            <h4>操作</h4>
+            <div class="side-actions">
+              <button class="btn btn-primary btn-sm" onclick="closeModal('viewEventModal');openModal('dispatchEventModal')">分派</button>
+              <button class="btn btn-warning btn-sm" onclick="showToast('已开始处理','success')">处理</button>
+              <button class="btn btn-danger btn-sm" onclick="showConfirm({title:'关闭事件',message:'确定关闭该事件吗？',onConfirm:function(){showToast('事件已关闭','success')}})">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('viewEventModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分派事件弹窗 -->
+<div class="modal-overlay" id="dispatchEventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>分派事件</h3>
+      <button type="button" class="modal-close" onclick="closeModal('dispatchEventModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">处理人 <span class="text-danger">*</span></label>
+        <select class="form-select">
+          <option value="">请选择处理人</option>
+          <option>王建国</option>
+          <option>李秀兰</option>
+          <option>张明远</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">处理要求</label>
+        <textarea class="form-textarea" rows="3" placeholder="请输入处理要求…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">截止时间</label>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('dispatchEventModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmEventDispatch()">确认分派</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ---- 筛选/查询/重置后同步 pg-pager 分页信息（不修改公共脚本） ---- */
+  function syncEventPager() {
+    var pager = document.querySelector('.pagination.pg-pager');
+    if (!pager) return;
+    var table = pager.parentNode.querySelector('table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].style.display === 'none') rows[i].classList.add('pg-filtered');
+      else rows[i].classList.remove('pg-filtered');
+    }
+    if (typeof pager._pgRender === 'function') pager._pgRender();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var bars = document.querySelectorAll('.filter-bar, .search-filter');
+    for (var i = 0; i < bars.length; i++) {
+      var actions = bars[i].querySelector('.filter-actions');
+      if (!actions) continue;
+      var searchBtn = actions.querySelector('.btn-primary');
+      var resetBtn = actions.querySelector('.btn:not(.btn-primary):not(.btn-success)');
+      if (searchBtn) searchBtn.addEventListener('click', syncEventPager);
+      if (resetBtn) resetBtn.addEventListener('click', syncEventPager);
+    }
+  });
+</script>
+
+</body>
+</html>

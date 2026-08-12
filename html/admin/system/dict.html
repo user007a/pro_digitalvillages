@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据字典 - 系统管理</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* 页头（对齐南丰参数配置页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .page-header .page-header-actions { display: flex; align-items: center; gap: 8px; }
+    /* 页面边距（对齐南丰 content-wrapper 24px） */
+    .admin-page { padding: 24px; }
+  </style>
+</head>
+<body data-no-pg-toolbar data-page-title="数据字典" data-page-subtitle="系统字典分类与字典项配置">
+<div class="admin-page">
+  <!-- 顶部页头 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>数据字典</h2>
+      <p>系统字典分类与字典项统一管理，支持新增、编辑与状态维护</p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn btn-primary" onclick="openModal('saveDictModal')"><iconify-icon icon="ri:save-line"></iconify-icon> 保存</button>
+    </div>
+  </div>
+
+  <!-- 左右分栏 -->
+  <div class="split-layout">
+    <!-- 左侧字典分类 -->
+    <div class="split-left">
+      <div class="split-left-header">
+        <h4>字典分类</h4>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addDictCategoryModal')">+ 新增分类</button>
+      </div>
+      <div class="dict-item active" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">产业类型</div>
+          <div class="dict-code">industry_type</div>
+        </div>
+        <span class="dict-count">5项</span>
+      </div>
+      <div class="dict-item" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">事件类型</div>
+          <div class="dict-code">event_type</div>
+        </div>
+        <span class="dict-count">5项</span>
+      </div>
+      <div class="dict-item" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">村干部职务</div>
+          <div class="dict-code">cadre_position</div>
+        </div>
+        <span class="dict-count">4项</span>
+      </div>
+      <div class="dict-item" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">兑换商品分类</div>
+          <div class="dict-code">exchange_category</div>
+        </div>
+        <span class="dict-count">4项</span>
+      </div>
+      <div class="dict-item" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">学历</div>
+          <div class="dict-code">education_level</div>
+        </div>
+        <span class="dict-count">7项</span>
+      </div>
+      <div class="dict-item" onclick="switchDictCategory(this)">
+        <div>
+          <div class="dict-name">政治面貌</div>
+          <div class="dict-code">political_status</div>
+        </div>
+        <span class="dict-count">5项</span>
+      </div>
+    </div>
+
+    <!-- 右侧字典项列表 -->
+    <div class="split-right">
+      <div class="split-right-header">
+        <div>
+          <strong>产业类型</strong>
+          <span class="text-gray">industry_type</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addDictItemModal')">+ 新增字典项</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="text-center"><input type="checkbox"></th>
+              <th>字典项标签</th>
+              <th>字典项值</th>
+              <th>排序号</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-category="industry_type" data-label="种植业" data-value="planting" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>种植业</td>
+              <td><code>planting</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="industry_type" data-label="养殖业" data-value="breeding" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>养殖业</td>
+              <td><code>breeding</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="industry_type" data-label="加工业" data-value="processing" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>加工业</td>
+              <td><code>processing</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="industry_type" data-label="服务业" data-value="service" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>服务业</td>
+              <td><code>service</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="industry_type" data-label="电商" data-value="ecommerce" data-sort="5" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>电商</td>
+              <td><code>ecommerce</code></td>
+              <td>5</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <!-- 事件类型 -->
+            <tr data-category="event_type" data-label="环境卫生" data-value="environment" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>环境卫生</td>
+              <td><code>environment</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="event_type" data-label="基础设施" data-value="infrastructure" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>基础设施</td>
+              <td><code>infrastructure</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="event_type" data-label="邻里纠纷" data-value="neighborhood" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>邻里纠纷</td>
+              <td><code>neighborhood</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="event_type" data-label="安全隐患" data-value="safety" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>安全隐患</td>
+              <td><code>safety</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="event_type" data-label="其他" data-value="other_event" data-sort="5" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>其他</td>
+              <td><code>other_event</code></td>
+              <td>5</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <!-- 村干部职务 -->
+            <tr data-category="cadre_position" data-label="村党支部书记" data-value="party_secretary" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>村党支部书记</td>
+              <td><code>party_secretary</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="cadre_position" data-label="村委会主任" data-value="village_director" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>村委会主任</td>
+              <td><code>village_director</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="cadre_position" data-label="村委副书记" data-value="deputy_secretary" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>村委副书记</td>
+              <td><code>deputy_secretary</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="cadre_position" data-label="村会计" data-value="accountant" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>村会计</td>
+              <td><code>accountant</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <!-- 兑换商品分类 -->
+            <tr data-category="exchange_category" data-label="日用品" data-value="daily_necessities" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>日用品</td>
+              <td><code>daily_necessities</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="exchange_category" data-label="农副产品" data-value="agri_products" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>农副产品</td>
+              <td><code>agri_products</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="exchange_category" data-label="食品" data-value="food" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>食品</td>
+              <td><code>food</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="exchange_category" data-label="其他" data-value="other_goods" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>其他</td>
+              <td><code>other_goods</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <!-- 学历 -->
+            <tr data-category="education_level" data-label="小学" data-value="primary" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>小学</td>
+              <td><code>primary</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="初中" data-value="junior" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>初中</td>
+              <td><code>junior</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="高中/中专" data-value="high" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>高中/中专</td>
+              <td><code>high</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="大专" data-value="college" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>大专</td>
+              <td><code>college</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="本科" data-value="bachelor" data-sort="5" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>本科</td>
+              <td><code>bachelor</code></td>
+              <td>5</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="硕士" data-value="master" data-sort="6" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>硕士</td>
+              <td><code>master</code></td>
+              <td>6</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="education_level" data-label="博士" data-value="doctor" data-sort="7" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>博士</td>
+              <td><code>doctor</code></td>
+              <td>7</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <!-- 政治面貌 -->
+            <tr data-category="political_status" data-label="中共党员" data-value="party_member" data-sort="1" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>中共党员</td>
+              <td><code>party_member</code></td>
+              <td>1</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="political_status" data-label="预备党员" data-value="probationary" data-sort="2" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>预备党员</td>
+              <td><code>probationary</code></td>
+              <td>2</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="political_status" data-label="共青团员" data-value="league_member" data-sort="3" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>共青团员</td>
+              <td><code>league_member</code></td>
+              <td>3</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="political_status" data-label="群众" data-value="masses" data-sort="4" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>群众</td>
+              <td><code>masses</code></td>
+              <td>4</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-category="political_status" data-label="其他" data-value="other_political" data-sort="5" data-status="启用">
+              <td class="text-center"><input type="checkbox"></td>
+              <td>其他</td>
+              <td><code>other_political</code></td>
+              <td>5</td>
+              <td><span class="tag tag-green">启用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editDictItemModal');fillDictEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="showConfirm({title:'停用确认',message:'确定停用该字典项吗？',onConfirm:function(){showToast('已停用','success')}})"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button><span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该字典项吗？',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/admin.js"></script>
+
+<!-- 保存配置弹窗 -->
+<div class="modal-overlay" id="saveDictModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>保存配置</h3>
+      <button type="button" class="modal-close" onclick="closeModal('saveDictModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-tip">保存后字典配置立即生效于各业务模块。</p>
+      <form id="saveDictForm" onsubmit="return false">
+        <div class="form-group">
+          <label>配置名称 <span style="color:#dc2626">*</span></label>
+          <input type="text" class="form-input" value="数据字典配置" placeholder="请输入配置名称…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>生效范围 <span style="color:#dc2626">*</span></label>
+          <select class="form-select">
+            <option selected>全部业务模块</option>
+            <option>村级管理模块</option>
+            <option>仅当前字典分类</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>配置备注</label>
+          <textarea class="form-textarea" rows="3" placeholder="选填，记录本次配置说明…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('saveDictModal')">取 消</button>
+      <button class="btn btn-primary" onclick="closeModal('saveDictModal');showToast('字典配置已保存','success')">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增字典分类弹窗 -->
+<div class="modal-overlay" id="addDictCategoryModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新增字典分类</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addDictCategoryModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>分类名称 <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入分类名称…" required>
+      </div>
+      <div class="form-group">
+        <label>分类编码 <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入分类编码，如 industry_type…" required>
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <textarea class="form-textarea" placeholder="请输入备注信息…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addDictCategoryModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addDictCategoryModal');showToast('分类已添加','success')">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增字典项弹窗 -->
+<div class="modal-overlay" id="addDictItemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新增字典项</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addDictItemModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>字典项标签 <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入字典项标签…" required>
+      </div>
+      <div class="form-group">
+        <label>字典项值 <span class="required">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入字典项值，如 planting…" required>
+      </div>
+      <div class="form-group">
+        <label>排序号</label>
+        <input type="number" class="form-input" placeholder="请输入排序号…">
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-select">
+          <option>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('addDictItemModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addDictItemModal');showToast('字典项已添加','success')">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑字典项弹窗 -->
+<div class="modal-overlay" id="editDictItemModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>编辑字典项</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editDictItemModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>字典项标签 <span class="required">*</span></label>
+        <input type="text" class="form-input" value="种植业" required>
+      </div>
+      <div class="form-group">
+        <label>字典项值 <span class="required">*</span></label>
+        <input type="text" class="form-input" value="planting" required>
+      </div>
+      <div class="form-group">
+        <label>排序号</label>
+        <input type="number" class="form-input" value="1">
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-select">
+          <option selected>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editDictItemModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('editDictItemModal');showToast('字典项已更新','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchDictCategory(el, silent) {
+  var items = document.querySelectorAll('.split-left .dict-item');
+  for (var i = 0; i < items.length; i++) { items[i].classList.remove('active'); }
+  el.classList.add('active');
+  var nameEl = el.querySelector('.dict-name');
+  var codeEl = el.querySelector('.dict-code');
+  var name = nameEl ? nameEl.textContent.trim() : '';
+  var code = codeEl ? codeEl.textContent.trim() : '';
+  // 联动右侧头部：分类名称 + 分类编码
+  var header = document.querySelector('.split-right-header');
+  var strong = header ? header.querySelector('strong') : null;
+  var codeSpan = header ? header.querySelector('.text-gray') : null;
+  if (strong) strong.textContent = name;
+  if (codeSpan) codeSpan.textContent = code;
+  // 按分类过滤右侧表格行
+  var rows = document.querySelectorAll('.split-right .table-wrap tbody tr');
+  var matched = 0;
+  for (var j = 0; j < rows.length; j++) {
+    var show = rows[j].getAttribute('data-category') === code;
+    if (show) matched++;
+    rows[j].classList.toggle('pg-filtered', !show);
+  }
+  // 无匹配数据时保持全部显示，避免右侧表格清空
+  if (!matched) {
+    for (var k = 0; k < rows.length; k++) { rows[k].classList.remove('pg-filtered'); }
+  }
+  // 刷新分页（兼容 page-enhancer 注入的分页控件）
+  var pager = document.querySelector('.split-right .pagination');
+  if (pager && pager._pgRender) pager._pgRender();
+  if (!silent) showToast('已加载分类：' + (name || code), 'success');
+}
+/* 页面初始化：对默认选中的分类执行一次过滤，仅显示该分类的字典项 */
+(function () {
+  var activeItem = document.querySelector('.split-left .dict-item.active');
+  if (activeItem) switchDictCategory(activeItem, true);
+})();
+
+function fillDictEdit(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('editDictItemModal');
+  if (!row || !modal) return;
+  var d = row.dataset;
+  var inputs = modal.querySelectorAll('.form-input');
+  var selects = modal.querySelectorAll('.form-select');
+  if (inputs[0]) inputs[0].value = d.label || '';
+  if (inputs[1]) inputs[1].value = d.value || '';
+  if (inputs[2]) inputs[2].value = d.sort || '';
+  if (selects[0]) {
+    for (var i = 0; i < selects[0].options.length; i++) {
+      selects[0].options[i].selected = (selects[0].options[i].text === (d.status || '启用'));
+    }
+  }
+}
+</script>
+
+</body>
+</html>

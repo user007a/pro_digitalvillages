@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>填写处理结果</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="task-detail.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">填写处理结果</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <form data-validate onsubmit="return false">
+    <!-- 任务标题（只读） -->
+    <div class="card">
+      <div class="card-title">任务标题</div>
+      <div style="font-size:16px;font-weight:600;color:#333;">村庄卫生清洁整治</div>
+    </div>
+
+    <!-- 处理结果 -->
+    <div class="card">
+      <div class="card-title">处理结果</div>
+      <textarea class="form-textarea" placeholder="请填写处理结果…" rows="6" required></textarea>
+    </div>
+
+    <!-- 现场照片 -->
+    <div class="card">
+      <div class="card-title">现场照片</div>
+      <div class="upload-area">
+        <div class="upload-add" onclick="showToast('选择照片')">
+          <span class="upload-icon">+</span>
+          <span>添加照片</span>
+        </div>
+      </div>
+      <div class="text-sm text-gray" style="padding:4px 0;">上传现场照片（1-9张）</div>
+    </div>
+    </form>
+
+    <!-- 提交按钮 -->
+    <button class="btn btn-primary btn-block" onclick="showModal('提交确认', '确认提交处理结果？', function(){ showToast('提交成功'); })">提交</button>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工作日志</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ===== 统计卡片：对齐「病虫害模型·防控方案」页面风格（每行 4 个） ===== */
+    .stat-cards.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-cards.cols-4 .stat-card {
+      position: relative;
+      display: block;
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-left: none;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 20px 76px 20px 20px;
+      min-height: 112px;
+      transition: box-shadow 0.2s ease;
+    }
+    .stat-cards.cols-4 .stat-card:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+      transform: none;
+    }
+    .stat-cards.cols-4 .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+    .stat-cards.cols-4 .stat-value { font-size: 24px; font-weight: 700; color: #1f2937; line-height: 1.2; }
+    .stat-cards.cols-4 .stat-value .text-sm { font-size: 13px; font-weight: 400; color: #9ca3af; margin-left: 2px; }
+    .stat-cards.cols-4 .stat-desc { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+    .stat-cards.cols-4 .stat-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .stat-cards.cols-4 .stat-card.card-red .stat-icon { background: #fef2f2; color: #dc2626; }
+    .stat-cards.cols-4 .stat-card.card-yellow .stat-icon { background: #fffbeb; color: #d97706; }
+    .stat-cards.cols-4 .stat-card.card-green .stat-icon { background: #f0fdf4; color: #16a34a; }
+    .stat-cards.cols-4 .stat-card.card-blue .stat-icon { background: #f0fdfa; color: #0f766e; }
+    @media (max-width: 992px) { .stat-cards.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .stat-cards.cols-4 { grid-template-columns: 1fr; } }
+  </style></head>
+<body data-page-title="工作日志" data-page-subtitle="乡村振兴数字平台 · 后台管理" data-no-pg-toolbar>
+<div class="admin-page">
+  <div class="page-header">
+    <h2>工作日志</h2>
+    <span class="text-muted">村干部工作日志提交与审核</span>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards cols-4">
+    <div class="stat-card card-blue">
+      <div class="stat-label">本周日志</div>
+      <div class="stat-value">18 <span class="text-sm">篇</span></div>
+      <div class="stat-desc">本周村干部累计提交</div>
+      <div class="stat-icon"><iconify-icon icon="ri:file-text-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-red">
+      <div class="stat-label">待审核</div>
+      <div class="stat-value">5 <span class="text-sm">篇</span></div>
+      <div class="stat-desc">需要尽快审核</div>
+      <div class="stat-icon"><iconify-icon icon="ri:time-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-green">
+      <div class="stat-label">已审核</div>
+      <div class="stat-value">10 <span class="text-sm">篇</span></div>
+      <div class="stat-desc">本周已完成审核</div>
+      <div class="stat-icon"><iconify-icon icon="ri:shield-check-line"></iconify-icon></div>
+    </div>
+    <div class="stat-card card-yellow">
+      <div class="stat-label">草稿</div>
+      <div class="stat-value">3 <span class="text-sm">篇</span></div>
+      <div class="stat-desc">尚未提交的日志</div>
+      <div class="stat-icon"><iconify-icon icon="ri:edit-line"></iconify-icon></div>
+    </div>
+  </div>
+
+
+  <!-- 搜索筛选 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>作者</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>王建国</option>
+        <option>李秀兰</option>
+        <option>张明远</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>状态</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>草稿</option>
+        <option>已提交</option>
+        <option>已审核</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>日期范围</label>
+      <div class="date-range-group">
+        <input type="date" class="form-input">
+        <span>至</span>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-search-reset btn-sm"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>日志日期</th>
+          <th>作者</th>
+          <th>工作摘要</th>
+          <th>提交时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-content="今日走访村民12户，重点了解蜜桔采收季用工与销售需求，收集民生诉求5条，其中3条已现场协调解决，2条上报村委会跟进。" data-reviewer="—" data-review-time="—">
+          <td>2026-08-05</td>
+          <td>王建国</td>
+          <td>走访村民12户，收集民生诉求5条</td>
+          <td>2026-08-05 17:20</td>
+          <td><span class="tag tag-orange">已提交</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="组织村内河道、低洼地段防汛巡查，排查隐患3处，已安排清理疏通1处、设置警戒2处，并向镇防汛办报备。" data-reviewer="周小敏" data-review-time="2026-08-06 09:30">
+          <td>2026-08-05</td>
+          <td>李秀兰</td>
+          <td>组织防汛巡查，排查隐患3处</td>
+          <td>2026-08-05 16:45</td>
+          <td><span class="tag tag-green">已审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="就二组两户村民排水纠纷进行现场调解，双方达成和解并签订调解协议，后续将持续回访跟进。" data-reviewer="周小敏" data-review-time="2026-08-05 10:20">
+          <td>2026-08-04</td>
+          <td>张明远</td>
+          <td>调解邻里纠纷1起，双方达成和解</td>
+          <td>2026-08-04 18:10</td>
+          <td><span class="tag tag-green">已审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="入户开展2026年城乡居民医保参保宣传，发放宣传单60份，登记有意向参保群众名单并做好政策解读。" data-reviewer="—" data-review-time="—">
+          <td>2026-08-04</td>
+          <td>王建国</td>
+          <td>跟进医保参保宣传，发放宣传单60份</td>
+          <td>2026-08-04 15:30</td>
+          <td><span class="tag tag-orange">已提交</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="对3户新申请低保家庭进行入户核查，核对收入与财产情况，整理申请材料报镇民政所审核。" data-reviewer="—" data-review-time="—">
+          <td>2026-08-03</td>
+          <td>李秀兰</td>
+          <td>核查低保申请材料3户</td>
+          <td>2026-08-03 17:00</td>
+          <td><span class="tag tag-gray">草稿</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="协助开展村民积分兑换活动，现场服务村民20余人，核对积分明细并完成礼品发放登记。" data-reviewer="陈丽华" data-review-time="2026-08-03 09:10">
+          <td>2026-08-02</td>
+          <td>张明远</td>
+          <td>协助开展积分兑换活动，服务村民20余人</td>
+          <td>2026-08-02 16:20</td>
+          <td><span class="tag tag-green">已审核</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="巡查村内环境卫生，组织保洁人员清运垃圾2车，对主干道及公共场所进行集中清扫。" data-reviewer="—" data-review-time="—">
+          <td>2026-08-01</td>
+          <td>王建国</td>
+          <td>巡查村内环境卫生，组织保洁清运</td>
+          <td>2026-08-01 17:45</td>
+          <td><span class="tag tag-gray">草稿</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+        <tr data-content="现场查看村民反映的路灯不亮问题，协调电工排查线路故障，完成维修并恢复正常照明。" data-reviewer="—" data-review-time="—">
+          <td>2026-07-31</td>
+          <td>李秀兰</td>
+          <td>处理村民反映路灯不亮问题并跟进维修</td>
+          <td>2026-07-31 16:50</td>
+          <td><span class="tag tag-orange">已提交</span></td>
+          <td class="op-cell">
+            <button class="btn-op" onclick="viewJournal(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button class="btn-op btn-op-warning" onclick="openReviewModal(this)"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>审核</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 36 条记录</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn">2</button>
+        <button type="button" class="page-btn">3</button>
+        <button type="button" class="page-btn">4</button>
+        <button type="button" class="page-btn">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗 -->
+<script>
+function openReviewModal(btn) {
+  window._reviewRow = btn.closest('tr');
+  var modal = document.getElementById('reviewModal');
+  var sel = modal.querySelector('.form-select');
+  if (sel) sel.selectedIndex = 0;
+  openModal('reviewModal');
+}
+function padNum(n) { return n < 10 ? '0' + n : '' + n; }
+function confirmJournalReview() {
+  var row = window._reviewRow;
+  if (row) {
+    var modal = document.getElementById('reviewModal');
+    var sel = modal.querySelector('.form-select');
+    var result = sel && sel.value ? sel.value : '通过';
+    var tds = row.querySelectorAll('td');
+    if (tds[4]) {
+      tds[4].innerHTML = result === '驳回'
+        ? '<span class="tag tag-gray">已驳回</span>'
+        : '<span class="tag tag-green">已审核</span>';
+    }
+    row.dataset.reviewer = '周小敏';
+    var d = new Date();
+    row.dataset.reviewTime = d.getFullYear() + '-' + padNum(d.getMonth() + 1) + '-' + padNum(d.getDate()) + ' ' + padNum(d.getHours()) + ':' + padNum(d.getMinutes());
+    window._reviewRow = null;
+  }
+  closeModal('reviewModal');
+  showToast('审核完成', 'success');
+}
+</script>
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>审核日志</h3>
+      <button type="button" class="modal-close" onclick="closeModal('reviewModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">审核意见</label>
+        <textarea class="form-textarea" rows="4" placeholder="请输入审核意见…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">审核结果</label>
+        <select class="form-select">
+          <option>通过</option>
+          <option>驳回</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('reviewModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmJournalReview()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看日志详情弹窗 -->
+<div class="modal-overlay detail-modal" id="viewJournalModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon> 日志详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewJournalModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">日志日期</span><span class="detail-value" id="viewJDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">作者</span><span class="detail-value" id="viewJAuthor">—</span></div>
+        <div class="detail-item"><span class="detail-label">提交时间</span><span class="detail-value" id="viewJSubmit">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewJStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核人</span><span class="detail-value" id="viewJReviewer">—</span></div>
+        <div class="detail-item"><span class="detail-label">审核时间</span><span class="detail-value" id="viewJReviewTime">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">工作摘要</span><span class="detail-value" id="viewJSummary">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">详细内容</span><span class="detail-value" id="viewJContent">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewJournalModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/admin.js"></script>
+<script>
+  /* ---- 查看日志详情：按行填充弹窗 ---- */
+  window.viewJournal = function (btn) {
+    var row = btn.closest('tr');
+    var td = row.cells;
+    document.getElementById('viewJDate').textContent = td[0].textContent.trim();
+    document.getElementById('viewJAuthor').textContent = td[1].textContent.trim();
+    document.getElementById('viewJSubmit').textContent = td[3].textContent.trim();
+    document.getElementById('viewJStatus').innerHTML = td[4].innerHTML;
+    document.getElementById('viewJReviewer').textContent = row.getAttribute('data-reviewer') || '—';
+    document.getElementById('viewJReviewTime').textContent = row.getAttribute('data-review-time') || '—';
+    document.getElementById('viewJSummary').textContent = td[2].textContent.trim();
+    document.getElementById('viewJContent').textContent = row.getAttribute('data-content') || td[2].textContent.trim();
+    openModal('viewJournalModal');
+  };
+</script>
+<script>
+  /* ---- 筛选/查询/重置后同步 pg-pager 分页信息（不修改公共脚本） ---- */
+  function syncJournalPager() {
+    var pager = document.querySelector('.pagination.pg-pager');
+    if (!pager) return;
+    var table = pager.parentNode.querySelector('table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].style.display === 'none') rows[i].classList.add('pg-filtered');
+      else rows[i].classList.remove('pg-filtered');
+    }
+    if (typeof pager._pgRender === 'function') pager._pgRender();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var bars = document.querySelectorAll('.filter-bar, .search-filter');
+    for (var i = 0; i < bars.length; i++) {
+      var actions = bars[i].querySelector('.filter-actions');
+      if (!actions) continue;
+      var searchBtn = actions.querySelector('.btn-primary');
+      var resetBtn = actions.querySelector('.btn:not(.btn-primary):not(.btn-success)');
+      if (searchBtn) searchBtn.addEventListener('click', syncJournalPager);
+      if (resetBtn) resetBtn.addEventListener('click', syncJournalPager);
+    }
+  });
+</script>
+</body>
+</html>

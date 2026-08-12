@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>农业认养 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    /* 认养表格长文本列省略 */
+    .reason-cell { max-width: 280px; white-space: normal; line-height: 1.5; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>农业认养</h2>
+      <span class="text-muted">农产品认养项目与订单管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：认养开通 → 认养品类 → 认养订单 → 认养养护记录 → 认养预约 → 监视器信息 -->
+  <div class="tab-bar dv-tabbar" id="adoptTabs">
+    <div class="tab-item active" onclick="switchAdoptTab(this)" data-tab="open">认养开通</div>
+    <div class="tab-item" onclick="switchAdoptTab(this)" data-tab="category">认养品类</div>
+    <div class="tab-item" onclick="switchAdoptTab(this)" data-tab="order">认养订单</div>
+    <div class="tab-item" onclick="switchAdoptTab(this)" data-tab="care">认养养护记录</div>
+    <div class="tab-item" onclick="switchAdoptTab(this)" data-tab="appointment">认养预约</div>
+    <div class="tab-item" onclick="switchAdoptTab(this)" data-tab="monitor">监视器信息</div>
+  </div>
+
+  <!-- ==================== Tab 面板：认养开通 ==================== -->
+  <div class="tab-panel" id="tab-open">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="openFName">项目名称</label>
+        <input type="text" id="openFName" class="form-input" placeholder="请输入项目名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="openFObj">认养对象</label>
+        <select id="openFObj" class="form-select">
+          <option value="">全部</option>
+          <option>蜜桔树</option>
+          <option>果树</option>
+          <option>家禽</option>
+          <option>农田</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="openFStatus">状态</label>
+        <select id="openFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>开放中</option>
+          <option>已结束</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryOpenRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetOpenFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:plant-line"></iconify-icon>认养开通列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addOpenModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增项目</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('认养开通')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>认养项目名称</th>
+              <th>认养对象</th>
+              <th>认养周期</th>
+              <th>单价(元/年)</th>
+              <th>可认养数量</th>
+              <th>已认养数</th>
+              <th>状态</th>
+              <th>开通时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="openTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="openRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：认养品类 ==================== -->
+  <div class="tab-panel" id="tab-category" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="categoryFName">品类名称</label>
+        <input type="text" id="categoryFName" class="form-input" placeholder="请输入品类名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="categoryFType">品类分类</label>
+        <select id="categoryFType" class="form-select">
+          <option value="">全部</option>
+          <option>果树</option>
+          <option>家禽</option>
+          <option>农田</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="categoryFStatus">状态</label>
+        <select id="categoryFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>上架</option>
+          <option>下架</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryCategoryRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetCategoryFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:leaf-line"></iconify-icon>认养品类列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addCategoryModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增品类</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('认养品类')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>品类名称</th>
+              <th>品类分类</th>
+              <th>规格描述</th>
+              <th>认养价格(元/年)</th>
+              <th>生长周期(月)</th>
+              <th>图片</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="categoryTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="categoryRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：认养订单 ==================== -->
+  <div class="tab-panel" id="tab-order" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="orderFOrder">订单号</label>
+        <input type="text" id="orderFOrder" class="form-input" placeholder="请输入订单号…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="orderFUser">认养人</label>
+        <input type="text" id="orderFUser" class="form-input" placeholder="请输入认养人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="orderFPay">支付状态</label>
+        <select id="orderFPay" class="form-select">
+          <option value="">全部</option>
+          <option>待支付</option>
+          <option>已支付</option>
+          <option>已退款</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="orderFStatus">订单状态</label>
+        <select id="orderFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>生效中</option>
+          <option>已完成</option>
+          <option>已取消</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryOrderRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetOrderFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:shopping-bag-line"></iconify-icon>认养订单列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('认养订单')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>订单号</th>
+              <th>认养人</th>
+              <th>手机号</th>
+              <th>认养对象</th>
+              <th>认养数量</th>
+              <th>认养周期</th>
+              <th>订单金额(元)</th>
+              <th>下单时间</th>
+              <th>支付状态</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="orderTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="orderRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：认养养护记录 ==================== -->
+  <div class="tab-panel" id="tab-care" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="careFObj">认养对象</label>
+        <input type="text" id="careFObj" class="form-input" placeholder="请输入认养对象…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="careFKeeper">养护人</label>
+        <input type="text" id="careFKeeper" class="form-input" placeholder="请输入养护人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="careFContent">养护内容</label>
+        <select id="careFContent" class="form-select">
+          <option value="">全部</option>
+          <option>浇水</option>
+          <option>施肥</option>
+          <option>修剪</option>
+          <option>除虫</option>
+          <option>采摘</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryCareRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetCareFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:leaf-line"></iconify-icon>认养养护记录列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addCareModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增记录</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('认养养护记录')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>记录编号</th>
+              <th>认养对象</th>
+              <th>养护人</th>
+              <th>养护日期</th>
+              <th>养护内容</th>
+              <th>养护图片</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="careTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="careRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：认养预约 ==================== -->
+  <div class="tab-panel" id="tab-appointment" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="appointmentFNo">预约编号</label>
+        <input type="text" id="appointmentFNo" class="form-input" placeholder="请输入预约编号…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="appointmentFUser">认养人</label>
+        <input type="text" id="appointmentFUser" class="form-input" placeholder="请输入认养人姓名…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="appointmentFProject">预约项目</label>
+        <select id="appointmentFProject" class="form-select">
+          <option value="">全部</option>
+          <option>采摘</option>
+          <option>参观</option>
+          <option>体验</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="appointmentFStatus">状态</label>
+        <select id="appointmentFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>待确认</option>
+          <option>已确认</option>
+          <option>已到访</option>
+          <option>已取消</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryAppointmentRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetAppointmentFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:calendar-event-line"></iconify-icon>认养预约列表</h3>
+        <div class="toolbar">
+          <button type="button" class="btn btn-outline" onclick="openExportModal('认养预约')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>预约编号</th>
+              <th>认养人</th>
+              <th>手机号</th>
+              <th>认养对象</th>
+              <th>预约日期</th>
+              <th>来访人数</th>
+              <th>预约项目</th>
+              <th>状态</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="appointmentRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：监视器信息 ==================== -->
+  <div class="tab-panel" id="tab-monitor" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="monitorFName">监视器名称</label>
+        <input type="text" id="monitorFName" class="form-input" placeholder="请输入监视器名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="monitorFStatus">在线状态</label>
+        <select id="monitorFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>在线</option>
+          <option>离线</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryMonitorRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetMonitorFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:device-line"></iconify-icon>监视器信息列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addMonitorModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增监视器</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('监视器信息')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>监视器名称</th>
+              <th>设备序列号</th>
+              <th>关联认养对象</th>
+              <th>安装位置</th>
+              <th>视频流地址</th>
+              <th>在线状态</th>
+              <th>最后心跳</th>
+              <th>分辨率</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="monitorTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="monitorRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：认养开通 ==================== -->
+
+<!-- 新增认养项目弹窗 -->
+<div class="modal-overlay" id="addOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:plant-line"></iconify-icon>新增认养项目</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="adoptName"><span class="req">*</span>认养项目名称</label>
+          <input type="text" id="adoptName" name="adoptName" class="form-input" placeholder="请输入项目名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="adoptObj"><span class="req">*</span>认养对象</label>
+            <select id="adoptObj" name="adoptObj" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>蜜桔树</option>
+              <option>果树</option>
+              <option>家禽</option>
+              <option>农田</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="adoptCycle"><span class="req">*</span>认养周期</label>
+            <input type="text" id="adoptCycle" name="adoptCycle" class="form-input" placeholder="如 1年…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="adoptPrice"><span class="req">*</span>单价(元/年)</label>
+            <input type="number" id="adoptPrice" name="adoptPrice" class="form-input" placeholder="请输入单价…" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="adoptTotal"><span class="req">*</span>可认养数量</label>
+            <input type="number" id="adoptTotal" name="adoptTotal" class="form-input" placeholder="请输入可认养数量…" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addOpenModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddOpen()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看认养项目弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>认养项目详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">认养项目名称</span><span class="detail-value" id="viewOpenName">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养对象</span><span class="detail-value" id="viewOpenObj">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养周期</span><span class="detail-value" id="viewOpenCycle">—</span></div>
+        <div class="detail-item"><span class="detail-label">单价</span><span class="detail-value" id="viewOpenPrice">—</span></div>
+        <div class="detail-item"><span class="detail-label">可认养数量</span><span class="detail-value" id="viewOpenTotal">—</span></div>
+        <div class="detail-item"><span class="detail-label">已认养数</span><span class="detail-value" id="viewOpenAdopted">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewOpenStatus">—</span></div>
+        <div class="detail-item"><span class="detail-label">开通时间</span><span class="detail-value" id="viewOpenDate">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">项目说明</span><span class="detail-value" id="viewOpenDesc">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOpenModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑认养项目弹窗 -->
+<div class="modal-overlay" id="editOpenModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑认养项目</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editOpenModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="openEditName"><span class="req">*</span>认养项目名称</label>
+          <input type="text" id="openEditName" class="form-input" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="openEditObj"><span class="req">*</span>认养对象</label>
+            <select id="openEditObj" class="form-select" required>
+              <option>蜜桔树</option>
+              <option>果树</option>
+              <option>家禽</option>
+              <option>农田</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="openEditCycle"><span class="req">*</span>认养周期</label>
+            <input type="text" id="openEditCycle" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="openEditPrice"><span class="req">*</span>单价(元/年)</label>
+            <input type="number" id="openEditPrice" class="form-input" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="openEditTotal"><span class="req">*</span>可认养数量</label>
+            <input type="number" id="openEditTotal" class="form-input" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editOpenModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditOpen()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：认养品类 ==================== -->
+
+<!-- 新增认养品类弹窗 -->
+<div class="modal-overlay" id="addCategoryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:leaf-line"></iconify-icon>新增认养品类</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addCategoryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="catName"><span class="req">*</span>品类名称</label>
+            <input type="text" id="catName" name="catName" class="form-input" placeholder="请输入品类名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="catType"><span class="req">*</span>品类分类</label>
+            <select id="catType" name="catType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>果树</option>
+              <option>家禽</option>
+              <option>农田</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="catPrice"><span class="req">*</span>认养价格(元/年)</label>
+            <input type="number" id="catPrice" name="catPrice" class="form-input" placeholder="请输入认养价格…" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="catCycle"><span class="req">*</span>生长周期(月)</label>
+            <input type="number" id="catCycle" name="catCycle" class="form-input" placeholder="请输入生长周期…" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="catSpec">规格描述</label>
+          <textarea id="catSpec" name="catSpec" class="form-input" rows="3" placeholder="请输入规格描述…" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label>品类图片</label>
+          <div class="upload-area">
+            <div class="upload-icon"><iconify-icon icon="ri:image-add-line"></iconify-icon></div>
+            <div class="upload-text">点击或拖拽上传品类图片</div>
+            <div class="upload-hint">支持 JPG/PNG，建议尺寸 600×400</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addCategoryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddCategory()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看认养品类弹窗 -->
+<div class="modal-overlay detail-modal" id="viewCategoryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>品类详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewCategoryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">品类名称</span><span class="detail-value" id="viewCatName">—</span></div>
+        <div class="detail-item"><span class="detail-label">品类分类</span><span class="detail-value" id="viewCatType">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养价格</span><span class="detail-value" id="viewCatPrice">—</span></div>
+        <div class="detail-item"><span class="detail-label">生长周期</span><span class="detail-value" id="viewCatCycle">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewCatStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">规格描述</span><span class="detail-value" id="viewCatSpec">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewCategoryModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑认养品类弹窗 -->
+<div class="modal-overlay" id="editCategoryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑品类</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editCategoryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoryEditName"><span class="req">*</span>品类名称</label>
+            <input type="text" id="categoryEditName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="categoryEditType"><span class="req">*</span>品类分类</label>
+            <select id="categoryEditType" class="form-select" required>
+              <option>果树</option>
+              <option>家禽</option>
+              <option>农田</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoryEditPrice"><span class="req">*</span>认养价格(元/年)</label>
+            <input type="number" id="categoryEditPrice" class="form-input" inputmode="numeric" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="categoryEditCycle"><span class="req">*</span>生长周期(月)</label>
+            <input type="number" id="categoryEditCycle" class="form-input" inputmode="numeric" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="categoryEditSpec">规格描述</label>
+          <textarea id="categoryEditSpec" class="form-input" rows="3" autocomplete="off"></textarea>
+        </div>
+        <div class="form-group">
+          <label>品类图片</label>
+          <div class="upload-area">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border:1px dashed #e5e7eb;border-radius:6px;color:#9ca3af;background:#fafafa"><iconify-icon icon="ri:image-line"></iconify-icon></span>
+            <div class="upload-text" style="margin-top:8px">点击重新上传品类图片</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editCategoryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditCategory()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：认养订单 ==================== -->
+
+<!-- 查看订单弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOrderModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>订单详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOrderModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">订单号</span><span class="detail-value" id="viewOrderNo">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养人</span><span class="detail-value" id="viewOrderUser">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewOrderPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养对象</span><span class="detail-value" id="viewOrderObj">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养数量</span><span class="detail-value" id="viewOrderQty">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养周期</span><span class="detail-value" id="viewOrderCycle">—</span></div>
+        <div class="detail-item"><span class="detail-label">订单金额</span><span class="detail-value" id="viewOrderAmount">—</span></div>
+        <div class="detail-item"><span class="detail-label">下单时间</span><span class="detail-value" id="viewOrderTime">—</span></div>
+        <div class="detail-item"><span class="detail-label">支付状态</span><span class="detail-value" id="viewOrderPay">—</span></div>
+        <div class="detail-item"><span class="detail-label">订单状态</span><span class="detail-value" id="viewOrderStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOrderModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：认养养护记录 ==================== -->
+
+<!-- 新增养护记录弹窗 -->
+<div class="modal-overlay" id="addCareModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:leaf-line"></iconify-icon>新增养护记录</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addCareModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="careObj"><span class="req">*</span>认养对象</label>
+            <input type="text" id="careObj" name="careObj" class="form-input" placeholder="请输入认养对象…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="careKeeper"><span class="req">*</span>养护人</label>
+            <input type="text" id="careKeeper" name="careKeeper" class="form-input" placeholder="请输入养护人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="careDate"><span class="req">*</span>养护日期</label>
+            <input type="date" id="careDate" name="careDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="careContent"><span class="req">*</span>养护内容</label>
+            <select id="careContent" name="careContent" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>浇水</option>
+              <option>施肥</option>
+              <option>修剪</option>
+              <option>除虫</option>
+              <option>采摘</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>养护图片</label>
+          <div class="upload-area">
+            <div class="upload-icon"><iconify-icon icon="ri:image-add-line"></iconify-icon></div>
+            <div class="upload-text">点击或拖拽上传养护图片</div>
+            <div class="upload-hint">支持 JPG/PNG，最多 6 张</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="careRemark">备注</label>
+          <textarea id="careRemark" name="careRemark" class="form-input" rows="3" placeholder="请输入备注说明…" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addCareModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddCare()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看养护记录弹窗 -->
+<div class="modal-overlay detail-modal" id="viewCareModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>养护记录详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewCareModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">记录编号</span><span class="detail-value" id="viewCareNo">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养对象</span><span class="detail-value" id="viewCareObj">—</span></div>
+        <div class="detail-item"><span class="detail-label">养护人</span><span class="detail-value" id="viewCareKeeper">—</span></div>
+        <div class="detail-item"><span class="detail-label">养护日期</span><span class="detail-value" id="viewCareDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">养护内容</span><span class="detail-value" id="viewCareContent">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">备注</span><span class="detail-value" id="viewCareRemark">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewCareModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑养护记录弹窗 -->
+<div class="modal-overlay" id="editCareModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑养护记录</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editCareModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="careEditObj"><span class="req">*</span>认养对象</label>
+            <input type="text" id="careEditObj" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="careEditKeeper"><span class="req">*</span>养护人</label>
+            <input type="text" id="careEditKeeper" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="careEditDate"><span class="req">*</span>养护日期</label>
+            <input type="date" id="careEditDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="careEditContent"><span class="req">*</span>养护内容</label>
+            <select id="careEditContent" class="form-select" required>
+              <option>浇水</option>
+              <option>施肥</option>
+              <option>修剪</option>
+              <option>除虫</option>
+              <option>采摘</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="careEditRemark">备注</label>
+          <textarea id="careEditRemark" class="form-input" rows="3" autocomplete="off"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editCareModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditCare()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：认养预约 ==================== -->
+
+<!-- 查看预约弹窗 -->
+<div class="modal-overlay detail-modal" id="viewAppointmentModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>预约详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewAppointmentModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">预约编号</span><span class="detail-value" id="viewAppNo">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养人</span><span class="detail-value" id="viewAppUser">—</span></div>
+        <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value" id="viewAppPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">认养对象</span><span class="detail-value" id="viewAppObj">—</span></div>
+        <div class="detail-item"><span class="detail-label">预约日期</span><span class="detail-value" id="viewAppDate">—</span></div>
+        <div class="detail-item"><span class="detail-label">来访人数</span><span class="detail-value" id="viewAppCount">—</span></div>
+        <div class="detail-item"><span class="detail-label">预约项目</span><span class="detail-value" id="viewAppProject">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewAppStatus">—</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">备注</span><span class="detail-value" id="viewAppRemark">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewAppointmentModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：监视器信息 ==================== -->
+
+<!-- 新增监视器弹窗 -->
+<div class="modal-overlay" id="addMonitorModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:device-line"></iconify-icon>新增监视器</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addMonitorModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monName"><span class="req">*</span>监视器名称</label>
+            <input type="text" id="monName" name="monName" class="form-input" placeholder="请输入监视器名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="monSn"><span class="req">*</span>设备序列号</label>
+            <input type="text" id="monSn" name="monSn" class="form-input" placeholder="请输入设备序列号…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monObj"><span class="req">*</span>关联认养对象</label>
+            <input type="text" id="monObj" name="monObj" class="form-input" placeholder="请输入关联认养对象…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="monRes">分辨率</label>
+            <select id="monRes" name="monRes" class="form-select">
+              <option>1080P</option>
+              <option>720P</option>
+              <option>480P</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="monLoc">安装位置</label>
+          <input type="text" id="monLoc" name="monLoc" class="form-input" placeholder="请输入安装位置…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="monStream"><span class="req">*</span>视频流地址</label>
+          <input type="text" id="monStream" name="monStream" class="form-input" placeholder="请输入视频流地址…" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addMonitorModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddMonitor()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑监视器弹窗 -->
+<div class="modal-overlay" id="editMonitorModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑监视器</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editMonitorModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monitorEditName"><span class="req">*</span>监视器名称</label>
+            <input type="text" id="monitorEditName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="monitorEditSn"><span class="req">*</span>设备序列号</label>
+            <input type="text" id="monitorEditSn" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="monitorEditObj"><span class="req">*</span>关联认养对象</label>
+            <input type="text" id="monitorEditObj" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="monitorEditRes">分辨率</label>
+            <select id="monitorEditRes" class="form-select">
+              <option>1080P</option>
+              <option>720P</option>
+              <option>480P</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="monitorEditLoc">安装位置</label>
+          <input type="text" id="monitorEditLoc" class="form-input" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="monitorEditStream"><span class="req">*</span>视频流地址</label>
+          <input type="text" id="monitorEditStream" class="form-input" required autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editMonitorModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditMonitor()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出认养数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出认养记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="农业认养记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 ---- */
+  function switchAdoptTab(tab) {
+    document.querySelectorAll('#adoptTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+    window._activeAdopt = tab.textContent.trim();
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 公共工具 ==================== */
+    function fmtToday() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function fmtDate(offset) {
+      var d = new Date(2026, 7, 11 - offset);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function imgThumb() {
+      return '<span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px dashed #e5e7eb;border-radius:6px;color:#9ca3af;background:#fafafa"><iconify-icon icon="ri:image-line"></iconify-icon></span>';
+    }
+
+    /* ==================== 标签工厂 ==================== */
+    function openStatusTag(status) {
+      return '<span class="tag ' + (status === '开放中' ? 'tag-green' : 'tag-gray') + '">' + status + '</span>';
+    }
+    function catTypeTag(type) {
+      return '<span class="tag ' + (type === '果树' ? 'tag-green' : type === '家禽' ? 'tag-yellow' : type === '农田' ? 'tag-blue' : 'tag-orange') + '">' + type + '</span>';
+    }
+    function catStatusTag(status) {
+      return '<span class="tag ' + (status === '上架' ? 'tag-green' : 'tag-red') + '">' + status + '</span>';
+    }
+    function payTag(pay) {
+      return '<span class="tag ' + (pay === '已支付' ? 'tag-green' : pay === '待支付' ? 'tag-orange' : 'tag-red') + '">' + pay + '</span>';
+    }
+    function orderStatusTag(status) {
+      return '<span class="tag ' + (status === '生效中' ? 'tag-green' : status === '已完成' ? 'tag-blue' : 'tag-gray') + '">' + status + '</span>';
+    }
+    function careTag(content) {
+      return '<span class="tag ' + (content === '浇水' ? 'tag-blue' : content === '施肥' ? 'tag-green' : content === '修剪' ? 'tag-yellow' : content === '除虫' ? 'tag-orange' : 'tag-green') + '">' + content + '</span>';
+    }
+    function projTag(p) {
+      return '<span class="tag ' + (p === '采摘' ? 'tag-green' : p === '参观' ? 'tag-blue' : 'tag-yellow') + '">' + p + '</span>';
+    }
+    function appStatusTag(s) {
+      return '<span class="tag ' + (s === '待确认' ? 'tag-orange' : s === '已确认' ? 'tag-blue' : s === '已到访' ? 'tag-green' : 'tag-gray') + '">' + s + '</span>';
+    }
+    function monStatusTag(s) {
+      return '<span class="tag ' + (s === '在线' ? 'tag-green' : 'tag-red') + '">' + s + '</span>';
+    }
+
+    /* ==================== 认养开通：筛选 + 分页 ==================== */
+    var openTbody = document.getElementById('openTbody');
+    var openPager = makePager(openTbody, document.getElementById('openRowCount'), pagerRefs('#tab-open'), function () {
+      var name = document.getElementById('openFName').value.trim().toLowerCase();
+      var obj = document.getElementById('openFObj').value;
+      var status = document.getElementById('openFStatus').value;
+      var out = [];
+      openTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && obj && row.getAttribute('data-obj') !== obj) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryOpenRows = function () { openPager.reset(); };
+    window.resetOpenFilter = function () {
+      document.getElementById('openFName').value = '';
+      document.getElementById('openFObj').value = '';
+      document.getElementById('openFStatus').value = '';
+      queryOpenRows();
+    };
+
+    /* ==================== 认养品类：筛选 + 分页 ==================== */
+    var categoryTbody = document.getElementById('categoryTbody');
+    var categoryPager = makePager(categoryTbody, document.getElementById('categoryRowCount'), pagerRefs('#tab-category'), function () {
+      var name = document.getElementById('categoryFName').value.trim().toLowerCase();
+      var type = document.getElementById('categoryFType').value;
+      var status = document.getElementById('categoryFStatus').value;
+      var out = [];
+      categoryTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryCategoryRows = function () { categoryPager.reset(); };
+    window.resetCategoryFilter = function () {
+      document.getElementById('categoryFName').value = '';
+      document.getElementById('categoryFType').value = '';
+      document.getElementById('categoryFStatus').value = '';
+      queryCategoryRows();
+    };
+
+    /* ==================== 认养订单：筛选 + 分页 ==================== */
+    var orderTbody = document.getElementById('orderTbody');
+    var orderPager = makePager(orderTbody, document.getElementById('orderRowCount'), pagerRefs('#tab-order'), function () {
+      var orderNo = document.getElementById('orderFOrder').value.trim().toLowerCase();
+      var user = document.getElementById('orderFUser').value.trim().toLowerCase();
+      var pay = document.getElementById('orderFPay').value;
+      var status = document.getElementById('orderFStatus').value;
+      var out = [];
+      orderTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (orderNo && row.cells[0].textContent.trim().toLowerCase().indexOf(orderNo) === -1) show = false;
+        if (show && user && row.cells[1].textContent.trim().toLowerCase().indexOf(user) === -1) show = false;
+        if (show && pay && row.getAttribute('data-pay') !== pay) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryOrderRows = function () { orderPager.reset(); };
+    window.resetOrderFilter = function () {
+      document.getElementById('orderFOrder').value = '';
+      document.getElementById('orderFUser').value = '';
+      document.getElementById('orderFPay').value = '';
+      document.getElementById('orderFStatus').value = '';
+      queryOrderRows();
+    };
+
+    /* ==================== 认养养护记录：筛选 + 分页 ==================== */
+    var careTbody = document.getElementById('careTbody');
+    var carePager = makePager(careTbody, document.getElementById('careRowCount'), pagerRefs('#tab-care'), function () {
+      var obj = document.getElementById('careFObj').value.trim().toLowerCase();
+      var keeper = document.getElementById('careFKeeper').value.trim().toLowerCase();
+      var content = document.getElementById('careFContent').value;
+      var out = [];
+      careTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (obj && row.cells[1].textContent.trim().toLowerCase().indexOf(obj) === -1) show = false;
+        if (show && keeper && row.cells[2].textContent.trim().toLowerCase().indexOf(keeper) === -1) show = false;
+        if (show && content && row.getAttribute('data-content') !== content) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryCareRows = function () { carePager.reset(); };
+    window.resetCareFilter = function () {
+      document.getElementById('careFObj').value = '';
+      document.getElementById('careFKeeper').value = '';
+      document.getElementById('careFContent').value = '';
+      queryCareRows();
+    };
+
+    /* ==================== 认养预约：筛选 + 分页 ==================== */
+    var appointmentTbody = document.getElementById('appointmentTbody');
+    var appointmentPager = makePager(appointmentTbody, document.getElementById('appointmentRowCount'), pagerRefs('#tab-appointment'), function () {
+      var no = document.getElementById('appointmentFNo').value.trim().toLowerCase();
+      var user = document.getElementById('appointmentFUser').value.trim().toLowerCase();
+      var project = document.getElementById('appointmentFProject').value;
+      var status = document.getElementById('appointmentFStatus').value;
+      var out = [];
+      appointmentTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (no && row.cells[0].textContent.trim().toLowerCase().indexOf(no) === -1) show = false;
+        if (show && user && row.cells[1].textContent.trim().toLowerCase().indexOf(user) === -1) show = false;
+        if (show && project && row.getAttribute('data-project') !== project) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryAppointmentRows = function () { appointmentPager.reset(); };
+    window.resetAppointmentFilter = function () {
+      document.getElementById('appointmentFNo').value = '';
+      document.getElementById('appointmentFUser').value = '';
+      document.getElementById('appointmentFProject').value = '';
+      document.getElementById('appointmentFStatus').value = '';
+      queryAppointmentRows();
+    };
+
+    /* ==================== 监视器信息：筛选 + 分页 ==================== */
+    var monitorTbody = document.getElementById('monitorTbody');
+    var monitorPager = makePager(monitorTbody, document.getElementById('monitorRowCount'), pagerRefs('#tab-monitor'), function () {
+      var name = document.getElementById('monitorFName').value.trim().toLowerCase();
+      var status = document.getElementById('monitorFStatus').value;
+      var out = [];
+      monitorTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.cells[0].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryMonitorRows = function () { monitorPager.reset(); };
+    window.resetMonitorFilter = function () {
+      document.getElementById('monitorFName').value = '';
+      document.getElementById('monitorFStatus').value = '';
+      queryMonitorRows();
+    };
+
+    /* ==================== 操作列渲染 ==================== */
+    function renderOpenOp(row) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="viewOpen(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '开放中') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="openEditOpen(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>';
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="endOpen(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>结束</button>';
+      } else {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deleteAdoptRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      }
+      cell.innerHTML = html;
+    }
+    function renderCategoryOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewCategory(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditCategory(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteAdoptRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+    function renderOrderOp(row) {
+      var status = row.getAttribute('data-status');
+      var pay = row.getAttribute('data-pay');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="viewOrder(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '已取消') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deleteAdoptRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      } else if (pay === '已支付') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="refundOrder(this)"><iconify-icon icon="ri:refund-2-line"></iconify-icon>退款</button>';
+      }
+      cell.innerHTML = html;
+    }
+    function renderCareOp(row) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="viewCare(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEditCare(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteAdoptRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+    function renderAppointmentOp(row) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '<button type="button" class="btn-op" onclick="viewAppointment(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>';
+      if (status === '待确认') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-success" onclick="confirmAppointment(this)"><iconify-icon icon="ri:check-line"></iconify-icon>确认</button>';
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="cancelAppointment(this)"><iconify-icon icon="ri:close-line"></iconify-icon>取消</button>';
+      } else if (status === '已确认') {
+        html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-warning" onclick="cancelAppointment(this)"><iconify-icon icon="ri:close-line"></iconify-icon>取消</button>';
+      }
+      cell.innerHTML = html;
+    }
+    function renderMonitorOp(row) {
+      var status = row.getAttribute('data-status');
+      var cell = row.querySelector('.op-cell');
+      var html = '';
+      if (status === '在线') {
+        html += '<button type="button" class="btn-op" onclick="showToast(\'正在加载直播\',\'info\')"><iconify-icon icon="ri:video-line"></iconify-icon>直播</button>';
+      } else {
+        html += '<button type="button" class="btn-op btn-op-warning" onclick="showToast(\'已发送重启指令\',\'info\')"><iconify-icon icon="ri:restart-line"></iconify-icon>重启</button>';
+      }
+      html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="openEditMonitor(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>';
+      html += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-danger" onclick="deleteAdoptRow(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+      cell.innerHTML = html;
+    }
+
+    /* ==================== 查看 / 结束 / 退款 / 确认 ==================== */
+    window.viewOpen = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewOpenName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewOpenObj').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewOpenCycle').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewOpenPrice').textContent = row.cells[3].textContent.trim() + ' 元/年';
+      document.getElementById('viewOpenTotal').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewOpenAdopted').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewOpenStatus').innerHTML = row.cells[6].innerHTML;
+      document.getElementById('viewOpenDate').textContent = row.cells[7].textContent.trim();
+      document.getElementById('viewOpenDesc').textContent = '面向城市居民开放' + row.cells[1].textContent.trim() + '认养，认养人可通过视频实时查看生长情况，并在果实成熟期到园采摘。';
+      openModal('viewOpenModal');
+    };
+    window.endOpen = function (btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '结束确认',
+        message: '确定结束「' + row.cells[0].textContent.trim() + '」认养项目吗？结束后将不再接受新认养。',
+        confirmText: '确认结束',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已结束');
+          row.cells[6].innerHTML = openStatusTag('已结束');
+          renderOpenOp(row);
+          openPager.render();
+          showToast('已结束', 'success');
+        }
+      });
+    };
+    window.viewCategory = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewCatName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewCatType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewCatPrice').textContent = row.cells[3].textContent.trim() + ' 元/年';
+      document.getElementById('viewCatCycle').textContent = row.cells[4].textContent.trim() + ' 个月';
+      document.getElementById('viewCatStatus').innerHTML = row.cells[6].innerHTML;
+      document.getElementById('viewCatSpec').textContent = row.cells[2].textContent.trim();
+      openModal('viewCategoryModal');
+    };
+    window.viewOrder = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewOrderNo').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewOrderUser').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewOrderPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewOrderObj').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewOrderQty').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewOrderCycle').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewOrderAmount').textContent = row.cells[6].textContent.trim() + ' 元';
+      document.getElementById('viewOrderTime').textContent = row.cells[7].textContent.trim();
+      document.getElementById('viewOrderPay').innerHTML = row.cells[8].innerHTML;
+      document.getElementById('viewOrderStatus').innerHTML = row.cells[9].innerHTML;
+      openModal('viewOrderModal');
+    };
+    window.refundOrder = function (btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '退款确认',
+        message: '确定对订单「' + row.cells[0].textContent.trim() + '」发起退款吗？',
+        confirmText: '确认退款',
+        onConfirm: function () {
+          row.setAttribute('data-pay', '已退款');
+          row.setAttribute('data-status', '已取消');
+          row.cells[8].innerHTML = payTag('已退款');
+          row.cells[9].innerHTML = orderStatusTag('已取消');
+          renderOrderOp(row);
+          orderPager.render();
+          showToast('退款已发起', 'success');
+        }
+      });
+    };
+    window.viewCare = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewCareNo').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewCareObj').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewCareKeeper').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewCareDate').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewCareContent').innerHTML = row.cells[4].innerHTML;
+      document.getElementById('viewCareRemark').textContent = row.cells[6].textContent.trim();
+      openModal('viewCareModal');
+    };
+    window.viewAppointment = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewAppNo').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewAppUser').textContent = row.cells[1].textContent.trim();
+      document.getElementById('viewAppPhone').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewAppObj').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewAppDate').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewAppCount').textContent = row.cells[5].textContent.trim() + ' 人';
+      document.getElementById('viewAppProject').innerHTML = row.cells[6].innerHTML;
+      document.getElementById('viewAppStatus').innerHTML = row.cells[7].innerHTML;
+      document.getElementById('viewAppRemark').textContent = row.cells[8].textContent.trim();
+      openModal('viewAppointmentModal');
+    };
+    window.confirmAppointment = function (btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '确认预约',
+        message: '确定确认预约「' + row.cells[0].textContent.trim() + '」吗？',
+        confirmText: '确认预约',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已确认');
+          row.cells[7].innerHTML = appStatusTag('已确认');
+          renderAppointmentOp(row);
+          appointmentPager.render();
+          showToast('确认成功', 'success');
+        }
+      });
+    };
+    window.cancelAppointment = function (btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '取消确认',
+        message: '确定取消预约「' + row.cells[0].textContent.trim() + '」吗？',
+        confirmText: '确认取消',
+        onConfirm: function () {
+          row.setAttribute('data-status', '已取消');
+          row.cells[7].innerHTML = appStatusTag('已取消');
+          renderAppointmentOp(row);
+          appointmentPager.render();
+          showToast('已取消', 'success');
+        }
+      });
+    };
+
+    /* ==================== 删除（先取面板，再移除，最后刷新分页） ==================== */
+    window.deleteAdoptRow = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          var key = panel ? panel.id.replace('tab-', '') : '';
+          if (key === 'open') openPager.render();
+          else if (key === 'category') categoryPager.render();
+          else if (key === 'order') orderPager.render();
+          else if (key === 'care') carePager.render();
+          else if (key === 'appointment') appointmentPager.render();
+          else if (key === 'monitor') monitorPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 编辑：按行填充 + 保存回写 ==================== */
+    window.openEditOpen = function (btn) {
+      var row = btn.closest('tr');
+      window._editOpenRow = row;
+      document.getElementById('openEditName').value = row.cells[0].textContent.trim();
+      document.getElementById('openEditObj').value = row.cells[1].textContent.trim();
+      document.getElementById('openEditCycle').value = row.cells[2].textContent.trim();
+      document.getElementById('openEditPrice').value = row.cells[3].textContent.trim();
+      document.getElementById('openEditTotal').value = row.cells[4].textContent.trim();
+      openModal('editOpenModal');
+    };
+    window.submitEditOpen = function () {
+      var row = window._editOpenRow;
+      if (row) {
+        var obj = document.getElementById('openEditObj').value;
+        row.cells[0].textContent = document.getElementById('openEditName').value.trim();
+        row.cells[1].textContent = obj;
+        row.cells[2].textContent = document.getElementById('openEditCycle').value.trim();
+        row.cells[3].textContent = document.getElementById('openEditPrice').value.trim();
+        row.cells[4].textContent = document.getElementById('openEditTotal').value.trim();
+        row.setAttribute('data-obj', obj);
+      }
+      closeModal('editOpenModal');
+      openPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.openEditCategory = function (btn) {
+      var row = btn.closest('tr');
+      window._editCategoryRow = row;
+      document.getElementById('categoryEditName').value = row.cells[0].textContent.trim();
+      document.getElementById('categoryEditType').value = row.cells[1].textContent.trim();
+      document.getElementById('categoryEditPrice').value = row.cells[3].textContent.trim();
+      document.getElementById('categoryEditCycle').value = row.cells[4].textContent.trim();
+      document.getElementById('categoryEditSpec').value = row.cells[2].textContent.trim();
+      openModal('editCategoryModal');
+    };
+    window.submitEditCategory = function () {
+      var row = window._editCategoryRow;
+      if (row) {
+        var type = document.getElementById('categoryEditType').value;
+        row.cells[0].textContent = document.getElementById('categoryEditName').value.trim();
+        row.cells[1].innerHTML = catTypeTag(type);
+        row.cells[2].textContent = document.getElementById('categoryEditSpec').value.trim();
+        row.cells[3].textContent = document.getElementById('categoryEditPrice').value.trim();
+        row.cells[4].textContent = document.getElementById('categoryEditCycle').value.trim();
+        row.setAttribute('data-type', type);
+      }
+      closeModal('editCategoryModal');
+      categoryPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.openEditCare = function (btn) {
+      var row = btn.closest('tr');
+      window._editCareRow = row;
+      document.getElementById('careEditObj').value = row.cells[1].textContent.trim();
+      document.getElementById('careEditKeeper').value = row.cells[2].textContent.trim();
+      document.getElementById('careEditDate').value = row.cells[3].textContent.trim();
+      document.getElementById('careEditContent').value = row.cells[4].textContent.trim();
+      document.getElementById('careEditRemark').value = row.cells[6].textContent.trim();
+      openModal('editCareModal');
+    };
+    window.submitEditCare = function () {
+      var row = window._editCareRow;
+      if (row) {
+        var content = document.getElementById('careEditContent').value;
+        row.cells[1].textContent = document.getElementById('careEditObj').value.trim();
+        row.cells[2].textContent = document.getElementById('careEditKeeper').value.trim();
+        row.cells[3].textContent = document.getElementById('careEditDate').value;
+        row.cells[4].innerHTML = careTag(content);
+        row.cells[6].textContent = document.getElementById('careEditRemark').value.trim();
+        row.setAttribute('data-content', content);
+      }
+      closeModal('editCareModal');
+      carePager.render();
+      showToast('保存成功', 'success');
+    };
+    window.openEditMonitor = function (btn) {
+      var row = btn.closest('tr');
+      window._editMonitorRow = row;
+      document.getElementById('monitorEditName').value = row.cells[0].textContent.trim();
+      document.getElementById('monitorEditSn').value = row.cells[1].textContent.trim();
+      document.getElementById('monitorEditObj').value = row.cells[2].textContent.trim();
+      document.getElementById('monitorEditLoc').value = row.cells[3].textContent.trim();
+      document.getElementById('monitorEditStream').value = row.cells[4].textContent.trim();
+      document.getElementById('monitorEditRes').value = row.cells[7].textContent.trim();
+      openModal('editMonitorModal');
+    };
+    window.submitEditMonitor = function () {
+      var row = window._editMonitorRow;
+      if (row) {
+        row.cells[0].textContent = document.getElementById('monitorEditName').value.trim();
+        row.cells[1].textContent = document.getElementById('monitorEditSn').value.trim();
+        row.cells[2].textContent = document.getElementById('monitorEditObj').value.trim();
+        row.cells[3].textContent = document.getElementById('monitorEditLoc').value.trim();
+        row.cells[4].textContent = document.getElementById('monitorEditStream').value.trim();
+        row.cells[7].textContent = document.getElementById('monitorEditRes').value;
+      }
+      closeModal('editMonitorModal');
+      monitorPager.render();
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 新增：校验后插入首行并刷新分页 ==================== */
+    var careSeq = 26;
+    window.submitAddOpen = function () {
+      var name = document.getElementById('adoptName').value.trim();
+      var obj = document.getElementById('adoptObj').value;
+      var cycle = document.getElementById('adoptCycle').value.trim();
+      var price = document.getElementById('adoptPrice').value.trim();
+      var total = document.getElementById('adoptTotal').value.trim();
+      if (!name || !obj || !cycle || !price || !total) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-obj', obj);
+      tr.setAttribute('data-status', '开放中');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(cycle) + '</td>' +
+        '<td class="nums">' + escapeHtml(price) + '</td>' +
+        '<td class="nums">' + escapeHtml(total) + '</td>' +
+        '<td class="nums">0</td>' +
+        '<td>' + openStatusTag('开放中') + '</td>' +
+        '<td class="nums">' + fmtToday() + '</td>' +
+        '<td class="op-cell"></td>';
+      renderOpenOp(tr);
+      openTbody.insertBefore(tr, openTbody.firstChild);
+      document.getElementById('adoptName').value = ''; document.getElementById('adoptObj').value = ''; document.getElementById('adoptCycle').value = ''; document.getElementById('adoptPrice').value = ''; document.getElementById('adoptTotal').value = '';
+      queryOpenRows();
+      closeModal('addOpenModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddCategory = function () {
+      var name = document.getElementById('catName').value.trim();
+      var type = document.getElementById('catType').value;
+      var price = document.getElementById('catPrice').value.trim();
+      var cycle = document.getElementById('catCycle').value.trim();
+      var spec = document.getElementById('catSpec').value.trim();
+      if (!name || !type || !price || !cycle) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '上架');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + catTypeTag(type) + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(spec || '—') + '</td>' +
+        '<td class="nums">' + escapeHtml(price) + '</td>' +
+        '<td class="nums">' + escapeHtml(cycle) + '</td>' +
+        '<td>' + imgThumb() + '</td>' +
+        '<td>' + catStatusTag('上架') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderCategoryOp(tr);
+      categoryTbody.insertBefore(tr, categoryTbody.firstChild);
+      document.getElementById('catName').value = ''; document.getElementById('catType').value = ''; document.getElementById('catPrice').value = ''; document.getElementById('catCycle').value = ''; document.getElementById('catSpec').value = '';
+      queryCategoryRows();
+      closeModal('addCategoryModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddCare = function () {
+      var obj = document.getElementById('careObj').value.trim();
+      var keeper = document.getElementById('careKeeper').value.trim();
+      var date = document.getElementById('careDate').value || fmtToday();
+      var content = document.getElementById('careContent').value;
+      var remark = document.getElementById('careRemark').value.trim();
+      if (!obj || !keeper || !content) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-content', content);
+      tr.innerHTML =
+        '<td class="nums">CR' + (2026070001 + careSeq++) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(keeper) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td>' + careTag(content) + '</td>' +
+        '<td>' + imgThumb() + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(remark || '—') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderCareOp(tr);
+      careTbody.insertBefore(tr, careTbody.firstChild);
+      document.getElementById('careObj').value = ''; document.getElementById('careKeeper').value = ''; document.getElementById('careDate').value = ''; document.getElementById('careContent').value = ''; document.getElementById('careRemark').value = '';
+      queryCareRows();
+      closeModal('addCareModal');
+      showToast('保存成功', 'success');
+    };
+    window.submitAddMonitor = function () {
+      var name = document.getElementById('monName').value.trim();
+      var sn = document.getElementById('monSn').value.trim();
+      var obj = document.getElementById('monObj').value.trim();
+      var loc = document.getElementById('monLoc').value.trim();
+      var stream = document.getElementById('monStream').value.trim();
+      var res = document.getElementById('monRes').value;
+      if (!name || !sn || !obj || !stream) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', '在线');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td class="nums">' + escapeHtml(sn) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(loc || '—') + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(stream) + '</td>' +
+        '<td>' + monStatusTag('在线') + '</td>' +
+        '<td class="nums">' + fmtToday() + ' 00:00</td>' +
+        '<td>' + escapeHtml(res) + '</td>' +
+        '<td class="op-cell"></td>';
+      renderMonitorOp(tr);
+      monitorTbody.insertBefore(tr, monitorTbody.firstChild);
+      document.getElementById('monName').value = ''; document.getElementById('monSn').value = ''; document.getElementById('monObj').value = ''; document.getElementById('monRes').value = '1080P'; document.getElementById('monLoc').value = ''; document.getElementById('monStream').value = '';
+      queryMonitorRows();
+      closeModal('addMonitorModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '农业认养') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '农业认养记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 25 条，验证 3 页分页） ==================== */
+    var names = ['李建国', '王桂花', '赵铁柱', '孙富贵', '周小敏', '吴德发', '郑美玲', '冯志强', '陈秀兰', '蒋大伟', '韩雪梅', '曹国庆', '袁丽华', '邓建军', '许文静', '何东升', '吕秀英', '苏志明', '卢海燕'];
+
+    // ---- 认养开通：6 条基础 + 19 条 ----
+    var openRows = [
+      ['幸福村蜜桔树认养', '蜜桔树', '1年', 388, 500, 320, '开放中', '2026-07-01'],
+      ['丰收稻田认养', '农田', '1年', 588, 100, 42, '开放中', '2026-07-05'],
+      ['平安土鸡认养', '家禽', '6月', 168, 300, 180, '开放中', '2026-07-08'],
+      ['金桔果树认养', '果树', '1年', 468, 200, 95, '开放中', '2026-07-12'],
+      ['幸福村蜜桔树认养(二期)', '蜜桔树', '1年', 388, 300, 0, '已结束', '2026-06-15'],
+      ['丰收蔬菜田认养', '农田', '3月', 198, 150, 88, '开放中', '2026-07-20']
+    ];
+    var openNames = ['益农蜜桔认养园', '高山云雾茶认养', '林下黑猪认养', '百香果园认养', '樱桃园认养', '有机蔬菜园认养', '稻田鸭认养', '油桃树认养', '枇杷树认养', '土鸡蛋认养', '阳光葡萄园认养', '桑葚树认养', '土豆田认养', '香梨树认养', '猕猴桃树认养', '玉米田认养', '竹林土鸡认养', '甘蔗田认养', '蓝莓园认养'];
+    var openObjs = ['蜜桔树', '果树', '家禽', '农田'];
+    var openCycles = ['1年', '6月', '3月', '1年'];
+    var openStatuses = ['开放中', '开放中', '开放中', '已结束'];
+    openRows.forEach(function (r) { buildOpenRow(openTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var oi = 0; oi < 19; oi++) {
+      buildOpenRow(openTbody, openNames[oi], openObjs[oi % 4], openCycles[oi % 4], 168 + ((oi * 113) % 780), 50 + ((oi * 37) % 450), (oi * 41) % 200, openStatuses[oi % 4], fmtDate(17 - oi));
+    }
+
+    // ---- 认养品类：6 条基础 + 19 条 ----
+    var categoryRows = [
+      ['益农蜜桔树', '果树', '5年生挂果蜜桔树', 388, 12, '上架'],
+      ['土鸡', '家禽', '林下散养土鸡', 168, 6, '上架'],
+      ['丰收水稻田', '农田', '一季稻种植田', 588, 12, '上架'],
+      ['金桔果树', '果树', '8年生金桔树', 468, 12, '上架'],
+      ['蔬菜田', '农田', '时令蔬菜种植田', 198, 3, '下架'],
+      ['山羊', '其他', '山地放养山羊', 888, 8, '上架']
+    ];
+    var categoryNames = ['温州蜜柑', '散养土鸭', '红心火龙果树', '丝瓜田', '老母鸡', '水蜜桃树', '稻田鱼', '花生田', '蜜柚树', '巴马香猪', '四季豆田', '酥梨树', '大白鹅', '甜玉米地', '冬枣树', '黑山羊', '西瓜田', '东魁杨梅树', '百花蜂蜜'];
+    var categoryTypes = ['果树', '家禽', '农田', '其他'];
+    var categorySpecs = ['单株年产鲜果约 30-50 斤，认养期内可到园采摘', '林下散养、以五谷杂粮为主食', '时令作物轮作，认养期内专人管护', '本地优选品种，适应性强、产量稳定', '生态养殖，全程可溯源'];
+    var categoryStatuses = ['上架', '上架', '上架', '下架'];
+    categoryRows.forEach(function (r) { buildCategoryRow(categoryTbody, r[0], r[1], r[2], r[3], r[4], r[5]); });
+    for (var ci = 0; ci < 19; ci++) {
+      buildCategoryRow(categoryTbody, categoryNames[ci], categoryTypes[ci % 4], categorySpecs[ci % 5], 128 + ((ci * 73) % 900), 3 + (ci % 10), categoryStatuses[ci % 4]);
+    }
+
+    // ---- 认养订单：6 条基础 + 19 条 ----
+    var orderRows = [
+      ['AP20260701001', '李建国', '138****5678', '蜜桔树', 2, '1年', 776, '2026-07-01 10:20', '已支付', '生效中'],
+      ['AP20260705002', '王桂花', '138****5678', '稻田', 1, '1年', 588, '2026-07-05 11:30', '已支付', '生效中'],
+      ['AP20260708003', '赵铁柱', '138****5678', '土鸡', 5, '6月', 840, '2026-07-08 14:15', '待支付', '已取消'],
+      ['AP20260712004', '孙富贵', '138****5678', '金桔果树', 1, '1年', 468, '2026-07-12 09:40', '已支付', '生效中'],
+      ['AP20260615005', '周小敏', '138****5678', '蜜桔树', 3, '1年', 1164, '2026-06-15 16:00', '已退款', '已取消'],
+      ['AP20260720006', '吴德发', '138****5678', '蔬菜田', 2, '3月', 396, '2026-07-20 13:25', '已支付', '已完成']
+    ];
+    var orderObjs = ['蜜桔树', '稻田', '土鸡', '蔬菜田', '金桔果树'];
+    var objPrices = { '蜜桔树': 388, '稻田': 588, '土鸡': 168, '蔬菜田': 198, '金桔果树': 468 };
+    var orderCycles = ['1年', '1年', '6月', '3月'];
+    var orderTimes = ['10:20', '11:30', '14:15', '09:40', '16:00', '13:25'];
+    var orderPays = ['已支付', '已支付', '待支付', '已退款'];
+    var orderStatuses = ['生效中', '生效中', '已取消', '已取消', '已完成'];
+    orderRows.forEach(function (r) { buildOrderRow(orderTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9]); });
+    for (var di = 0; di < 19; di++) {
+      var oObj = orderObjs[di % 5];
+      var oQty = 1 + (di % 5);
+      var oPrice = objPrices[oObj];
+      var oCycle = orderCycles[di % 4];
+      var oPay = orderPays[di % 4];
+      var oStatus = orderStatuses[di % 5];
+      buildOrderRow(orderTbody, 'AP' + (2026070007 + di), names[di % names.length], '139****' + String(1000 + di), oObj, oQty, oCycle, oPrice * oQty, fmtDate(17 - di) + ' ' + orderTimes[di % 6], oPay, oStatus);
+    }
+
+    // ---- 认养养护记录：6 条基础 + 19 条 ----
+    var careRows = [
+      ['CR20260701001', '蜜桔树#A001', '李建国', '2026-07-01', '浇水', '幼果期，水分充足'],
+      ['CR20260705002', '蜜桔树#A002', '王桂花', '2026-07-05', '施肥', '有机肥追施'],
+      ['CR20260710003', '蜜桔树#A001', '赵铁柱', '2026-07-10', '修剪', '疏枝通风'],
+      ['CR20260715004', '蜜桔树#A003', '孙富贵', '2026-07-15', '除虫', '红蜘蛛防治'],
+      ['CR20260720005', '稻田#B001', '周小敏', '2026-07-20', '浇水', '分蘖期灌溉'],
+      ['CR20260725006', '蜜桔树#A002', '吴德发', '2026-07-25', '采摘', '早熟果试采']
+    ];
+    var careObjs = ['蜜桔树#A001', '稻田#B001', '土鸡#C001', '蔬菜田#D001', '金桔果树#E001'];
+    var careContents = ['浇水', '施肥', '修剪', '除虫', '采摘'];
+    var careRemarks = ['幼果期，水分充足', '有机肥追施', '疏枝通风', '红蜘蛛防治', '分蘖期灌溉', '早熟果试采', '生长期观察', '防冻保暖处理'];
+    careRows.forEach(function (r) { buildCareRow(careTbody, r[0], r[1], r[2], r[3], r[4], r[5]); });
+    for (var ki = 0; ki < 19; ki++) {
+      buildCareRow(careTbody, 'CR' + (2026070007 + ki), careObjs[ki % 5], names[ki % names.length], fmtDate(17 - ki), careContents[ki % 5], careRemarks[ki % 8]);
+    }
+
+    // ---- 认养预约：6 条基础 + 19 条 ----
+    var appointmentRows = [
+      ['BK20260801001', '李建国', '138****5678', '蜜桔树', '2026-08-10', 4, '采摘', '待确认', '需儿童采摘工具'],
+      ['BK20260802002', '王桂花', '138****5678', '蜜桔树', '2026-08-12', 2, '参观', '已确认', '含老人，需无障碍'],
+      ['BK20260803003', '赵铁柱', '138****5678', '稻田', '2026-08-15', 6, '体验', '已到访', '已完成体验'],
+      ['BK20260804004', '孙富贵', '138****5678', '金桔果树', '2026-08-18', 3, '采摘', '待确认', '—'],
+      ['BK20260805005', '周小敏', '138****5678', '蜜桔树', '2026-08-20', 5, '体验', '已取消', '天气原因'],
+      ['BK20260806006', '吴德发', '138****5678', '蔬菜田', '2026-08-22', 2, '参观', '已确认', '—']
+    ];
+    var appProjects = ['采摘', '参观', '体验'];
+    var appStatuses = ['待确认', '已确认', '已到访', '已取消'];
+    var appRemarks = ['—', '需儿童采摘工具', '含老人，需无障碍', '天气原因', '自带食材', '单位团建活动'];
+    appointmentRows.forEach(function (r) { buildAppointmentRow(appointmentTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var bi = 0; bi < 19; bi++) {
+      buildAppointmentRow(appointmentTbody, 'BK' + (2026080101 + bi), names[bi % names.length], '138****' + String(2000 + bi), orderObjs[bi % 5], fmtDate(24 - bi), 2 + (bi % 5), appProjects[bi % 3], appStatuses[bi % 4], appRemarks[bi % 6]);
+    }
+
+    // ---- 监视器信息：6 条基础 + 19 条 ----
+    var monitorRows = [
+      ['蜜桔园A区摄像头', 'CAM2026A001', '蜜桔树#A001', '蜜桔园A区', 'rtsp://192.168.1.20:554/stream1', '在线', '2026-08-08 15:50', '1080P'],
+      ['蜜桔园B区摄像头', 'CAM2026A002', '蜜桔树#A002', '蜜桔园B区', 'rtsp://192.168.1.21:554/stream1', '在线', '2026-08-08 15:50', '1080P'],
+      ['稻田监控', 'CAM2026A003', '稻田#B001', '丰收稻田', 'rtsp://192.168.1.22:554/stream1', '在线', '2026-08-08 15:49', '720P'],
+      ['民宿前台摄像头', 'CAM2026A004', '蜜桔树#A003', '桔乡民宿', 'rtsp://192.168.1.23:554/stream1', '离线', '2026-08-08 10:12', '1080P'],
+      ['古樟祈福台摄像头', 'CAM2026A005', '蜜桔树#A004', '古樟祈福台', 'rtsp://192.168.1.24:554/stream1', '在线', '2026-08-08 15:50', '1080P'],
+      ['文化广场摄像头', 'CAM2026A006', '蜜桔树#A005', '村文化广场', 'rtsp://192.168.1.25:554/stream1', '在线', '2026-08-08 15:50', '720P']
+    ];
+    var monitorNames = ['蜜桔园C区摄像头', '鱼塘监控', '林下养殖场监控', '生态茶园摄像头', '村口岗亭监控', '研学基地摄像头', '蔬菜大棚监控', '果园仓库摄像头', '村停车场监控', '观光步道摄像头', '农产品加工坊监控', '蓄水池监控', '文化舞台摄像头', '观光塔摄像头', '蜜桔分拣中心监控', '配电房监控', '公厕外监控', '健身广场摄像头', '村史馆摄像头'];
+    var monitorObjs = ['蜜桔树#A001', '稻田#B001', '土鸡#C001', '蔬菜田#D001'];
+    var monitorLocs = ['蜜桔园C区', '丰收鱼塘', '林下养殖场', '生态茶园', '村口岗亭', '研学基地', '蔬菜大棚', '果园仓库', '村停车场', '观光步道', '加工坊', '蓄水池', '文化舞台', '观光塔', '分拣中心', '配电房', '公厕', '健身广场', '村史馆'];
+    var monitorStatuses = ['在线', '在线', '在线', '离线'];
+    var monitorRes = ['1080P', '720P'];
+    monitorRows.forEach(function (r) { buildMonitorRow(monitorTbody, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var mi = 0; mi < 19; mi++) {
+      var mStatus = monitorStatuses[mi % 4];
+      var mHeart = (mStatus === '离线' ? '2026-08-08 09:' : '2026-08-08 15:') + String(10 + (mi * 7) % 40).padStart(2, '0');
+      buildMonitorRow(monitorTbody, monitorNames[mi], 'CAM2026B' + (101 + mi), monitorObjs[mi % 4], monitorLocs[mi], 'rtsp://192.168.1.' + (30 + mi) + ':554/stream1', mStatus, mHeart, monitorRes[mi % 2]);
+    }
+
+    function buildOpenRow(tbody, name, obj, cycle, price, total, adopted, status, date) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-obj', obj);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(cycle) + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td class="nums">' + total + '</td>' +
+        '<td class="nums">' + adopted + '</td>' +
+        '<td>' + openStatusTag(status) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderOpenOp(tr);
+    }
+    function buildCategoryRow(tbody, name, type, spec, price, cycle, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + catTypeTag(type) + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(spec) + '</td>' +
+        '<td class="nums">' + price + '</td>' +
+        '<td class="nums">' + cycle + '</td>' +
+        '<td>' + imgThumb() + '</td>' +
+        '<td>' + catStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderCategoryOp(tr);
+    }
+    function buildOrderRow(tbody, orderNo, user, phone, obj, qty, cycle, amount, time, pay, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-pay', pay);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="nums">' + escapeHtml(orderNo) + '</td>' +
+        '<td class="town-name">' + escapeHtml(user) + '</td>' +
+        '<td class="nums">' + escapeHtml(phone) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td class="nums">' + qty + '</td>' +
+        '<td>' + escapeHtml(cycle) + '</td>' +
+        '<td class="nums">' + amount + '</td>' +
+        '<td class="nums">' + time + '</td>' +
+        '<td>' + payTag(pay) + '</td>' +
+        '<td>' + orderStatusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderOrderOp(tr);
+    }
+    function buildCareRow(tbody, no, obj, keeper, date, content, remark) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-content', content);
+      tr.innerHTML =
+        '<td class="nums">' + escapeHtml(no) + '</td>' +
+        '<td class="town-name">' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(keeper) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td>' + careTag(content) + '</td>' +
+        '<td>' + imgThumb() + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(remark) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderCareOp(tr);
+    }
+    function buildAppointmentRow(tbody, no, user, phone, obj, date, count, project, status, remark) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-project', project);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="nums">' + escapeHtml(no) + '</td>' +
+        '<td class="town-name">' + escapeHtml(user) + '</td>' +
+        '<td class="nums">' + escapeHtml(phone) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td class="nums">' + date + '</td>' +
+        '<td class="nums">' + count + '</td>' +
+        '<td>' + projTag(project) + '</td>' +
+        '<td>' + appStatusTag(status) + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(remark) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderAppointmentOp(tr);
+    }
+    function buildMonitorRow(tbody, name, sn, obj, loc, stream, status, heartbeat, res) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td class="nums">' + escapeHtml(sn) + '</td>' +
+        '<td>' + escapeHtml(obj) + '</td>' +
+        '<td>' + escapeHtml(loc) + '</td>' +
+        '<td class="reason-cell">' + escapeHtml(stream) + '</td>' +
+        '<td>' + monStatusTag(status) + '</td>' +
+        '<td class="nums">' + heartbeat + '</td>' +
+        '<td>' + escapeHtml(res) + '</td>' +
+        '<td class="op-cell"></td>';
+      tbody.appendChild(tr);
+      renderMonitorOp(tr);
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    openPager.render();
+    categoryPager.render();
+    orderPager.render();
+    carePager.render();
+    appointmentPager.render();
+    monitorPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#adoptTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchAdoptTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

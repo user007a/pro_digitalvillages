@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>产业管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「乡级管理·党建管理」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格卡：标题左（绿色图标）+ 操作按钮右 / 表头 12px / 数据 14px
+       - 分页条默认 10 条/页；弹窗白底圆角、标题带绿色图标
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    /* 页面容器与页头 */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .page-header.dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .page-header.dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; }
+    .page-header.dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; }
+
+    /* Tab（对齐党建管理：白卡圆角 + 轻阴影，激活绿色下划线） */
+    .tab-bar.dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 24px; margin-bottom: 16px; overflow-x: auto; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; cursor: pointer; white-space: nowrap; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区（白卡 + 紧凑控件） */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+
+    /* 数据列表卡片：标题行（标题左 + 新增/导出按钮右） + 表格 + 分页 */
+    .card.table-card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 + 分页条（默认 10 条/页） */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; padding: 12px 20px; border-top: 1px solid #f0f2f5; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 30px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 30px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗美化（对齐党建管理：圆角 12px / 头部绿色图标 / footer 灰底） */
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    .modal-overlay .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-overlay .modal-body .form-input,
+    .modal-overlay .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .page-header.dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>产业管理</h2>
+      <span class="text-muted">种植、畜牧、渔业、加工、旅游等村级特色产业信息与产业结构管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：种植业 → 畜牧业 → 渔业 → 加工业 → 旅游业 → 产业结构 -->
+  <div class="tab-bar dv-tabbar" id="industryTabs">
+    <div class="tab-item active" onclick="switchIndustryTab(this)" data-tab="plant">种植业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="livestock">畜牧业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="fishery">渔业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="processing">加工业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="tourism">旅游业</div>
+    <div class="tab-item" onclick="switchIndustryTab(this)" data-tab="structure">产业结构</div>
+  </div>
+
+  <!-- ==================== Tab 面板：种植业 ==================== -->
+  <div class="tab-panel" id="tab-plant">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="plantFName">种植户/合作社</label>
+        <input type="text" id="plantFName" class="form-input" placeholder="请输入种植户或合作社名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="plantFKind">作物种类</label>
+        <select id="plantFKind" class="form-select">
+          <option value="">全部</option>
+          <option>蜜桔</option>
+          <option>水稻</option>
+          <option>蔬菜</option>
+          <option>茶叶</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="plantFStatus">状态</label>
+        <select id="plantFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>待审</option>
+          <option>异常</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryPlantRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetPlantFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:plant-line"></iconify-icon>种植业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addPlantModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('种植业')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>种植户/合作社名称</th>
+              <th>作物种类</th>
+              <th>种植面积(亩)</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年产值(万元)</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="plantTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="plantRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：畜牧业 ==================== -->
+  <div class="tab-panel" id="tab-livestock" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="livestockFName">养殖场名称</label>
+        <input type="text" id="livestockFName" class="form-input" placeholder="请输入养殖场名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="livestockFKind">养殖种类</label>
+        <select id="livestockFKind" class="form-select">
+          <option value="">全部</option>
+          <option>猪</option>
+          <option>牛</option>
+          <option>羊</option>
+          <option>禽</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="livestockFStatus">状态</label>
+        <select id="livestockFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>待审</option>
+          <option>异常</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryLivestockRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetLivestockFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:store-line"></iconify-icon>畜牧业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addLivestockModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('畜牧业')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>养殖场名称</th>
+              <th>养殖种类</th>
+              <th>养殖规模</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年产值(万元)</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="livestockTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="livestockRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：渔业 ==================== -->
+  <div class="tab-panel" id="tab-fishery" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fisheryFName">养殖场名称</label>
+        <input type="text" id="fisheryFName" class="form-input" placeholder="请输入养殖场名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fisheryFType">养殖类型</label>
+        <select id="fisheryFType" class="form-select">
+          <option value="">全部</option>
+          <option>池塘</option>
+          <option>水库</option>
+          <option>稻田</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fisheryFStatus">状态</label>
+        <select id="fisheryFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>待审</option>
+          <option>异常</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryFisheryRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetFisheryFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:water-line"></iconify-icon>渔业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addFisheryModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('渔业')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>养殖场名称</th>
+              <th>养殖类型</th>
+              <th>养殖品种</th>
+              <th>养殖面积(亩)</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年产值(万元)</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="fisheryTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="fisheryRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：加工业 ==================== -->
+  <div class="tab-panel" id="tab-processing" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="processingFName">企业名称</label>
+        <input type="text" id="processingFName" class="form-input" placeholder="请输入企业名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="processingFType">加工类型</label>
+        <select id="processingFType" class="form-select">
+          <option value="">全部</option>
+          <option>农产品加工</option>
+          <option>食品加工</option>
+          <option>手工艺品</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="processingFStatus">状态</label>
+        <select id="processingFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>待审</option>
+          <option>异常</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryProcessingRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetProcessingFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:factory-line"></iconify-icon>加工业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addProcessingModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('加工业')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>企业名称</th>
+              <th>加工类型</th>
+              <th>主营产品</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年加工量(吨)</th>
+              <th>年产值(万元)</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="processingTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="processingRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：旅游业 ==================== -->
+  <div class="tab-panel" id="tab-tourism" style="display:none">
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="tourismFName">旅游点名称</label>
+        <input type="text" id="tourismFName" class="form-input" placeholder="请输入旅游点名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="tourismFType">旅游类型</label>
+        <select id="tourismFType" class="form-select">
+          <option value="">全部</option>
+          <option>农家乐</option>
+          <option>采摘园</option>
+          <option>民宿</option>
+          <option>景区</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="tourismFStatus">状态</label>
+        <select id="tourismFStatus" class="form-select">
+          <option value="">全部</option>
+          <option>正常</option>
+          <option>待审</option>
+          <option>异常</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="queryTourismRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetTourismFilter()">重 置</button>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:hotel-line"></iconify-icon>旅游业列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addTourismModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增</button>
+          <button type="button" class="btn btn-outline" onclick="openExportModal('旅游业')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>旅游点名称</th>
+              <th>旅游类型</th>
+              <th>所属村</th>
+              <th>负责人</th>
+              <th>联系电话</th>
+              <th>年接待量(人次)</th>
+              <th>年收入(万元)</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tourismTbody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>共 <b id="tourismRowCount">0</b> 条记录</span>
+        <div class="pager">
+          <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+          <select class="pager-size" aria-label="每页条数">
+            <option value="10" selected>10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+          </select>
+          <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+          <span class="pager-nums"></span>
+          <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：产业结构 ==================== -->
+  <div class="tab-panel" id="tab-structure" style="display:none">
+
+    <!-- 操作按钮 -->
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:16px">
+      <button type="button" class="btn btn-outline" onclick="showToast('刷新成功','success')"><iconify-icon icon="ri:refresh-line"></iconify-icon> 刷新</button>
+      <button type="button" class="btn btn-outline" onclick="openExportModal('产业结构')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+    </div>
+
+    <!-- KPI 统计卡片 -->
+    <div class="stat-cards cols-4">
+      <div class="stat-card card-blue">
+        <div class="stat-icon blue"><iconify-icon icon="ri:money-cny-circle-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">本村年总产值</div>
+          <div class="stat-value">1280 <span class="text-sm text-gray">万元</span></div>
+          <div class="stat-desc">2026年度累计</div>
+        </div>
+      </div>
+      <div class="stat-card card-green">
+        <div class="stat-icon green"><iconify-icon icon="ri:layout-grid-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">产业类型</div>
+          <div class="stat-value">4 <span class="text-sm text-gray">类</span></div>
+          <div class="stat-desc">种植/畜牧/加工/旅游</div>
+        </div>
+      </div>
+      <div class="stat-card card-yellow">
+        <div class="stat-icon orange"><iconify-icon icon="ri:plant-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">主导产业</div>
+          <div class="stat-value">种植业 <span class="text-sm text-gray">53.1%</span></div>
+          <div class="stat-desc">益农蜜桔为核心</div>
+        </div>
+      </div>
+      <div class="stat-card card-blue">
+        <div class="stat-icon blue"><iconify-icon icon="ri:group-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">从业户数</div>
+          <div class="stat-value">26 <span class="text-sm text-gray">户</span></div>
+          <div class="stat-desc">带动本地就业</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 饼图占位 + 图例 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eee">
+        <h3 style="margin:0;font-size:16px">产业结构占比分析</h3>
+        <span class="text-sm text-gray">单位：万元</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:40px;padding:24px;flex-wrap:wrap">
+        <!-- 饼图占位（环形） -->
+        <div style="position:relative;width:220px;height:220px;flex-shrink:0">
+          <div style="width:220px;height:220px;border-radius:50%;background:conic-gradient(#f97316 0 53.1%, #22c55e 53.1% 75%, var(--color-primary-500) 75% 92.2%, #eab308 92.2% 100%)"></div>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+            <span style="font-size:13px;color:#999">年总产值</span>
+            <span style="font-size:22px;font-weight:700;color:#333">1280</span>
+            <span style="font-size:12px;color:#999">万元</span>
+          </div>
+        </div>
+        <!-- 图例 -->
+        <div style="flex:1;min-width:240px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
+            <span style="width:12px;height:12px;border-radius:3px;background:#f97316;flex-shrink:0"></span>
+            <span style="flex:1;font-size:14px;color:#333">种植业（益农蜜桔）</span>
+            <span style="font-size:14px;font-weight:600;color:#f97316">680 万元</span>
+            <span style="font-size:13px;color:#999;width:56px;text-align:right">53.1%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
+            <span style="width:12px;height:12px;border-radius:3px;background:#22c55e;flex-shrink:0"></span>
+            <span style="flex:1;font-size:14px;color:#333">畜牧业</span>
+            <span style="font-size:14px;font-weight:600;color:#22c55e">280 万元</span>
+            <span style="font-size:13px;color:#999;width:56px;text-align:right">21.9%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
+            <span style="width:12px;height:12px;border-radius:3px;background:var(--color-primary-500);flex-shrink:0"></span>
+            <span style="flex:1;font-size:14px;color:#333">加工业</span>
+            <span style="font-size:14px;font-weight:600;color:var(--color-primary-500)">220 万元</span>
+            <span style="font-size:13px;color:#999;width:56px;text-align:right">17.2%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+            <span style="width:12px;height:12px;border-radius:3px;background:#eab308;flex-shrink:0"></span>
+            <span style="flex:1;font-size:14px;color:#333">旅游业</span>
+            <span style="font-size:14px;font-weight:600;color:#eab308">100 万元</span>
+            <span style="font-size:13px;color:#999;width:56px;text-align:right">7.8%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 个产业类型卡片 -->
+    <div class="stat-cards cols-4">
+      <div class="stat-card" style="border-left:3px solid #f97316">
+        <div class="stat-icon orange"><iconify-icon icon="ri:plant-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">种植业</div>
+          <div class="stat-value">680 <span class="text-sm text-gray">万元</span></div>
+          <div class="stat-desc">占比 53.1% · 蜜桔主导</div>
+        </div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid #22c55e">
+        <div class="stat-icon green"><iconify-icon icon="ri:plant-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">畜牧业</div>
+          <div class="stat-value">280 <span class="text-sm text-gray">万元</span></div>
+          <div class="stat-desc">占比 21.9% · 生猪为主</div>
+        </div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--color-primary-500)">
+        <div class="stat-icon blue"><iconify-icon icon="ri:building-2-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">加工业</div>
+          <div class="stat-value">220 <span class="text-sm text-gray">万元</span></div>
+          <div class="stat-desc">占比 17.2% · 蜜桔深加工</div>
+        </div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid #eab308">
+        <div class="stat-icon yellow"><iconify-icon icon="ri:map-pin-line"></iconify-icon></div>
+        <div class="stat-info">
+          <div class="stat-label">旅游业</div>
+          <div class="stat-value">100 <span class="text-sm text-gray">万元</span></div>
+          <div class="stat-desc">占比 7.8% · 采摘农家乐</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：种植业 ==================== -->
+
+<!-- 新增种植户弹窗 -->
+<div class="modal-overlay" id="addPlantModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:plant-line"></iconify-icon>新增种植户</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addPlantModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addPlantName"><span class="req">*</span>种植户/合作社名称</label>
+            <input type="text" id="addPlantName" class="form-input" placeholder="请输入种植户或合作社名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addPlantKind"><span class="req">*</span>作物种类</label>
+            <select id="addPlantKind" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>蜜桔</option>
+              <option>水稻</option>
+              <option>蔬菜</option>
+              <option>茶叶</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addPlantArea"><span class="req">*</span>种植面积(亩)</label>
+            <input type="number" id="addPlantArea" class="form-input" placeholder="请输入种植面积…" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addPlantVillage"><span class="req">*</span>所属村</label>
+            <select id="addPlantVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addPlantManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="addPlantManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addPlantPhone">联系电话</label>
+            <input type="tel" id="addPlantPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="addPlantOutput">年产值(万元)</label>
+          <input type="number" id="addPlantOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addPlantModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddPlant()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看种植户弹窗 -->
+<div class="modal-overlay detail-modal" id="viewPlantModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>种植户详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewPlantModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">种植户/合作社名称</span><span class="detail-value" id="viewPlantName">—</span></div>
+        <div class="detail-item"><span class="detail-label">作物种类</span><span class="detail-value" id="viewPlantKind">—</span></div>
+        <div class="detail-item"><span class="detail-label">种植面积(亩)</span><span class="detail-value" id="viewPlantArea">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value" id="viewPlantVillage">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewPlantManager">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewPlantPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value" id="viewPlantOutput">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewPlantStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewPlantModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑种植户弹窗 -->
+<div class="modal-overlay" id="editPlantModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑种植户</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editPlantModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPlantName"><span class="req">*</span>种植户/合作社名称</label>
+            <input type="text" id="editPlantName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editPlantKind"><span class="req">*</span>作物种类</label>
+            <select id="editPlantKind" class="form-select" required>
+              <option>蜜桔</option>
+              <option>水稻</option>
+              <option>蔬菜</option>
+              <option>茶叶</option>
+              <option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPlantArea"><span class="req">*</span>种植面积(亩)</label>
+            <input type="number" id="editPlantArea" class="form-input" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editPlantVillage"><span class="req">*</span>所属村</label>
+            <select id="editPlantVillage" class="form-select" required>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPlantManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="editPlantManager" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editPlantPhone">联系电话</label>
+            <input type="tel" id="editPlantPhone" class="form-input" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPlantOutput">年产值(万元)</label>
+            <input type="number" id="editPlantOutput" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editPlantStatus"><span class="req">*</span>状态</label>
+            <select id="editPlantStatus" class="form-select" required>
+              <option>正常</option>
+              <option>待审</option>
+              <option>异常</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editPlantModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditPlant()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：畜牧业 ==================== -->
+
+<!-- 新增养殖场弹窗 -->
+<div class="modal-overlay" id="addLivestockModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:store-line"></iconify-icon>新增养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addLivestockModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addLivestockName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="addLivestockName" class="form-input" placeholder="请输入养殖场名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addLivestockKind"><span class="req">*</span>养殖种类</label>
+            <select id="addLivestockKind" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>猪</option>
+              <option>牛</option>
+              <option>羊</option>
+              <option>禽</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addLivestockScale"><span class="req">*</span>养殖规模</label>
+            <input type="number" id="addLivestockScale" class="form-input" placeholder="请输入养殖规模…" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addLivestockVillage"><span class="req">*</span>所属村</label>
+            <select id="addLivestockVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addLivestockManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="addLivestockManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addLivestockPhone">联系电话</label>
+            <input type="tel" id="addLivestockPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="addLivestockOutput">年产值(万元)</label>
+          <input type="number" id="addLivestockOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addLivestockModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddLivestock()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看养殖场弹窗 -->
+<div class="modal-overlay detail-modal" id="viewLivestockModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>养殖场详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewLivestockModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">养殖场名称</span><span class="detail-value" id="viewLivestockName">—</span></div>
+        <div class="detail-item"><span class="detail-label">养殖种类</span><span class="detail-value" id="viewLivestockKind">—</span></div>
+        <div class="detail-item"><span class="detail-label">养殖规模</span><span class="detail-value" id="viewLivestockScale">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value" id="viewLivestockVillage">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewLivestockManager">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewLivestockPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value" id="viewLivestockOutput">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewLivestockStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewLivestockModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑养殖场弹窗 -->
+<div class="modal-overlay" id="editLivestockModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editLivestockModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editLivestockName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="editLivestockName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editLivestockKind"><span class="req">*</span>养殖种类</label>
+            <select id="editLivestockKind" class="form-select" required>
+              <option>猪</option>
+              <option>牛</option>
+              <option>羊</option>
+              <option>禽</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editLivestockScale"><span class="req">*</span>养殖规模</label>
+            <input type="number" id="editLivestockScale" class="form-input" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editLivestockVillage"><span class="req">*</span>所属村</label>
+            <select id="editLivestockVillage" class="form-select" required>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editLivestockManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="editLivestockManager" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editLivestockPhone">联系电话</label>
+            <input type="tel" id="editLivestockPhone" class="form-input" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editLivestockOutput">年产值(万元)</label>
+            <input type="number" id="editLivestockOutput" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editLivestockStatus"><span class="req">*</span>状态</label>
+            <select id="editLivestockStatus" class="form-select" required>
+              <option>正常</option>
+              <option>待审</option>
+              <option>异常</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editLivestockModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditLivestock()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：渔业 ==================== -->
+
+<!-- 新增养殖场弹窗 -->
+<div class="modal-overlay" id="addFisheryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:water-line"></iconify-icon>新增养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addFisheryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addFisheryName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="addFisheryName" class="form-input" placeholder="请输入养殖场名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addFisheryType"><span class="req">*</span>养殖类型</label>
+            <select id="addFisheryType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>池塘</option>
+              <option>水库</option>
+              <option>稻田</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addFisheryBreed"><span class="req">*</span>养殖品种</label>
+            <select id="addFisheryBreed" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>草鱼</option>
+              <option>鲤鱼</option>
+              <option>鲫鱼</option>
+              <option>小龙虾</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addFisheryArea"><span class="req">*</span>养殖面积(亩)</label>
+            <input type="number" id="addFisheryArea" class="form-input" placeholder="请输入养殖面积…" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addFisheryVillage"><span class="req">*</span>所属村</label>
+            <select id="addFisheryVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addFisheryManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="addFisheryManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addFisheryPhone">联系电话</label>
+            <input type="tel" id="addFisheryPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="addFisheryOutput">年产值(万元)</label>
+            <input type="number" id="addFisheryOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addFisheryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddFishery()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看养殖场弹窗 -->
+<div class="modal-overlay detail-modal" id="viewFisheryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>养殖场详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewFisheryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">养殖场名称</span><span class="detail-value" id="viewFisheryName">—</span></div>
+        <div class="detail-item"><span class="detail-label">养殖类型</span><span class="detail-value" id="viewFisheryType">—</span></div>
+        <div class="detail-item"><span class="detail-label">养殖品种</span><span class="detail-value" id="viewFisheryBreed">—</span></div>
+        <div class="detail-item"><span class="detail-label">养殖面积(亩)</span><span class="detail-value" id="viewFisheryArea">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value" id="viewFisheryVillage">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewFisheryManager">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewFisheryPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value" id="viewFisheryOutput">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewFisheryStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewFisheryModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑养殖场弹窗 -->
+<div class="modal-overlay" id="editFisheryModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑养殖场</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editFisheryModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editFisheryName"><span class="req">*</span>养殖场名称</label>
+            <input type="text" id="editFisheryName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editFisheryType"><span class="req">*</span>养殖类型</label>
+            <select id="editFisheryType" class="form-select" required>
+              <option>池塘</option>
+              <option>水库</option>
+              <option>稻田</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editFisheryBreed"><span class="req">*</span>养殖品种</label>
+            <select id="editFisheryBreed" class="form-select" required>
+              <option>草鱼</option>
+              <option>鲤鱼</option>
+              <option>鲫鱼</option>
+              <option>小龙虾</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editFisheryArea"><span class="req">*</span>养殖面积(亩)</label>
+            <input type="number" id="editFisheryArea" class="form-input" required inputmode="numeric" min="0" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editFisheryVillage"><span class="req">*</span>所属村</label>
+            <select id="editFisheryVillage" class="form-select" required>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editFisheryManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="editFisheryManager" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editFisheryPhone">联系电话</label>
+            <input type="tel" id="editFisheryPhone" class="form-input" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="editFisheryOutput">年产值(万元)</label>
+            <input type="number" id="editFisheryOutput" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editFisheryStatus"><span class="req">*</span>状态</label>
+          <select id="editFisheryStatus" class="form-select" required>
+            <option>正常</option>
+            <option>待审</option>
+            <option>异常</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editFisheryModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditFishery()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：加工业 ==================== -->
+
+<!-- 新增加工企业弹窗 -->
+<div class="modal-overlay" id="addProcessingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:factory-line"></iconify-icon>新增加工企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addProcessingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addProcessingName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="addProcessingName" class="form-input" placeholder="请输入企业名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addProcessingType"><span class="req">*</span>加工类型</label>
+            <select id="addProcessingType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>农产品加工</option>
+              <option>食品加工</option>
+              <option>手工艺品</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addProcessingProduct">主营产品</label>
+            <input type="text" id="addProcessingProduct" class="form-input" placeholder="请输入主营产品…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addProcessingVillage"><span class="req">*</span>所属村</label>
+            <select id="addProcessingVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addProcessingManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="addProcessingManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addProcessingPhone">联系电话</label>
+            <input type="tel" id="addProcessingPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addProcessingYield">年加工量(吨)</label>
+            <input type="number" id="addProcessingYield" class="form-input" placeholder="请输入年加工量…" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addProcessingOutput">年产值(万元)</label>
+            <input type="number" id="addProcessingOutput" class="form-input" placeholder="请输入年产值…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addProcessingModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddProcessing()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看企业弹窗 -->
+<div class="modal-overlay detail-modal" id="viewProcessingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>企业详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewProcessingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">企业名称</span><span class="detail-value" id="viewProcessingName">—</span></div>
+        <div class="detail-item"><span class="detail-label">加工类型</span><span class="detail-value" id="viewProcessingType">—</span></div>
+        <div class="detail-item"><span class="detail-label">主营产品</span><span class="detail-value" id="viewProcessingProduct">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value" id="viewProcessingVillage">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewProcessingManager">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewProcessingPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">年加工量(吨)</span><span class="detail-value" id="viewProcessingYield">—</span></div>
+        <div class="detail-item"><span class="detail-label">年产值(万元)</span><span class="detail-value" id="viewProcessingOutput">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewProcessingStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewProcessingModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑加工企业弹窗 -->
+<div class="modal-overlay" id="editProcessingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑加工企业</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editProcessingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editProcessingName"><span class="req">*</span>企业名称</label>
+            <input type="text" id="editProcessingName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editProcessingType"><span class="req">*</span>加工类型</label>
+            <select id="editProcessingType" class="form-select" required>
+              <option>农产品加工</option>
+              <option>食品加工</option>
+              <option>手工艺品</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editProcessingProduct">主营产品</label>
+            <input type="text" id="editProcessingProduct" class="form-input" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editProcessingVillage"><span class="req">*</span>所属村</label>
+            <select id="editProcessingVillage" class="form-select" required>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editProcessingManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="editProcessingManager" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editProcessingPhone">联系电话</label>
+            <input type="tel" id="editProcessingPhone" class="form-input" autocomplete="tel" inputmode="tel">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editProcessingYield">年加工量(吨)</label>
+            <input type="number" id="editProcessingYield" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editProcessingOutput">年产值(万元)</label>
+            <input type="number" id="editProcessingOutput" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editProcessingStatus"><span class="req">*</span>状态</label>
+          <select id="editProcessingStatus" class="form-select" required>
+            <option>正常</option>
+            <option>待审</option>
+            <option>异常</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editProcessingModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditProcessing()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：旅游业 ==================== -->
+
+<!-- 新增旅游点弹窗 -->
+<div class="modal-overlay" id="addTourismModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:hotel-line"></iconify-icon>新增旅游点</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addTourismModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addTourismName"><span class="req">*</span>旅游点名称</label>
+            <input type="text" id="addTourismName" class="form-input" placeholder="请输入旅游点名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addTourismType"><span class="req">*</span>旅游类型</label>
+            <select id="addTourismType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>农家乐</option>
+              <option>采摘园</option>
+              <option>民宿</option>
+              <option>景区</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addTourismVillage"><span class="req">*</span>所属村</label>
+            <select id="addTourismVillage" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="addTourismManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="addTourismManager" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addTourismPhone">联系电话</label>
+            <input type="tel" id="addTourismPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="addTourismVisitors">年接待量(人次)</label>
+            <input type="number" id="addTourismVisitors" class="form-input" placeholder="请输入年接待量…" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="addTourismIncome">年收入(万元)</label>
+          <input type="number" id="addTourismIncome" class="form-input" placeholder="请输入年收入…" inputmode="numeric" autocomplete="off">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addTourismModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitAddTourism()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看旅游点弹窗 -->
+<div class="modal-overlay detail-modal" id="viewTourismModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>旅游点详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewTourismModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">旅游点名称</span><span class="detail-value" id="viewTourismName">—</span></div>
+        <div class="detail-item"><span class="detail-label">旅游类型</span><span class="detail-value" id="viewTourismType">—</span></div>
+        <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value" id="viewTourismVillage">—</span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value" id="viewTourismManager">—</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value" id="viewTourismPhone">—</span></div>
+        <div class="detail-item"><span class="detail-label">年接待量(人次)</span><span class="detail-value" id="viewTourismVisitors">—</span></div>
+        <div class="detail-item"><span class="detail-label">年收入(万元)</span><span class="detail-value" id="viewTourismIncome">—</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value" id="viewTourismStatus">—</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewTourismModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑旅游点弹窗 -->
+<div class="modal-overlay" id="editTourismModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑旅游点</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editTourismModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTourismName"><span class="req">*</span>旅游点名称</label>
+            <input type="text" id="editTourismName" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editTourismType"><span class="req">*</span>旅游类型</label>
+            <select id="editTourismType" class="form-select" required>
+              <option>农家乐</option>
+              <option>采摘园</option>
+              <option>民宿</option>
+              <option>景区</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTourismVillage"><span class="req">*</span>所属村</label>
+            <select id="editTourismVillage" class="form-select" required>
+              <option>幸福村</option>
+              <option>益农村</option>
+              <option>桔园村</option>
+              <option>太和村</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editTourismManager"><span class="req">*</span>负责人</label>
+            <input type="text" id="editTourismManager" class="form-input" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTourismPhone">联系电话</label>
+            <input type="tel" id="editTourismPhone" class="form-input" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="editTourismVisitors">年接待量(人次)</label>
+            <input type="number" id="editTourismVisitors" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editTourismIncome">年收入(万元)</label>
+            <input type="number" id="editTourismIncome" class="form-input" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editTourismStatus"><span class="req">*</span>状态</label>
+            <select id="editTourismStatus" class="form-select" required>
+              <option>正常</option>
+              <option>待审</option>
+              <option>异常</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editTourismModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="submitEditTourism()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出产业数据</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出产业记录。</p>
+      <div class="export-formats" id="exportFormats">
+        <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:image-line"></iconify-icon>
+          <b>图片</b><span>PNG / JPG</span>
+        </label>
+        <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+          <b>Excel</b><span>.xlsx 表格</span>
+        </label>
+        <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+          <b>PDF</b><span>文档归档</span>
+        </label>
+        <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+          <iconify-icon icon="ri:file-text-line"></iconify-icon>
+          <b>Txt</b><span>纯文本</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="exportFileName">导出文件名</label>
+        <input type="text" id="exportFileName" class="form-input" value="产业记录" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/admin.js"></script>
+<script>
+  /* ---- 全局：Tab 切换 ---- */
+  function switchIndustryTab(tab) {
+    document.querySelectorAll('#industryTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    var key = tab.getAttribute('data-tab');
+    document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+    var panel = document.getElementById('tab-' + key);
+    if (panel) panel.style.display = '';
+  }
+
+  (function () {
+    'use strict';
+
+    /* ==================== 通用分页工厂（默认 10 条/页） ==================== */
+    function makePager(tbody, countEl, refs, getVisible) {
+      var pageSize = 10;
+      var currentPage = 1;
+      function render() {
+        var visible = getVisible();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        countEl.textContent = total;
+        refs.cur.textContent = currentPage;
+        refs.total.textContent = totalPages;
+        refs.prev.classList.toggle('disabled', currentPage <= 1);
+        refs.next.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        refs.nums.innerHTML = html;
+      }
+      refs.pager.addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); render(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; render(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+          if (currentPage < tp) { currentPage++; render(); }
+        }
+      });
+      refs.size.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        render();
+      });
+      return { render: render, reset: function () { currentPage = 1; render(); } };
+    }
+
+    function pagerRefs(scope) {
+      return {
+        pager: document.querySelector(scope + ' .pager'),
+        cur: document.querySelector(scope + ' .pager-cur'),
+        total: document.querySelector(scope + ' .pager-total'),
+        nums: document.querySelector(scope + ' .pager-nums'),
+        prev: document.querySelector(scope + ' .pager-prev'),
+        next: document.querySelector(scope + ' .pager-next'),
+        size: document.querySelector(scope + ' .pager-size')
+      };
+    }
+
+    /* ==================== 种植业：筛选 + 分页 ==================== */
+    var plantTbody = document.getElementById('plantTbody');
+    var plantPager = makePager(plantTbody, document.getElementById('plantRowCount'), pagerRefs('#tab-plant'), function () {
+      var name = document.getElementById('plantFName').value.trim().toLowerCase();
+      var kind = document.getElementById('plantFKind').value;
+      var status = document.getElementById('plantFStatus').value;
+      var out = [];
+      plantTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && kind && row.getAttribute('data-kind') !== kind) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryPlantRows = function () { plantPager.reset(); };
+    window.resetPlantFilter = function () {
+      document.getElementById('plantFName').value = '';
+      document.getElementById('plantFKind').value = '';
+      document.getElementById('plantFStatus').value = '';
+      queryPlantRows();
+    };
+
+    /* ==================== 畜牧业 ==================== */
+    var livestockTbody = document.getElementById('livestockTbody');
+    var livestockPager = makePager(livestockTbody, document.getElementById('livestockRowCount'), pagerRefs('#tab-livestock'), function () {
+      var name = document.getElementById('livestockFName').value.trim().toLowerCase();
+      var kind = document.getElementById('livestockFKind').value;
+      var status = document.getElementById('livestockFStatus').value;
+      var out = [];
+      livestockTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && kind && row.getAttribute('data-kind') !== kind) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryLivestockRows = function () { livestockPager.reset(); };
+    window.resetLivestockFilter = function () {
+      document.getElementById('livestockFName').value = '';
+      document.getElementById('livestockFKind').value = '';
+      document.getElementById('livestockFStatus').value = '';
+      queryLivestockRows();
+    };
+
+    /* ==================== 渔业 ==================== */
+    var fisheryTbody = document.getElementById('fisheryTbody');
+    var fisheryPager = makePager(fisheryTbody, document.getElementById('fisheryRowCount'), pagerRefs('#tab-fishery'), function () {
+      var name = document.getElementById('fisheryFName').value.trim().toLowerCase();
+      var type = document.getElementById('fisheryFType').value;
+      var status = document.getElementById('fisheryFStatus').value;
+      var out = [];
+      fisheryTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryFisheryRows = function () { fisheryPager.reset(); };
+    window.resetFisheryFilter = function () {
+      document.getElementById('fisheryFName').value = '';
+      document.getElementById('fisheryFType').value = '';
+      document.getElementById('fisheryFStatus').value = '';
+      queryFisheryRows();
+    };
+
+    /* ==================== 加工业 ==================== */
+    var processingTbody = document.getElementById('processingTbody');
+    var processingPager = makePager(processingTbody, document.getElementById('processingRowCount'), pagerRefs('#tab-processing'), function () {
+      var name = document.getElementById('processingFName').value.trim().toLowerCase();
+      var type = document.getElementById('processingFType').value;
+      var status = document.getElementById('processingFStatus').value;
+      var out = [];
+      processingTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryProcessingRows = function () { processingPager.reset(); };
+    window.resetProcessingFilter = function () {
+      document.getElementById('processingFName').value = '';
+      document.getElementById('processingFType').value = '';
+      document.getElementById('processingFStatus').value = '';
+      queryProcessingRows();
+    };
+
+    /* ==================== 旅游业 ==================== */
+    var tourismTbody = document.getElementById('tourismTbody');
+    var tourismPager = makePager(tourismTbody, document.getElementById('tourismRowCount'), pagerRefs('#tab-tourism'), function () {
+      var name = document.getElementById('tourismFName').value.trim().toLowerCase();
+      var type = document.getElementById('tourismFType').value;
+      var status = document.getElementById('tourismFStatus').value;
+      var out = [];
+      tourismTbody.querySelectorAll('tr').forEach(function (row) {
+        var show = true;
+        if (name && row.getAttribute('data-name').toLowerCase().indexOf(name) === -1) show = false;
+        if (show && type && row.getAttribute('data-type') !== type) show = false;
+        if (show && status && row.getAttribute('data-status') !== status) show = false;
+        if (show) out.push(row);
+      });
+      return out;
+    });
+    window.queryTourismRows = function () { tourismPager.reset(); };
+    window.resetTourismFilter = function () {
+      document.getElementById('tourismFName').value = '';
+      document.getElementById('tourismFType').value = '';
+      document.getElementById('tourismFStatus').value = '';
+      queryTourismRows();
+    };
+
+    /* ==================== 通用工具 ==================== */
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function statusTag(status) {
+      return '<span class="tag ' + (status === '正常' ? 'tag-green' : status === '待审' ? 'tag-orange' : 'tag-red') + '">' + status + '</span>';
+    }
+    function kindTag(kind) {
+      var map = { '蜜桔': 'tag-orange', '水稻': 'tag-blue', '蔬菜': 'tag-green', '茶叶': 'tag-yellow', '其他': 'tag-gray', '猪': 'tag-orange', '牛': 'tag-green', '羊': 'tag-yellow', '禽': 'tag-blue' };
+      return '<span class="tag ' + (map[kind] || 'tag-gray') + '">' + kind + '</span>';
+    }
+    function typeTag(type) {
+      var map = { '池塘': 'tag-blue', '水库': 'tag-green', '稻田': 'tag-yellow', '农产品加工': 'tag-orange', '食品加工': 'tag-green', '手工艺品': 'tag-yellow', '采摘园': 'tag-orange', '农家乐': 'tag-green', '民宿': 'tag-yellow', '景区': 'tag-blue' };
+      return '<span class="tag ' + (map[type] || 'tag-gray') + '">' + type + '</span>';
+    }
+    function renderIndustryOp(row, prefix) {
+      var cell = row.querySelector('.op-cell');
+      cell.innerHTML =
+        '<button type="button" class="btn-op" onclick="view' + prefix + '(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-edit" onclick="openEdit' + prefix + '(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+        '<span class="op-divider"></span>' +
+        '<button type="button" class="btn-op btn-op-danger" onclick="deleteIndustry(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+    }
+
+    /* ==================== 删除（先取面板再删行，再刷新对应分页） ==================== */
+    window.deleteIndustry = function (btn) {
+      var row = btn.closest('tr');
+      var name = row.cells[0].textContent.trim();
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除「' + name + '」记录吗？删除后不可恢复。',
+        confirmText: '确认删除',
+        onConfirm: function () {
+          // 先取所在面板（删除后行会脱离文档，无法再 closest）
+          var panel = row.closest('.tab-panel');
+          row.parentNode.removeChild(row);
+          var key = panel ? panel.id.replace('tab-', '') : '';
+          if (key === 'plant') plantPager.render();
+          else if (key === 'livestock') livestockPager.render();
+          else if (key === 'fishery') fisheryPager.render();
+          else if (key === 'processing') processingPager.render();
+          else if (key === 'tourism') tourismPager.render();
+          showToast('删除成功', 'success');
+        }
+      });
+    };
+
+    /* ==================== 种植业：查看 / 编辑 / 新增 ==================== */
+    window.viewPlant = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewPlantName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewPlantKind').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewPlantArea').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewPlantVillage').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewPlantManager').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewPlantPhone').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewPlantOutput').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewPlantStatus').innerHTML = row.cells[7].innerHTML;
+      openModal('viewPlantModal');
+    };
+    window.openEditPlant = function (btn) {
+      var row = btn.closest('tr');
+      window._editPlantRow = row;
+      document.getElementById('editPlantName').value = row.cells[0].textContent.trim();
+      document.getElementById('editPlantKind').value = row.cells[1].textContent.trim();
+      document.getElementById('editPlantArea').value = row.cells[2].textContent.trim();
+      document.getElementById('editPlantVillage').value = row.cells[3].textContent.trim();
+      document.getElementById('editPlantManager').value = row.cells[4].textContent.trim();
+      document.getElementById('editPlantPhone').value = row.cells[5].textContent.trim();
+      document.getElementById('editPlantOutput').value = row.cells[6].textContent.trim();
+      document.getElementById('editPlantStatus').value = row.cells[7].textContent.trim();
+      openModal('editPlantModal');
+    };
+    window.submitEditPlant = function () {
+      var row = window._editPlantRow;
+      if (row) {
+        var kind = document.getElementById('editPlantKind').value;
+        var status = document.getElementById('editPlantStatus').value;
+        row.setAttribute('data-kind', kind);
+        row.setAttribute('data-status', status);
+        row.cells[0].textContent = document.getElementById('editPlantName').value.trim();
+        row.cells[1].innerHTML = kindTag(kind);
+        row.cells[2].textContent = document.getElementById('editPlantArea').value;
+        row.cells[3].textContent = document.getElementById('editPlantVillage').value;
+        row.cells[4].textContent = document.getElementById('editPlantManager').value.trim();
+        row.cells[5].textContent = document.getElementById('editPlantPhone').value.trim();
+        row.cells[6].textContent = document.getElementById('editPlantOutput').value;
+        row.cells[7].innerHTML = statusTag(status);
+      }
+      closeModal('editPlantModal');
+      plantPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddPlant = function () {
+      var name = document.getElementById('addPlantName').value.trim();
+      var kind = document.getElementById('addPlantKind').value;
+      var area = document.getElementById('addPlantArea').value.trim();
+      var village = document.getElementById('addPlantVillage').value;
+      var manager = document.getElementById('addPlantManager').value.trim();
+      if (!name || !kind || !area || !village || !manager) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-kind', kind);
+      tr.setAttribute('data-status', '待审');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + kindTag(kind) + '</td>' +
+        '<td class="nums">' + area + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + (escapeHtml(document.getElementById('addPlantPhone').value.trim()) || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addPlantOutput').value.trim() || '—') + '</td>' +
+        '<td>' + statusTag('待审') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderIndustryOp(tr, 'Plant');
+      plantTbody.insertBefore(tr, plantTbody.firstChild);
+      document.getElementById('addPlantName').value = ''; document.getElementById('addPlantKind').value = '';
+      document.getElementById('addPlantArea').value = ''; document.getElementById('addPlantVillage').value = '';
+      document.getElementById('addPlantManager').value = ''; document.getElementById('addPlantPhone').value = '';
+      document.getElementById('addPlantOutput').value = '';
+      queryPlantRows();
+      closeModal('addPlantModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 畜牧业：查看 / 编辑 / 新增 ==================== */
+    window.viewLivestock = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewLivestockName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewLivestockKind').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewLivestockScale').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewLivestockVillage').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewLivestockManager').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewLivestockPhone').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewLivestockOutput').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewLivestockStatus').innerHTML = row.cells[7].innerHTML;
+      openModal('viewLivestockModal');
+    };
+    window.openEditLivestock = function (btn) {
+      var row = btn.closest('tr');
+      window._editLivestockRow = row;
+      document.getElementById('editLivestockName').value = row.cells[0].textContent.trim();
+      document.getElementById('editLivestockKind').value = row.cells[1].textContent.trim();
+      document.getElementById('editLivestockScale').value = row.cells[2].textContent.trim().replace(/[^\d.]/g, '');
+      document.getElementById('editLivestockVillage').value = row.cells[3].textContent.trim();
+      document.getElementById('editLivestockManager').value = row.cells[4].textContent.trim();
+      document.getElementById('editLivestockPhone').value = row.cells[5].textContent.trim();
+      document.getElementById('editLivestockOutput').value = row.cells[6].textContent.trim();
+      document.getElementById('editLivestockStatus').value = row.cells[7].textContent.trim();
+      openModal('editLivestockModal');
+    };
+    window.submitEditLivestock = function () {
+      var row = window._editLivestockRow;
+      if (row) {
+        var kind = document.getElementById('editLivestockKind').value;
+        var status = document.getElementById('editLivestockStatus').value;
+        row.setAttribute('data-kind', kind);
+        row.setAttribute('data-status', status);
+        row.cells[0].textContent = document.getElementById('editLivestockName').value.trim();
+        row.cells[1].innerHTML = kindTag(kind);
+        row.cells[2].textContent = document.getElementById('editLivestockScale').value + (kind === '禽' ? '羽' : kind === '牛' ? '头' : kind === '羊' ? '只' : '头');
+        row.cells[3].textContent = document.getElementById('editLivestockVillage').value;
+        row.cells[4].textContent = document.getElementById('editLivestockManager').value.trim();
+        row.cells[5].textContent = document.getElementById('editLivestockPhone').value.trim();
+        row.cells[6].textContent = document.getElementById('editLivestockOutput').value;
+        row.cells[7].innerHTML = statusTag(status);
+      }
+      closeModal('editLivestockModal');
+      livestockPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddLivestock = function () {
+      var name = document.getElementById('addLivestockName').value.trim();
+      var kind = document.getElementById('addLivestockKind').value;
+      var scale = document.getElementById('addLivestockScale').value.trim();
+      var village = document.getElementById('addLivestockVillage').value;
+      var manager = document.getElementById('addLivestockManager').value.trim();
+      if (!name || !kind || !scale || !village || !manager) { showToast('请完整填写必填信息', 'warning'); return; }
+      var scaleText = scale + (kind === '禽' ? '羽' : kind === '牛' ? '头' : kind === '羊' ? '只' : '头');
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-kind', kind);
+      tr.setAttribute('data-status', '待审');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + kindTag(kind) + '</td>' +
+        '<td class="nums">' + scaleText + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + (escapeHtml(document.getElementById('addLivestockPhone').value.trim()) || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addLivestockOutput').value.trim() || '—') + '</td>' +
+        '<td>' + statusTag('待审') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderIndustryOp(tr, 'Livestock');
+      livestockTbody.insertBefore(tr, livestockTbody.firstChild);
+      document.getElementById('addLivestockName').value = ''; document.getElementById('addLivestockKind').value = '';
+      document.getElementById('addLivestockScale').value = ''; document.getElementById('addLivestockVillage').value = '';
+      document.getElementById('addLivestockManager').value = ''; document.getElementById('addLivestockPhone').value = '';
+      document.getElementById('addLivestockOutput').value = '';
+      queryLivestockRows();
+      closeModal('addLivestockModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 渔业：查看 / 编辑 / 新增 ==================== */
+    window.viewFishery = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewFisheryName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewFisheryType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewFisheryBreed').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewFisheryArea').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewFisheryVillage').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewFisheryManager').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewFisheryPhone').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewFisheryOutput').textContent = row.cells[7].textContent.trim();
+      document.getElementById('viewFisheryStatus').innerHTML = row.cells[8].innerHTML;
+      openModal('viewFisheryModal');
+    };
+    window.openEditFishery = function (btn) {
+      var row = btn.closest('tr');
+      window._editFisheryRow = row;
+      document.getElementById('editFisheryName').value = row.cells[0].textContent.trim();
+      document.getElementById('editFisheryType').value = row.cells[1].textContent.trim();
+      document.getElementById('editFisheryBreed').value = row.cells[2].textContent.trim();
+      document.getElementById('editFisheryArea').value = row.cells[3].textContent.trim();
+      document.getElementById('editFisheryVillage').value = row.cells[4].textContent.trim();
+      document.getElementById('editFisheryManager').value = row.cells[5].textContent.trim();
+      document.getElementById('editFisheryPhone').value = row.cells[6].textContent.trim();
+      document.getElementById('editFisheryOutput').value = row.cells[7].textContent.trim();
+      document.getElementById('editFisheryStatus').value = row.cells[8].textContent.trim();
+      openModal('editFisheryModal');
+    };
+    window.submitEditFishery = function () {
+      var row = window._editFisheryRow;
+      if (row) {
+        var type = document.getElementById('editFisheryType').value;
+        var status = document.getElementById('editFisheryStatus').value;
+        row.setAttribute('data-type', type);
+        row.setAttribute('data-status', status);
+        row.cells[0].textContent = document.getElementById('editFisheryName').value.trim();
+        row.cells[1].innerHTML = typeTag(type);
+        row.cells[2].textContent = document.getElementById('editFisheryBreed').value;
+        row.cells[3].textContent = document.getElementById('editFisheryArea').value;
+        row.cells[4].textContent = document.getElementById('editFisheryVillage').value;
+        row.cells[5].textContent = document.getElementById('editFisheryManager').value.trim();
+        row.cells[6].textContent = document.getElementById('editFisheryPhone').value.trim();
+        row.cells[7].textContent = document.getElementById('editFisheryOutput').value;
+        row.cells[8].innerHTML = statusTag(status);
+      }
+      closeModal('editFisheryModal');
+      fisheryPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddFishery = function () {
+      var name = document.getElementById('addFisheryName').value.trim();
+      var type = document.getElementById('addFisheryType').value;
+      var breed = document.getElementById('addFisheryBreed').value;
+      var area = document.getElementById('addFisheryArea').value.trim();
+      var village = document.getElementById('addFisheryVillage').value;
+      var manager = document.getElementById('addFisheryManager').value.trim();
+      if (!name || !type || !breed || !area || !village || !manager) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '待审');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(breed) + '</td>' +
+        '<td class="nums">' + area + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + (escapeHtml(document.getElementById('addFisheryPhone').value.trim()) || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addFisheryOutput').value.trim() || '—') + '</td>' +
+        '<td>' + statusTag('待审') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderIndustryOp(tr, 'Fishery');
+      fisheryTbody.insertBefore(tr, fisheryTbody.firstChild);
+      document.getElementById('addFisheryName').value = ''; document.getElementById('addFisheryType').value = '';
+      document.getElementById('addFisheryBreed').value = ''; document.getElementById('addFisheryArea').value = '';
+      document.getElementById('addFisheryVillage').value = ''; document.getElementById('addFisheryManager').value = '';
+      document.getElementById('addFisheryPhone').value = ''; document.getElementById('addFisheryOutput').value = '';
+      queryFisheryRows();
+      closeModal('addFisheryModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 加工业：查看 / 编辑 / 新增 ==================== */
+    window.viewProcessing = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewProcessingName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewProcessingType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewProcessingProduct').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewProcessingVillage').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewProcessingManager').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewProcessingPhone').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewProcessingYield').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewProcessingOutput').textContent = row.cells[7].textContent.trim();
+      document.getElementById('viewProcessingStatus').innerHTML = row.cells[8].innerHTML;
+      openModal('viewProcessingModal');
+    };
+    window.openEditProcessing = function (btn) {
+      var row = btn.closest('tr');
+      window._editProcessingRow = row;
+      document.getElementById('editProcessingName').value = row.cells[0].textContent.trim();
+      document.getElementById('editProcessingType').value = row.cells[1].textContent.trim();
+      document.getElementById('editProcessingProduct').value = row.cells[2].textContent.trim();
+      document.getElementById('editProcessingVillage').value = row.cells[3].textContent.trim();
+      document.getElementById('editProcessingManager').value = row.cells[4].textContent.trim();
+      document.getElementById('editProcessingPhone').value = row.cells[5].textContent.trim();
+      document.getElementById('editProcessingYield').value = row.cells[6].textContent.trim();
+      document.getElementById('editProcessingOutput').value = row.cells[7].textContent.trim();
+      document.getElementById('editProcessingStatus').value = row.cells[8].textContent.trim();
+      openModal('editProcessingModal');
+    };
+    window.submitEditProcessing = function () {
+      var row = window._editProcessingRow;
+      if (row) {
+        var type = document.getElementById('editProcessingType').value;
+        var status = document.getElementById('editProcessingStatus').value;
+        row.setAttribute('data-type', type);
+        row.setAttribute('data-status', status);
+        row.cells[0].textContent = document.getElementById('editProcessingName').value.trim();
+        row.cells[1].innerHTML = typeTag(type);
+        row.cells[2].textContent = document.getElementById('editProcessingProduct').value.trim();
+        row.cells[3].textContent = document.getElementById('editProcessingVillage').value;
+        row.cells[4].textContent = document.getElementById('editProcessingManager').value.trim();
+        row.cells[5].textContent = document.getElementById('editProcessingPhone').value.trim();
+        row.cells[6].textContent = document.getElementById('editProcessingYield').value;
+        row.cells[7].textContent = document.getElementById('editProcessingOutput').value;
+        row.cells[8].innerHTML = statusTag(status);
+      }
+      closeModal('editProcessingModal');
+      processingPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddProcessing = function () {
+      var name = document.getElementById('addProcessingName').value.trim();
+      var type = document.getElementById('addProcessingType').value;
+      var village = document.getElementById('addProcessingVillage').value;
+      var manager = document.getElementById('addProcessingManager').value.trim();
+      if (!name || !type || !village || !manager) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '待审');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(document.getElementById('addProcessingProduct').value.trim() || '—') + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + (escapeHtml(document.getElementById('addProcessingPhone').value.trim()) || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addProcessingYield').value.trim() || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addProcessingOutput').value.trim() || '—') + '</td>' +
+        '<td>' + statusTag('待审') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderIndustryOp(tr, 'Processing');
+      processingTbody.insertBefore(tr, processingTbody.firstChild);
+      document.getElementById('addProcessingName').value = ''; document.getElementById('addProcessingType').value = '';
+      document.getElementById('addProcessingProduct').value = ''; document.getElementById('addProcessingVillage').value = '';
+      document.getElementById('addProcessingManager').value = ''; document.getElementById('addProcessingPhone').value = '';
+      document.getElementById('addProcessingYield').value = ''; document.getElementById('addProcessingOutput').value = '';
+      queryProcessingRows();
+      closeModal('addProcessingModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 旅游业：查看 / 编辑 / 新增 ==================== */
+    window.viewTourism = function (btn) {
+      var row = btn.closest('tr');
+      document.getElementById('viewTourismName').textContent = row.cells[0].textContent.trim();
+      document.getElementById('viewTourismType').innerHTML = row.cells[1].innerHTML;
+      document.getElementById('viewTourismVillage').textContent = row.cells[2].textContent.trim();
+      document.getElementById('viewTourismManager').textContent = row.cells[3].textContent.trim();
+      document.getElementById('viewTourismPhone').textContent = row.cells[4].textContent.trim();
+      document.getElementById('viewTourismVisitors').textContent = row.cells[5].textContent.trim();
+      document.getElementById('viewTourismIncome').textContent = row.cells[6].textContent.trim();
+      document.getElementById('viewTourismStatus').innerHTML = row.cells[7].innerHTML;
+      openModal('viewTourismModal');
+    };
+    window.openEditTourism = function (btn) {
+      var row = btn.closest('tr');
+      window._editTourismRow = row;
+      document.getElementById('editTourismName').value = row.cells[0].textContent.trim();
+      document.getElementById('editTourismType').value = row.cells[1].textContent.trim();
+      document.getElementById('editTourismVillage').value = row.cells[2].textContent.trim();
+      document.getElementById('editTourismManager').value = row.cells[3].textContent.trim();
+      document.getElementById('editTourismPhone').value = row.cells[4].textContent.trim();
+      document.getElementById('editTourismVisitors').value = row.cells[5].textContent.trim();
+      document.getElementById('editTourismIncome').value = row.cells[6].textContent.trim();
+      document.getElementById('editTourismStatus').value = row.cells[7].textContent.trim();
+      openModal('editTourismModal');
+    };
+    window.submitEditTourism = function () {
+      var row = window._editTourismRow;
+      if (row) {
+        var type = document.getElementById('editTourismType').value;
+        var status = document.getElementById('editTourismStatus').value;
+        row.setAttribute('data-type', type);
+        row.setAttribute('data-status', status);
+        row.cells[0].textContent = document.getElementById('editTourismName').value.trim();
+        row.cells[1].innerHTML = typeTag(type);
+        row.cells[2].textContent = document.getElementById('editTourismVillage').value;
+        row.cells[3].textContent = document.getElementById('editTourismManager').value.trim();
+        row.cells[4].textContent = document.getElementById('editTourismPhone').value.trim();
+        row.cells[5].textContent = document.getElementById('editTourismVisitors').value;
+        row.cells[6].textContent = document.getElementById('editTourismIncome').value;
+        row.cells[7].innerHTML = statusTag(status);
+      }
+      closeModal('editTourismModal');
+      tourismPager.render();
+      showToast('保存成功', 'success');
+    };
+    window.submitAddTourism = function () {
+      var name = document.getElementById('addTourismName').value.trim();
+      var type = document.getElementById('addTourismType').value;
+      var village = document.getElementById('addTourismVillage').value;
+      var manager = document.getElementById('addTourismManager').value.trim();
+      if (!name || !type || !village || !manager) { showToast('请完整填写必填信息', 'warning'); return; }
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', '待审');
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + (escapeHtml(document.getElementById('addTourismPhone').value.trim()) || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addTourismVisitors').value.trim() || '—') + '</td>' +
+        '<td class="nums">' + (document.getElementById('addTourismIncome').value.trim() || '—') + '</td>' +
+        '<td>' + statusTag('待审') + '</td>' +
+        '<td class="op-cell"></td>';
+      renderIndustryOp(tr, 'Tourism');
+      tourismTbody.insertBefore(tr, tourismTbody.firstChild);
+      document.getElementById('addTourismName').value = ''; document.getElementById('addTourismType').value = '';
+      document.getElementById('addTourismVillage').value = ''; document.getElementById('addTourismManager').value = '';
+      document.getElementById('addTourismPhone').value = ''; document.getElementById('addTourismVisitors').value = '';
+      document.getElementById('addTourismIncome').value = '';
+      queryTourismRows();
+      closeModal('addTourismModal');
+      showToast('保存成功', 'success');
+    };
+
+    /* ==================== 导出弹窗（按当前页签） ==================== */
+    window.openExportModal = function (name) {
+      document.getElementById('exportFileName').value = (name || '产业') + '记录';
+      openModal('exportModal');
+    };
+    window.selectFormat = function (el) {
+      document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+      el.classList.add('active');
+    };
+    window.doExport = function () {
+      var active = document.querySelector('.format-card.active');
+      var fmt = active ? active.getAttribute('data-format') : 'Excel';
+      var name = document.getElementById('exportFileName').value.trim() || '产业记录';
+      var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+      closeModal('exportModal');
+      showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+    };
+
+    /* ==================== Mock 数据（每面板 6 条基础 + 19 条 = 25 条，验证 3 页分页） ==================== */
+    var statuses = ['正常', '待审', '异常'];
+    var managers = ['李建国', '王桂花', '赵铁柱', '孙富贵', '周小敏', '吴德发', '钱有财', '黄国庆', '周淑芬', '张明远'];
+    var villages = ['幸福村', '益农村', '桔园村', '太和村', '幸福村', '幸福村'];
+
+    function buildPlantRow(name, kind, area, village, manager, phone, output, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-kind', kind);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + kindTag(kind) + '</td>' +
+        '<td class="nums">' + area + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td class="nums">' + output + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      plantTbody.appendChild(tr);
+      renderIndustryOp(tr, 'Plant');
+    }
+    function buildLivestockRow(name, kind, scale, village, manager, phone, output, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-kind', kind);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + kindTag(kind) + '</td>' +
+        '<td class="nums">' + scale + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td class="nums">' + output + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      livestockTbody.appendChild(tr);
+      renderIndustryOp(tr, 'Livestock');
+    }
+    function buildFisheryRow(name, type, breed, area, village, manager, phone, output, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(breed) + '</td>' +
+        '<td class="nums">' + area + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td class="nums">' + output + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      fisheryTbody.appendChild(tr);
+      renderIndustryOp(tr, 'Fishery');
+    }
+    function buildProcessingRow(name, type, product, village, manager, phone, yieldNum, output, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(product) + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td class="nums">' + yieldNum + '</td>' +
+        '<td class="nums">' + output + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      processingTbody.appendChild(tr);
+      renderIndustryOp(tr, 'Processing');
+    }
+    function buildTourismRow(name, type, village, manager, phone, visitors, income, status) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-name', name);
+      tr.setAttribute('data-type', type);
+      tr.setAttribute('data-status', status);
+      tr.innerHTML =
+        '<td class="town-name">' + escapeHtml(name) + '</td>' +
+        '<td>' + typeTag(type) + '</td>' +
+        '<td>' + escapeHtml(village) + '</td>' +
+        '<td>' + escapeHtml(manager) + '</td>' +
+        '<td class="nums">' + phone + '</td>' +
+        '<td class="nums">' + visitors + '</td>' +
+        '<td class="nums">' + income + '</td>' +
+        '<td>' + statusTag(status) + '</td>' +
+        '<td class="op-cell"></td>';
+      tourismTbody.appendChild(tr);
+      renderIndustryOp(tr, 'Tourism');
+    }
+
+    // 种植业：6 条基础 + 19 条
+    var plantBase = [
+      ['幸福村蜜桔合作社', '蜜桔', 850, '幸福村', '李建国', '138****5678', 680, '正常'],
+      ['李建国蜜桔园', '蜜桔', 320, '幸福村', '李建国', '138****5679', 260, '正常'],
+      ['王桂花蔬菜大棚', '蔬菜', 120, '幸福村', '王桂花', '138****6789', 85, '正常'],
+      ['赵铁柱水稻田', '水稻', 260, '幸福村', '赵铁柱', '138****7890', 95, '正常'],
+      ['孙富贵茶园', '茶叶', 80, '幸福村', '孙富贵', '138****8901', 60, '待审'],
+      ['周小敏蜜桔园', '蜜桔', 180, '幸福村', '周小敏', '138****9012', 150, '异常']
+    ];
+    var plantExtraNames = ['益农蜜桔种植基地', '桔香生态果园', '吴德发蜜桔园', '钱有财蔬菜大棚', '黄国庆水稻田', '周淑芬茶园', '张明远蜜桔合作社', '王老五蜜桔园', '陈氏蔬菜基地', '幸福村有机蜜桔园', '李桂花蜜桔园', '桔乡种植大户', '蜜桔新品种试验园', '南山蜜桔园', '桔园二社种植基地', '蜜桔套种试验田', '大棚蔬菜轮作基地', '高山茶叶示范园', '水稻制种基地'];
+    // 作物种类与种植户名称一一对应，保证「水稻田→水稻、茶园→茶叶、蜜桔园→蜜桔、蔬菜大棚→蔬菜」
+    var plantExtraKinds = ['蜜桔', '蜜桔', '蜜桔', '蔬菜', '水稻', '茶叶', '蜜桔', '蜜桔', '蔬菜', '蜜桔', '蜜桔', '蜜桔', '蜜桔', '蜜桔', '蜜桔', '蜜桔', '蔬菜', '茶叶', '水稻'];
+    plantBase.forEach(function (r) { buildPlantRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var pi = 0; pi < 19; pi++) {
+      buildPlantRow(
+        plantExtraNames[pi],
+        plantExtraKinds[pi],
+        90 + ((pi * 73) % 780),
+        villages[pi % villages.length],
+        managers[pi % managers.length],
+        '138****' + String(2000 + pi * 111),
+        40 + ((pi * 37) % 620),
+        statuses[pi % 3]
+      );
+    }
+
+    // 畜牧业：6 条基础 + 19 条
+    var livestockBase = [
+      ['幸福村生猪养殖场', '猪', '1200头', '幸福村', '李大壮', '138****5678', 280, '正常'],
+      ['幸福村生态鸡场', '禽', '5000羽', '幸福村', '王桂花', '138****6789', 150, '正常'],
+      ['幸福村肉牛场', '牛', '180头', '幸福村', '赵铁柱', '138****7890', 320, '正常'],
+      ['幸福村山羊场', '羊', '260只', '幸福村', '孙富贵', '138****8901', 95, '待审'],
+      ['幸福村蛋鸭场', '禽', '3200羽', '幸福村', '周小敏', '138****9012', 110, '正常'],
+      ['幸福村黑猪合作社', '猪', '800头', '幸福村', '吴德发', '138****2345', 210, '异常']
+    ];
+    var livestockExtraNames = ['益农生猪繁育基地', '桔乡黑猪养殖场', '钱有财肉羊场', '黄国庆蛋鸡场', '周淑芬土鸡散养场', '张明远肉牛合作社', '王老五仔猪场', '陈氏生态猪场', '幸福村乳牛场', '桔园村蛋鸭基地', '太和村湖羊场', '益农村番鸭场', '幸福村鹅场', '桔乡肉兔养殖场', '幸福村种猪场', '南山禽业基地', '幸福村肉羊育肥场', '桔园村鹌鹑场', '幸福村肉驴场'];
+    var livestockExtraKinds = ['猪', '禽', '牛', '羊', '禽'];
+    var livestockScales = ['600头', '3000羽', '120头', '180只', '260只', '1500羽'];
+    livestockBase.forEach(function (r) { buildLivestockRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var li = 0; li < 19; li++) {
+      buildLivestockRow(
+        livestockExtraNames[li],
+        livestockExtraKinds[li % livestockExtraKinds.length],
+        livestockScales[li % livestockScales.length],
+        villages[li % villages.length],
+        managers[li % managers.length],
+        '138****' + String(2000 + li * 111),
+        60 + ((li * 31) % 420),
+        statuses[li % 3]
+      );
+    }
+
+    // 渔业：6 条基础 + 19 条
+    var fisheryBase = [
+      ['幸福村草鱼塘', '池塘', '草鱼', 120, '幸福村', '李建国', '138****5678', 120, '正常'],
+      ['幸福村水库鱼场', '水库', '鲤鱼', 85, '幸福村', '王桂花', '138****6789', 95, '正常'],
+      ['幸福村稻田鲫鱼', '稻田', '鲫鱼', 60, '幸福村', '赵铁柱', '138****7890', 68, '正常'],
+      ['幸福村小龙虾基地', '池塘', '小龙虾', 75, '幸福村', '孙富贵', '138****8901', 88, '待审'],
+      ['幸福村混养鱼塘', '池塘', '草鱼', 90, '幸福村', '周小敏', '138****9012', 105, '正常'],
+      ['幸福村生态鱼庄', '水库', '鲤鱼', 70, '幸福村', '吴德发', '138****2345', 78, '异常']
+    ];
+    var fisheryExtraNames = ['益农水库鱼场', '桔乡生态鱼塘', '钱有财小龙虾池', '黄国庆鳙鱼塘', '周淑芬罗非鱼池', '张明远黄颡鱼塘', '王老五青鱼塘', '陈氏鱼种场', '幸福村鲈鱼塘', '桔园村甲鱼塘', '太和村泥鳅塘', '益农村藕鱼塘', '幸福村鱼苗场', '桔乡垂钓塘', '幸福村鳜鱼池', '南山水库网箱', '幸福村白鲢塘', '桔园村稻田虾塘', '幸福村鮰鱼塘'];
+    var fisheryExtraTypes = ['池塘', '水库', '稻田'];
+    var fisheryBreeds = ['草鱼', '鲤鱼', '鲫鱼', '小龙虾', '鳙鱼', '罗非鱼', '青鱼', '鲈鱼', '甲鱼', '泥鳅'];
+    fisheryBase.forEach(function (r) { buildFisheryRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var fi = 0; fi < 19; fi++) {
+      buildFisheryRow(
+        fisheryExtraNames[fi],
+        fisheryExtraTypes[fi % fisheryExtraTypes.length],
+        fisheryBreeds[fi % fisheryBreeds.length],
+        50 + ((fi * 31) % 140),
+        villages[fi % villages.length],
+        managers[fi % managers.length],
+        '138****' + String(2000 + fi * 111),
+        40 + ((fi * 19) % 160),
+        statuses[fi % 3]
+      );
+    }
+
+    // 加工业：6 条基础 + 19 条
+    var processingBase = [
+      ['益农蜜桔分拣包装厂', '农产品加工', '蜜桔分拣包装', '幸福村', '李建国', '138****5678', 3500, 860, '正常'],
+      ['幸福村蜜桔果汁厂', '食品加工', '蜜桔果汁', '幸福村', '王桂花', '138****6789', 1200, 480, '正常'],
+      ['幸福村果蔬保鲜库', '农产品加工', '果蔬冷藏', '幸福村', '赵铁柱', '138****7890', 2800, 320, '正常'],
+      ['幸福村蜜桔果脯作坊', '食品加工', '蜜桔果脯', '幸福村', '孙富贵', '138****8901', 180, 150, '待审'],
+      ['幸福村竹编工艺社', '手工艺品', '竹编工艺品', '幸福村', '周小敏', '138****9012', 60, 85, '正常'],
+      ['幸福村粮油加工厂', '食品加工', '大米菜籽油', '幸福村', '吴德发', '138****2345', 5200, 260, '异常']
+    ];
+    var processingExtraNames = ['益农蜜桔干片厂', '桔香蜜饯加工坊', '钱有财米粉加工厂', '黄国庆茶油作坊', '周淑芬蜂蜜加工坊', '张明远竹笋加工厂', '王老五蜜桔酱厂', '陈氏米粉坊', '幸福村糕点坊', '桔园村蜜桔醋厂', '太和村辣椒酱坊', '益农村菌菇烘干厂', '幸福村豆腐坊', '桔乡蜜桔罐头厂', '幸福村酱菜厂', '南山竹编厂', '幸福村棕编工艺社', '桔园村蜜桔酒坊', '幸福村红木工艺坊'];
+    var processingExtraTypes = ['农产品加工', '食品加工', '手工艺品'];
+    var processingProducts = ['蜜桔干片', '蜜桔蜜饯', '米粉', '茶油', '蜂蜜', '竹笋干', '蜜桔酱', '粉干', '糕点', '蜜桔醋'];
+    processingBase.forEach(function (r) { buildProcessingRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]); });
+    for (var gi = 0; gi < 19; gi++) {
+      buildProcessingRow(
+        processingExtraNames[gi],
+        processingExtraTypes[gi % processingExtraTypes.length],
+        processingProducts[gi % processingProducts.length],
+        villages[gi % villages.length],
+        managers[gi % managers.length],
+        '138****' + String(2000 + gi * 111),
+        200 + ((gi * 117) % 4800),
+        40 + ((gi * 43) % 800),
+        statuses[gi % 3]
+      );
+    }
+
+    // 旅游业：6 条基础 + 19 条
+    var tourismBase = [
+      ['幸福村蜜桔采摘园', '采摘园', '幸福村', '李建国', '138****5678', 12500, 86, '正常'],
+      ['幸福村农家乐', '农家乐', '幸福村', '王桂花', '138****6789', 8600, 65, '正常'],
+      ['幸福村桔乡民宿', '民宿', '幸福村', '赵铁柱', '138****7890', 4200, 58, '正常'],
+      ['幸福村观光景区', '景区', '幸福村', '孙富贵', '138****8901', 15600, 120, '正常'],
+      ['幸福村生态农庄', '农家乐', '幸福村', '周小敏', '138****9012', 6800, 48, '待审'],
+      ['幸福村垂钓中心', '农家乐', '幸福村', '吴德发', '138****2345', 3500, 32, '异常']
+    ];
+    var tourismExtraNames = ['益农蜜桔采摘园', '桔乡桔园驿站', '钱有财休闲农庄', '黄国庆山水民宿', '周淑芬茶艺山庄', '张明远桔花观光园', '王老五渔家乐', '陈氏桔园农庄', '幸福村亲子农场', '桔园村星空营地', '太和村登山步道', '益农村桔海观景台', '幸福村研学基地', '桔乡蜜桔主题民宿', '幸福村稻田景观园', '南山康养山庄', '幸福村水上乐园', '桔园村桔香农家乐', '幸福村桔乡书舍'];
+    var tourismExtraTypes = ['采摘园', '农家乐', '民宿', '景区'];
+    tourismBase.forEach(function (r) { buildTourismRow(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]); });
+    for (var ti = 0; ti < 19; ti++) {
+      buildTourismRow(
+        tourismExtraNames[ti],
+        tourismExtraTypes[ti % tourismExtraTypes.length],
+        villages[ti % villages.length],
+        managers[ti % managers.length],
+        '138****' + String(2000 + ti * 111),
+        3000 + ((ti * 211) % 15000),
+        20 + ((ti * 13) % 120),
+        statuses[ti % 3]
+      );
+    }
+
+    /* ==================== 初始化渲染 + URL 页签恢复 ==================== */
+    plantPager.render();
+    livestockPager.render();
+    fisheryPager.render();
+    processingPager.render();
+    tourismPager.render();
+
+    var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+    if (m) {
+      var t = document.querySelector('#industryTabs .tab-item[data-tab="' + m + '"]');
+      if (t) switchIndustryTab(t);
+    }
+  })();
+</script>
+</body>
+</html>

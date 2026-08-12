@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#eef6ea"/>
+  <g transform="translate(150 86)" fill="none" stroke="#16a34a" stroke-width="2" opacity="0.55">
+    <rect x="-24" y="-16" width="48" height="36" rx="6"/>
+    <circle cx="0" cy="2" r="9"/>
+    <path d="M-12 -16 l-4 -8 h32 l-4 8" fill="#16a34a" fill-opacity="0.12"/>
+  </g>
+  <text x="150" y="140" font-size="14" fill="#166534" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif">现场照片</text>
+</svg>

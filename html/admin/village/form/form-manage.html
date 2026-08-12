@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>表单应用 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ========== 页面头部（参考党建/监测数据页：h2 标题 + p 副标题） ========== */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* ========== Tab（参考党建管理：白卡圆角 + 激活绿色下划线） ========== */
+    .dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 8px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; text-align: left; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ========== 搜索筛选区（白卡 + 紧凑控件，参考党建） ========== */
+    .dv-filter { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 14px 20px; margin-bottom: 16px; }
+
+    /* ========== 数据列表卡片（参考党建：标题行 + 表格 + 分页） ========== */
+    .table-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+    .table-card .table-actions-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+    .table-card .pagination { border: none; box-shadow: none; border-radius: 0 0 12px 12px; border-top: 1px solid #f0f2f5; margin: 0; padding: 12px 20px; }
+    .pagination.pg-pager .page-total { font-size: 12px; color: #6b7280; }
+    .pagination.pg-pager .page-size-select { height: 30px; font-size: 12px; }
+    .pagination.pg-pager .page-btn { height: 30px; font-size: 12px; }
+
+    /* ========== 表单设计器（参考千村千面首页设计器：三栏 + 手机画布） ========== */
+    .form-designer {
+      display: flex;
+      gap: 16px;
+      height: calc(100vh - 150px);
+    }
+    .form-designer-left {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .form-designer-canvas {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .form-designer-props {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    /* 画布：手机宽度模拟 + 拖拽提示条（参考千村千面首页设计器） */
+    .canvas-hint {
+      width: 375px;
+      max-width: 100%;
+      flex-shrink: 0;
+      border: 1.5px dashed #bfe3bf;
+      background: #f4fbf4;
+      border-radius: 10px;
+      color: #16a34a;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px;
+      margin-bottom: 14px;
+    }
+    .canvas-hint iconify-icon { font-size: 16px; }
+    .form-designer-canvas .designer-field { width: 375px; max-width: 100%; flex-shrink: 0; }
+    /* 组件库 */
+    .designer-comp-group { margin-bottom: 16px; }
+    .designer-comp-group-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+    .designer-comp-group-title::after { content: ''; flex: 1; height: 1px; background: #eef0f3; }
+    .designer-comp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      justify-content: flex-start;
+      height: 36px;
+      padding: 0 10px;
+      font-size: 14px;
+      margin-bottom: 6px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 8px;
+      cursor: grab;
+      color: #374151;
+      font-family: inherit;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .designer-comp:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; box-shadow: 0 1px 4px rgba(22, 163, 74, 0.12); }
+    .designer-comp iconify-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: #f0fdf4;
+      color: #16a34a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    /* 画布字段 */
+    .designer-field {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      background: #fff;
+      position: relative;
+    }
+    .designer-field:hover { border-color: var(--primary); }
+    .designer-field-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .designer-field-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .designer-field-type { font-size: 12px; color: var(--text-muted); margin-left: 6px; font-weight: 400; }
+    .designer-field-delete { border: none; background: transparent; color: var(--danger); cursor: pointer; font-size: 16px; width: 28px; height: 28px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+    .designer-field-delete:hover { background: var(--danger-light); }
+    .designer-field .form-input[disabled] { background: #f7f8fa; color: var(--text-muted); }
+    .designer-canvas-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+    .designer-props-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .designer-props-title iconify-icon { color: var(--primary); margin-right: 4px; }
+    @media (max-width: 1000px) {
+      .form-designer { flex-direction: column; height: auto; }
+      .form-designer-left, .form-designer-props { width: 100%; }
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-page-title="表单应用" data-page-subtitle="可视化设计村级业务表单">
+
+  <!-- 页面标题区（在 Tab 上方） -->
+  <div class="page-header">
+    <div>
+      <h2>创建表单</h2>
+      <p>可视化设计村级业务表单</p>
+    </div>
+  </div>
+
+  <!-- 分类 Tab 栏（参考党建管理样式） -->
+  <div class="tab-bar dv-tabbar" id="formTabs" role="tablist">
+    <div class="tab-item active" role="tab" aria-selected="true" onclick="switchFormTab(this)" data-tab="create">创建表单</div>
+    <div class="tab-item" role="tab" aria-selected="false" onclick="switchFormTab(this)" data-tab="work">工作表单</div>
+    <div class="tab-item" role="tab" aria-selected="false" onclick="switchFormTab(this)" data-tab="recycle">回收站</div>
+    <div class="tab-item" role="tab" aria-selected="false" onclick="switchFormTab(this)" data-tab="seal">签章管理</div>
+  </div>
+
+  <!-- Tab 面板：创建表单 -->
+  <div class="tab-panel" id="tab-create">
+
+    <!-- 创建表单功能按钮 -->
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:16px">
+      <button class="btn" onclick="openModal('previewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon> 预览</button>
+      <button class="btn btn-primary" onclick="openModal('saveFormModal')"><iconify-icon icon="ri:save-line"></iconify-icon> 保存表单</button>
+    </div>
+
+    <!-- 三栏设计器（参考千村千面首页设计器） -->
+    <div class="form-designer">
+
+      <!-- 左栏：组件库 -->
+      <div class="form-designer-left">
+        <div class="designer-comp-group">
+          <div class="designer-comp-group-title">基础字段</div>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：单行文本','success')"><iconify-icon icon="ri:text"></iconify-icon> 单行文本</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：多行文本','success')"><iconify-icon icon="ri:file-text-line"></iconify-icon> 多行文本</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：数字','success')"><iconify-icon icon="ri:hashtag"></iconify-icon> 数字</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：日期','success')"><iconify-icon icon="ri:calendar-line"></iconify-icon> 日期</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：时间','success')"><iconify-icon icon="ri:time-line"></iconify-icon> 时间</button>
+        </div>
+        <div class="designer-comp-group">
+          <div class="designer-comp-group-title">选择字段</div>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：单选框','success')"><iconify-icon icon="ri:radio-button-line"></iconify-icon> 单选框</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：多选框','success')"><iconify-icon icon="ri:checkbox-line"></iconify-icon> 多选框</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：下拉框','success')"><iconify-icon icon="ri:arrow-down-s-line"></iconify-icon> 下拉框</button>
+        </div>
+        <div class="designer-comp-group">
+          <div class="designer-comp-group-title">媒体字段</div>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：图片上传','success')"><iconify-icon icon="ri:image-line"></iconify-icon> 图片上传</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：文件上传','success')"><iconify-icon icon="ri:file-upload-line"></iconify-icon> 文件上传</button>
+        </div>
+        <div class="designer-comp-group">
+          <div class="designer-comp-group-title">高级字段</div>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：地址','success')"><iconify-icon icon="ri:map-pin-line"></iconify-icon> 地址</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：定位','success')"><iconify-icon icon="ri:map-2-line"></iconify-icon> 定位</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：签名','success')"><iconify-icon icon="ri:pen-nib-line"></iconify-icon> 签名</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：富文本','success')"><iconify-icon icon="ri:article-line"></iconify-icon> 富文本</button>
+        </div>
+        <div class="designer-comp-group">
+          <div class="designer-comp-group-title">布局字段</div>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：分组','success')"><iconify-icon icon="ri:folder-line"></iconify-icon> 分组</button>
+          <button type="button" class="designer-comp" onclick="showToast('已添加：分隔线','success')"><iconify-icon icon="ri:separator"></iconify-icon> 分隔线</button>
+        </div>
+      </div>
+
+      <!-- 中栏：画布（手机宽度模拟） -->
+      <div class="form-designer-canvas">
+        <div class="canvas-hint"><iconify-icon icon="ri:drag-drop-line"></iconify-icon> 从左侧拖拽字段到此处，完成表单设计</div>
+        <div class="designer-field">
+          <div class="designer-field-head">
+            <div>
+              <span class="designer-field-label">姓名</span>
+              <span class="designer-field-type">（单行文本）</span>
+            </div>
+            <button type="button" class="designer-field-delete" aria-label="删除字段" onclick="this.closest('.designer-field').remove();showToast('字段已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+          </div>
+          <input type="text" class="form-input" placeholder="请输入姓名…" disabled>
+        </div>
+        <div class="designer-field">
+          <div class="designer-field-head">
+            <div>
+              <span class="designer-field-label">手机号</span>
+              <span class="designer-field-type">（单行文本）</span>
+            </div>
+            <button type="button" class="designer-field-delete" aria-label="删除字段" onclick="this.closest('.designer-field').remove();showToast('字段已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+          </div>
+          <input type="text" class="form-input" placeholder="请输入手机号…" disabled>
+        </div>
+        <div class="designer-field">
+          <div class="designer-field-head">
+            <div>
+              <span class="designer-field-label">问题类型</span>
+              <span class="designer-field-type">（下拉框）</span>
+            </div>
+            <button type="button" class="designer-field-delete" aria-label="删除字段" onclick="this.closest('.designer-field').remove();showToast('字段已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+          </div>
+          <select class="form-select" disabled>
+            <option>请选择…</option>
+            <option>种植问题</option>
+            <option>养殖问题</option>
+            <option>其他问题</option>
+          </select>
+        </div>
+        <div class="designer-field">
+          <div class="designer-field-head">
+            <div>
+              <span class="designer-field-label">意见</span>
+              <span class="designer-field-type">（多行文本）</span>
+            </div>
+            <button type="button" class="designer-field-delete" aria-label="删除字段" onclick="this.closest('.designer-field').remove();showToast('字段已删除','success')"><iconify-icon icon="ri:close-line"></iconify-icon></button>
+          </div>
+          <textarea class="form-input" rows="2" placeholder="请输入意见…" disabled></textarea>
+        </div>
+      </div>
+
+      <!-- 右栏：属性面板 -->
+      <div class="form-designer-props">
+        <div class="designer-props-title"><iconify-icon icon="ri:settings-3-line"></iconify-icon>表单属性</div>
+        <div class="form-group">
+          <label for="propName">表单名称</label>
+          <input type="text" id="propName" name="propName" class="form-input" placeholder="请输入表单名称…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="propGroup">表单分组</label>
+          <select id="propGroup" name="propGroup" class="form-select">
+            <option value="">请选择…</option>
+            <option>信息采集</option>
+            <option>申请</option>
+            <option>登记</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="propDesc">表单说明</label>
+          <textarea id="propDesc" name="propDesc" class="form-input" rows="3" placeholder="请输入表单说明…"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="propLimit">提交频次限制</label>
+          <select id="propLimit" name="propLimit" class="form-select">
+            <option>每人1次</option>
+            <option>每日1次</option>
+            <option>不限</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="propLogin">是否需要登录</label>
+          <select id="propLogin" name="propLogin" class="form-select">
+            <option>需要登录</option>
+            <option>无需登录</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="propStart">提交开始时间</label>
+          <input type="datetime-local" id="propStart" name="propStart" class="form-input">
+        </div>
+        <div class="form-group">
+          <label for="propEnd">提交结束时间</label>
+          <input type="datetime-local" id="propEnd" name="propEnd" class="form-input">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Tab 面板：工作表单 -->
+  <div class="tab-panel" id="tab-work" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="workFName">表单名称</label>
+        <input type="text" id="workFName" name="name" class="form-input" placeholder="请输入表单名称…" style="width:200px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="workFCategory">表单分类</label>
+        <select id="workFCategory" name="category" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>信息采集</option>
+          <option>申请</option>
+          <option>登记</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="workFStatus">状态</label>
+        <select id="workFStatus" name="status" class="form-select" style="width:100px">
+          <option value="">全部</option>
+          <option>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡片：标题行 + 表格 + 分页 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:file-list-3-line"></iconify-icon>工作表单列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="switchFormTab(document.querySelectorAll('#formTabs .tab-item')[0])"><iconify-icon icon="ri:add-line"></iconify-icon> 创建表单</button>
+          <button class="btn btn-outline" onclick="showToast('导出成功','success')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" class="select-all" aria-label="全选当前页"></th>
+            <th>表单名称</th>
+            <th>表单分类</th>
+            <th>提交数</th>
+            <th>创建人</th>
+            <th>创建时间</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>蜜桔种植户摸底表</td>
+            <td><span class="tag tag-blue">信息采集</span></td>
+            <td>128</td>
+            <td>李建国</td>
+            <td>2026-07-01 09:00</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>村民满意度调查问卷</td>
+            <td><span class="tag tag-blue">信息采集</span></td>
+            <td>86</td>
+            <td>王桂花</td>
+            <td>2026-07-05 14:30</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>秋收农作物登记表</td>
+            <td><span class="tag tag-green">登记</span></td>
+            <td>56</td>
+            <td>赵铁柱</td>
+            <td>2026-07-10 10:00</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>产业帮扶申请表</td>
+            <td><span class="tag tag-orange">申请</span></td>
+            <td>35</td>
+            <td>孙富贵</td>
+            <td>2026-07-15 11:25</td>
+            <td><span class="tag tag-gray">停用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-success" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:check-line"></iconify-icon>启用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>防汛隐患排查表</td>
+            <td><span class="tag tag-gray">其他</span></td>
+            <td>42</td>
+            <td>周小敏</td>
+            <td>2026-07-20 16:00</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>蜜桔认养登记表</td>
+            <td><span class="tag tag-green">登记</span></td>
+            <td>64</td>
+            <td>吴德发</td>
+            <td>2026-07-25 09:30</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op" onclick="showToast('查看统计','info')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 分页 -->
+      <div class="pagination">
+        <span class="page-total">共 6 条记录</span>
+        <span class="page-info">第 1 页 / 共 1 页</span>
+        <select class="page-size-select" aria-label="每页条数">
+          <option>20条/页</option>
+          <option>50条/页</option>
+          <option>100条/页</option>
+        </select>
+        <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+        <button type="button" class="page-btn active" data-page="1">1</button>
+        <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab 面板：回收站 -->
+  <div class="tab-panel" id="tab-recycle" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="recycleFName">表单名称</label>
+        <input type="text" id="recycleFName" name="name" class="form-input" placeholder="请输入表单名称…" style="width:200px" autocomplete="off">
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡片：标题行 + 表格 + 分页 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:delete-bin-2-line"></iconify-icon>回收站列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-outline" onclick="showToast('请勾选需恢复的表单','info')"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon> 批量恢复</button>
+          <button class="btn btn-outline" onclick="showConfirm({title:'彻底清空确认',message:'确定彻底清空回收站吗？删除后不可恢复。',onConfirm:function(){showToast('回收站已清空','success')}})"><iconify-icon icon="ri:delete-bin-7-line"></iconify-icon> 彻底清空</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" class="select-all" aria-label="全选当前页"></th>
+            <th>表单名称</th>
+            <th>删除人</th>
+            <th>删除时间</th>
+            <th>原分类</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>蜜桔种植户摸底表(旧版)</td>
+            <td>李建国</td>
+            <td>2026-08-05 14:30</td>
+            <td><span class="tag tag-blue">信息采集</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>村民满意度调查问卷(2025)</td>
+            <td>王桂花</td>
+            <td>2026-08-03 09:15</td>
+            <td><span class="tag tag-blue">信息采集</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>秋收农作物登记表</td>
+            <td>赵铁柱</td>
+            <td>2026-07-28 16:42</td>
+            <td><span class="tag tag-green">登记</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>防汛隐患排查表</td>
+            <td>孙富贵</td>
+            <td>2026-07-20 10:08</td>
+            <td><span class="tag tag-gray">其他</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>产业帮扶申请表(草稿)</td>
+            <td>周小敏</td>
+            <td>2026-07-15 11:25</td>
+            <td><span class="tag tag-orange">申请</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>蜜桔认养登记表（2026年度）</td>
+            <td>吴德发</td>
+            <td>2026-07-10 15:00</td>
+            <td><span class="tag tag-green">登记</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 分页 -->
+      <div class="pagination">
+        <span class="page-total">共 6 条记录</span>
+        <span class="page-info">第 1 页 / 共 1 页</span>
+        <select class="page-size-select" aria-label="每页条数">
+          <option>20条/页</option>
+          <option>50条/页</option>
+          <option>100条/页</option>
+        </select>
+        <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+        <button type="button" class="page-btn active" data-page="1">1</button>
+        <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab 面板：签章管理 -->
+  <div class="tab-panel" id="tab-seal" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="sealFName">签章名称</label>
+        <input type="text" id="sealFName" name="name" class="form-input" placeholder="请输入签章名称…" style="width:180px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="sealFType">签章类型</label>
+        <select id="sealFType" name="type" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>村委公章</option>
+          <option>财务章</option>
+          <option>合同章</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="sealFStatus">状态</label>
+        <select id="sealFStatus" name="status" class="form-select" style="width:100px">
+          <option value="">全部</option>
+          <option>启用</option>
+          <option>停用</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡片：标题行 + 表格 + 分页 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:stamp-line"></iconify-icon>签章列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addSealSealModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增签章</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" class="select-all" aria-label="全选当前页"></th>
+            <th>签章名称</th>
+            <th>签章图片</th>
+            <th>签章类型</th>
+            <th>使用人</th>
+            <th>授权范围</th>
+            <th>添加时间</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>幸福村村委公章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">村公章</span></td>
+            <td><span class="tag tag-blue">村委公章</span></td>
+            <td>幸福村村委会</td>
+            <td>全村事务</td>
+            <td>2026-07-01</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleSealStatus(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>幸福村财务章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">财务章</span></td>
+            <td><span class="tag tag-green">财务章</span></td>
+            <td>幸福村财务室</td>
+            <td>财务收支</td>
+            <td>2026-07-01</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleSealStatus(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>幸福村合同章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">合同章</span></td>
+            <td><span class="tag tag-orange">合同章</span></td>
+            <td>村委会主任</td>
+            <td>合同签订</td>
+            <td>2026-07-05</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleSealStatus(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>平安村村委公章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">村公章</span></td>
+            <td><span class="tag tag-blue">村委公章</span></td>
+            <td>平安村村委会</td>
+            <td>全村事务</td>
+            <td>2026-07-08</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleSealStatus(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>丰收村财务章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">财务章</span></td>
+            <td><span class="tag tag-green">财务章</span></td>
+            <td>丰收村财务室</td>
+            <td>财务收支</td>
+            <td>2026-07-12</td>
+            <td><span class="tag tag-gray">停用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-success" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:check-line"></iconify-icon>启用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+            <td>李建国个人签章</td>
+            <td><span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:12px;font-weight:bold;background:rgba(211,47,47,0.06);flex-shrink:0">李建国</span></td>
+            <td><span class="tag tag-orange">合同章</span></td>
+            <td>李建国</td>
+            <td>认养合同</td>
+            <td>2026-07-15</td>
+            <td><span class="tag tag-green">启用</span></td>
+            <td class="op-cell">
+              <button type="button" class="btn-op btn-op-edit" onclick="openModal('editSealSealModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-warning" onclick="toggleSealStatus(this)"><iconify-icon icon="ri:forbid-line"></iconify-icon>停用</button>
+              <span class="op-divider"></span>
+              <button type="button" class="btn-op btn-op-danger" onclick="deleteSeal(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 分页 -->
+      <div class="pagination">
+        <span class="page-total">共 6 条记录</span>
+        <span class="page-info">第 1 页 / 共 1 页</span>
+        <select class="page-size-select" aria-label="每页条数">
+          <option>20条/页</option>
+          <option>50条/页</option>
+          <option>100条/页</option>
+        </select>
+        <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+        <button type="button" class="page-btn active" data-page="1">1</button>
+        <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 新增弹窗（签章管理） -->
+  <div class="modal-overlay" id="addSealSealModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>新增签章</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addSealSealModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label for="addName"><span class="req">*</span>签章名称</label>
+            <input type="text" id="addName" name="addName" class="form-input" placeholder="请输入签章名称…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label><span class="req">*</span>签章图片</label>
+            <div class="upload-area">
+              <div class="upload-icon"><iconify-icon icon="ri:image-add-line"></iconify-icon></div>
+              <div class="upload-text">点击或拖拽上传签章图片</div>
+              <div class="upload-hint">支持 PNG/JPG，建议透明背景</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addType"><span class="req">*</span>签章类型</label>
+              <select id="addType" name="addType" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>村委公章</option>
+                <option>财务章</option>
+                <option>合同章</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="addUser">使用人</label>
+              <input type="text" id="addUser" name="addUser" class="form-input" placeholder="请输入使用人…" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="addScope">授权范围</label>
+            <input type="text" id="addScope" name="addScope" class="form-input" placeholder="请输入授权范围…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="addStatus"><span class="req">*</span>状态</label>
+            <select id="addStatus" name="addStatus" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>启用</option>
+              <option>停用</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addSealSealModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addSealSealModal')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑弹窗（签章管理） -->
+  <div class="modal-overlay" id="editSealSealModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>编辑签章</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editSealSealModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label for="editName"><span class="req">*</span>签章名称</label>
+            <input type="text" id="editName" class="form-input" value="幸福村村委公章" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label><span class="req">*</span>签章图片</label>
+            <div class="upload-area">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:12px;font-weight:bold;background:rgba(211,47,47,0.06)">村公章</span>
+              <div class="upload-text" style="margin-top:8px">点击重新上传签章图片</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editType"><span class="req">*</span>签章类型</label>
+              <select id="editType" class="form-select" required>
+                <option selected>村委公章</option>
+                <option>财务章</option>
+                <option>合同章</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editUser">使用人</label>
+              <input type="text" id="editUser" class="form-input" value="幸福村村委会" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editScope">授权范围</label>
+            <input type="text" id="editScope" class="form-input" value="全村事务" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editStatus"><span class="req">*</span>状态</label>
+            <select id="editStatus" class="form-select" required>
+              <option selected>启用</option>
+              <option>停用</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editSealSealModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editSealSealModal')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表单预览弹窗 -->
+  <div class="modal-overlay" id="previewModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>表单预览</h3>
+        <button type="button" class="modal-close" onclick="closeModal('previewModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#f0f2f5;border:1px solid #eef0f3;border-radius:12px;padding:16px;max-width:360px;margin:0 auto">
+          <div style="text-align:center;font-size:15px;font-weight:600;color:#1f2937;margin-bottom:4px">蜜桔种植问题反馈表</div>
+          <div style="text-align:center;font-size:12px;color:#9ca3af;margin-bottom:14px">村民在线反馈种植问题</div>
+          <div class="form-group">
+            <label for="pvName">姓名</label>
+            <input type="text" id="pvName" class="form-input" placeholder="请输入姓名…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="pvPhone">手机号</label>
+            <input type="text" id="pvPhone" class="form-input" placeholder="请输入手机号…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="pvType">问题类型</label>
+            <select id="pvType" class="form-select">
+              <option>请选择…</option>
+              <option>种植问题</option>
+              <option>养殖问题</option>
+              <option>其他问题</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pvOpinion">意见</label>
+            <textarea id="pvOpinion" class="form-input" rows="2" placeholder="请输入意见…"></textarea>
+          </div>
+          <button type="button" class="btn btn-primary" style="width:100%" onclick="showToast('预览表单提交成功','success')">提 交</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('previewModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 保存表单弹窗 -->
+  <div class="modal-overlay" id="saveFormModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>保存表单</h3>
+        <button type="button" class="modal-close" onclick="closeModal('saveFormModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label for="svName"><span class="req">*</span>表单名称</label>
+            <input type="text" id="svName" class="form-input" value="蜜桔种植问题反馈表" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="svGroup">表单分组</label>
+            <select id="svGroup" class="form-select">
+              <option selected>信息采集</option>
+              <option>申请</option>
+              <option>登记</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="svDesc">表单说明</label>
+            <textarea id="svDesc" class="form-input" rows="3" placeholder="请输入表单说明…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('saveFormModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('表单保存成功','success');closeModal('saveFormModal')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    function fmNow() {
+      var d = new Date();
+      function p(n) { return n < 10 ? '0' + n : '' + n; }
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    function fmStatusBtn(opCell, enable, fnName) {
+      var oldBtn = opCell.querySelector('.btn-op-warning') || opCell.querySelector('.btn-op-success');
+      if (!oldBtn) return;
+      var handler = fnName || 'toggleWorkFormStatus';
+      var newBtn = document.createElement('button');
+      if (enable) {
+        newBtn.className = 'btn-op btn-op-warning';
+        newBtn.setAttribute('onclick', handler + '(this)');
+        newBtn.innerHTML = '<iconify-icon icon="ri:stop-line"></iconify-icon>停用';
+      } else {
+        newBtn.className = 'btn-op btn-op-success';
+        newBtn.setAttribute('onclick', handler + '(this)');
+        newBtn.innerHTML = '<iconify-icon icon="ri:check-line"></iconify-icon>启用';
+      }
+      opCell.replaceChild(newBtn, oldBtn);
+    }
+    function toggleWorkFormStatus(btn) {
+      var row = btn.closest('tr');
+      var tds = row.querySelectorAll('td');
+      var cur = tds[6].textContent.trim();
+      var next = cur === '启用' ? '停用' : '启用';
+      showConfirm({
+        title: cur === '启用' ? '停用确认' : '启用确认',
+        message: cur === '启用' ? '确定停用该表单吗？停用后将不再接受新提交。' : '确定启用该表单吗？',
+        onConfirm: function () {
+          tds[6].innerHTML = next === '启用' ? '<span class="tag tag-green">启用</span>' : '<span class="tag tag-gray">停用</span>';
+          var opCell = row.querySelector('.op-cell');
+          if (opCell) fmStatusBtn(opCell, next === '启用');
+          showToast(next === '启用' ? '已启用' : '已停用', 'success');
+        }
+      });
+    }
+    function deleteWorkForm(btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除该表单吗？删除后不可恢复。',
+        onConfirm: function () {
+          var tds = row.querySelectorAll('td');
+          var name = tds[1].textContent.trim();
+          var catHtml = tds[2].innerHTML;
+          var creator = tds[4].textContent.trim();
+          var recTbody = document.querySelector('#tab-recycle tbody');
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>' +
+            '<td>' + name + '</td><td>' + creator + '</td><td>' + fmNow() + '</td><td>' + catHtml + '</td>' +
+            '<td class="op-cell">' +
+            '<button type="button" class="btn-op btn-op-edit" onclick="restoreWorkForm(this)"><iconify-icon icon="ri:arrow-go-back-line"></iconify-icon>恢复</button>' +
+            '<span class="op-divider"></span>' +
+            '<button type="button" class="btn-op btn-op-danger" onclick="purgeWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>彻底删除</button></td>';
+          if (recTbody) recTbody.appendChild(tr);
+          row.remove();
+          showToast('删除成功', 'success');
+        }
+      });
+    }
+    function restoreWorkForm(btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '恢复确认',
+        message: '确定恢复该表单吗？',
+        onConfirm: function () {
+          var tds = row.querySelectorAll('td');
+          var name = tds[1].textContent.trim();
+          var catHtml = tds[4].innerHTML;
+          var workTbody = document.querySelector('#tab-work tbody');
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>' +
+            '<td>' + name + '</td><td>' + catHtml + '</td><td>0</td><td>李建国</td><td>' + fmNow() + '</td>' +
+            '<td><span class="tag tag-green">启用</span></td>' +
+            '<td class="op-cell">' +
+            '<button type="button" class="btn-op" onclick="showToast(\'查看统计\',\'info\')"><iconify-icon icon="ri:bar-chart-line"></iconify-icon>查看统计</button>' +
+            '<span class="op-divider"></span>' +
+            '<button type="button" class="btn-op btn-op-edit" onclick="editWorkForm(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+            '<span class="op-divider"></span>' +
+            '<button type="button" class="btn-op btn-op-warning" onclick="toggleWorkFormStatus(this)"><iconify-icon icon="ri:stop-line"></iconify-icon>停用</button>' +
+            '<span class="op-divider"></span>' +
+            '<button type="button" class="btn-op btn-op-danger" onclick="deleteWorkForm(this)"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button></td>';
+          if (workTbody) workTbody.appendChild(tr);
+          row.remove();
+          showToast('恢复成功', 'success');
+        }
+      });
+    }
+    function purgeWorkForm(btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '彻底删除确认',
+        message: '彻底删除后不可恢复，确定吗？',
+        onConfirm: function () {
+          row.remove();
+          showToast('已彻底删除', 'success');
+        }
+      });
+    }
+    function toggleSealStatus(btn) {
+      var row = btn.closest('tr');
+      var tds = row.querySelectorAll('td');
+      var cur = tds[7].textContent.trim();
+      var next = cur === '启用' ? '停用' : '启用';
+      showConfirm({
+        title: cur === '启用' ? '停用确认' : '启用确认',
+        message: cur === '启用' ? '确定停用该签章吗？' : '确定启用该签章吗？',
+        onConfirm: function () {
+          tds[7].innerHTML = next === '启用' ? '<span class="tag tag-green">启用</span>' : '<span class="tag tag-gray">停用</span>';
+          var opCell = row.querySelector('.op-cell');
+          if (opCell) fmStatusBtn(opCell, next === '启用', 'toggleSealStatus');
+          showToast(next === '启用' ? '已启用' : '已停用', 'success');
+        }
+      });
+    }
+    function deleteSeal(btn) {
+      var row = btn.closest('tr');
+      showConfirm({
+        title: '删除确认',
+        message: '确定删除该签章吗？删除后不可恢复。',
+        onConfirm: function () {
+          row.remove();
+          showToast('删除成功', 'success');
+        }
+      });
+    }
+  </script>
+  <script>
+    function switchFormTab(tab) {
+      document.querySelectorAll('#formTabs .tab-item').forEach(function (t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    }
+    /* ===== 编辑工作表单：切到创建表单 Tab 并载入该表单字段 ===== */
+    function fmFieldNode(tpl) {
+      var div = document.createElement('div');
+      div.className = 'designer-field';
+      var inputHtml = '';
+      if (tpl.type === 'textarea') {
+        inputHtml = '<textarea class="form-input" rows="2" placeholder="请输入' + tpl.label + '…" disabled></textarea>';
+      } else if (tpl.type === 'select') {
+        inputHtml = '<select class="form-select" disabled><option>请选择…</option></select>';
+      } else {
+        inputHtml = '<input type="text" class="form-input" placeholder="请输入' + tpl.label + '…" disabled>';
+      }
+      div.innerHTML =
+        '<div class="designer-field-head">' +
+        '<div><span class="designer-field-label">' + tpl.label + '</span><span class="designer-field-type">（' + tpl.typeName + '）</span></div>' +
+        '<button type="button" class="designer-field-delete" aria-label="删除字段" onclick="this.closest(\'.designer-field\').remove();showToast(\'字段已删除\',\'success\')"><iconify-icon icon="ri:close-line"></iconify-icon></button>' +
+        '</div>' + inputHtml;
+      return div;
+    }
+    function fmFieldsFor(name, cat) {
+      var list;
+      if (cat.indexOf('申请') > -1) {
+        list = [
+          { label: '申请人', type: 'input', typeName: '单行文本' },
+          { label: '联系电话', type: 'input', typeName: '单行文本' },
+          { label: '申请事项', type: 'select', typeName: '下拉框' },
+          { label: '情况说明', type: 'textarea', typeName: '多行文本' }
+        ];
+      } else if (cat.indexOf('登记') > -1) {
+        list = [
+          { label: '登记人', type: 'input', typeName: '单行文本' },
+          { label: '手机号', type: 'input', typeName: '单行文本' },
+          { label: '登记事项', type: 'select', typeName: '下拉框' },
+          { label: '备注', type: 'textarea', typeName: '多行文本' }
+        ];
+      } else if (cat.indexOf('信息采集') > -1) {
+        list = [
+          { label: '姓名', type: 'input', typeName: '单行文本' },
+          { label: '手机号', type: 'input', typeName: '单行文本' },
+          { label: '所在村组', type: 'select', typeName: '下拉框' },
+          { label: '事项说明', type: 'textarea', typeName: '多行文本' }
+        ];
+      } else {
+        list = [
+          { label: '姓名', type: 'input', typeName: '单行文本' },
+          { label: '联系电话', type: 'input', typeName: '单行文本' },
+          { label: '问题描述', type: 'textarea', typeName: '多行文本' },
+          { label: '处理意见', type: 'textarea', typeName: '多行文本' }
+        ];
+      }
+      if (name.indexOf('满意度') > -1) {
+        list = [
+          { label: '姓名', type: 'input', typeName: '单行文本' },
+          { label: '满意度评分', type: 'select', typeName: '下拉框' },
+          { label: '意见建议', type: 'textarea', typeName: '多行文本' }
+        ];
+      } else if (name.indexOf('隐患') > -1) {
+        list = [
+          { label: '排查人', type: 'input', typeName: '单行文本' },
+          { label: '隐患位置', type: 'input', typeName: '单行文本' },
+          { label: '隐患类型', type: 'select', typeName: '下拉框' },
+          { label: '整改建议', type: 'textarea', typeName: '多行文本' }
+        ];
+      }
+      return list;
+    }
+    function editWorkForm(btn) {
+      var row = btn.closest('tr');
+      if (!row) return;
+      var tds = row.querySelectorAll('td');
+      var name = tds[1].textContent.trim();
+      var cat = tds[2].textContent.trim();
+      var createTab = document.querySelector('#formTabs .tab-item[data-tab="create"]');
+      if (createTab) switchFormTab(createTab);
+      var nameInput = document.getElementById('propName');
+      if (nameInput) nameInput.value = name;
+      var canvas = document.querySelector('.form-designer-canvas');
+      if (canvas) {
+        canvas.querySelectorAll('.designer-field').forEach(function (f) { f.remove(); });
+        fmFieldsFor(name, cat).forEach(function (tpl) { canvas.appendChild(fmFieldNode(tpl)); });
+      }
+      showToast('已载入表单编辑', 'success');
+    }
+    (function () {
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#formTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchFormTab(t);
+      }
+    })();
+  </script>
+</body>
+</html>

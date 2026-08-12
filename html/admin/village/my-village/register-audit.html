@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>注册审核 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* 页头（对齐南丰监测数据页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    /* 搜索筛选区（对齐南丰监测数据页：控件 14px + 8px 圆角 + 灰边框） */
+    .search-filter .filter-item .form-input,
+    .search-filter .filter-item .form-select {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+      border-color: #d1d5db;
+    }
+    .search-filter .filter-actions .btn {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body style="background:#f0f2f5;padding:24px;box-sizing:border-box" data-page-title="注册审核" data-page-subtitle="村民注册申请审核与驳回处理">
+
+  <!-- 顶部页头 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>注册审核</h2>
+      <p>村民注册申请审核与驳回处理，支持导出与查询维护</p>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="toolbar">
+    <button class="btn btn-outline" onclick="openModal('exportModal')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+  </div>
+
+  <!-- 搜索筛选区 -->
+  <div class="search-filter">
+    <div class="filter-item">
+      <label for="fName">用户姓名</label>
+      <input type="text" id="fName" name="name" class="form-input" placeholder="请输入用户姓名…" style="width:140px" autocomplete="off">
+    </div>
+    <div class="filter-item">
+      <label for="fRole">申请角色</label>
+      <select id="fRole" name="role" class="form-select" style="width:120px">
+        <option value="">全部</option>
+        <option>村民</option>
+        <option>村干部</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label for="fStatus">审核状态</label>
+      <select id="fStatus" name="status" class="form-select" style="width:120px">
+        <option value="">全部</option>
+        <option>待审核</option>
+        <option>已通过</option>
+        <option>已驳回</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+      <button class="btn btn-search-reset">重 置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="checkbox-cell"><input type="checkbox" class="select-all" aria-label="全选当前页"></th>
+          <th>用户姓名</th>
+          <th>手机号</th>
+          <th>申请角色</th>
+          <th>所属村</th>
+          <th>申请时间</th>
+          <th>审核状态</th>
+          <th>审核人</th>
+          <th>审核时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>李大壮</td>
+          <td>137****0001</td>
+          <td>村民</td>
+          <td>幸福村</td>
+          <td>2026-07-25 09:30</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="approveRegRow(this)"><iconify-icon icon="ri:check-line"></iconify-icon>通过</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="openRejectModal(this)"><iconify-icon icon="ri:close-line"></iconify-icon>驳回</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>张伟明</td>
+          <td>138****0022</td>
+          <td>村干部</td>
+          <td>幸福村</td>
+          <td>2026-07-26 14:20</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="approveRegRow(this)"><iconify-icon icon="ri:check-line"></iconify-icon>通过</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="openRejectModal(this)"><iconify-icon icon="ri:close-line"></iconify-icon>驳回</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>刘秀英</td>
+          <td>136****8901</td>
+          <td>村民</td>
+          <td>幸福村</td>
+          <td>2026-07-28 10:15</td>
+          <td><span class="tag tag-orange">待审核</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-edit" onclick="approveRegRow(this)"><iconify-icon icon="ri:check-line"></iconify-icon>通过</button>
+            <span class="op-divider"></span>
+            <button type="button" class="btn-op btn-op-danger" onclick="openRejectModal(this)"><iconify-icon icon="ri:close-line"></iconify-icon>驳回</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>陈大山</td>
+          <td>136****0033</td>
+          <td>村民</td>
+          <td>幸福村</td>
+          <td>2026-07-20 11:00</td>
+          <td><span class="tag tag-green">已通过</span></td>
+          <td>李建国</td>
+          <td>2026-07-21 09:00</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>黄国庆</td>
+          <td>188****0044</td>
+          <td>村干部</td>
+          <td>幸福村</td>
+          <td>2026-07-18 16:30</td>
+          <td><span class="tag tag-green">已通过</span></td>
+          <td>李建国</td>
+          <td>2026-07-19 10:20</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" aria-label="选择该行"></td>
+          <td>杨春花</td>
+          <td>139****2233</td>
+          <td>村民</td>
+          <td>幸福村</td>
+          <td>2026-07-15 13:45</td>
+          <td><span class="tag tag-red">已驳回</span></td>
+          <td>周小敏</td>
+          <td>2026-07-16 08:50</td>
+          <td class="op-cell">
+            <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 分页 -->
+  <div class="pagination">
+    <span class="page-total">共 6 条记录</span>
+    <span class="page-info">第 1 页 / 共 1 页</span>
+    <select class="page-size-select" aria-label="每页条数">
+      <option>20条/页</option>
+      <option>50条/页</option>
+      <option>100条/页</option>
+    </select>
+    <button type="button" class="page-btn disabled">&laquo; 上一页</button>
+    <button type="button" class="page-btn active" data-page="1">1</button>
+    <button type="button" class="page-btn disabled">下一页 &raquo;</button>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>导出列表</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">选择导出格式，将当前筛选条件下的注册申请列表导出为文件。</p>
+        <div class="export-format-grid">
+          <button type="button" class="export-format active" onclick="selectExportFormat(this)"><iconify-icon icon="ri:image-line"></iconify-icon>图片</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-excel-2-line"></iconify-icon>Excel</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>PDF</button>
+          <button type="button" class="export-format" onclick="selectExportFormat(this)"><iconify-icon icon="ri:file-text-line"></iconify-icon>TXT</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('exportModal');showToast('导出成功','success')">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看申请弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>注册申请详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">用户姓名</span><span class="detail-value">李大壮</span></div>
+          <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value">137****0001</span></div>
+          <div class="detail-item"><span class="detail-label">申请角色</span><span class="detail-value">村民</span></div>
+          <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+          <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value">2026-07-25 09:30</span></div>
+          <div class="detail-item"><span class="detail-label">审核状态</span><span class="detail-value"><span class="tag tag-orange">待审核</span></span></div>
+          <div class="detail-item"><span class="detail-label">审核人</span><span class="detail-value">—</span></div>
+          <div class="detail-item"><span class="detail-label">审核时间</span><span class="detail-value">—</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">申请说明</span><span class="detail-value">本人为幸福村村民，申请注册小程序账号以便办理村务事项。</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 驳回弹窗 -->
+  <div class="modal-overlay" id="rejectModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>驳回申请</h3>
+        <button type="button" class="modal-close" onclick="closeModal('rejectModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label for="rejectReason"><span class="req">*</span>驳回原因</label>
+            <textarea id="rejectReason" name="rejectReason" class="form-input" rows="4" placeholder="请输入驳回原因…" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('rejectModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="confirmRejectReg()">确认驳回</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function regNow() {
+    var d = new Date();
+    function p(n) { return n < 10 ? '0' + n : '' + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function setRegRowOps(row) {
+    var opCell = row.querySelectorAll('td')[9];
+    if (!opCell) return;
+    var btns = opCell.querySelectorAll('.btn-op');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      if (b.classList.contains('btn-op-edit') || b.classList.contains('btn-op-danger')) {
+        var div = b.nextElementSibling;
+        b.remove();
+        if (div && div.classList.contains('op-divider')) div.remove();
+      }
+    }
+  }
+  function approveRegRow(btn) {
+    var row = btn.closest('tr');
+    showConfirm({
+      title: '通过确认',
+      message: '确定通过该用户注册申请吗？',
+      onConfirm: function () {
+        var tds = row.querySelectorAll('td');
+        if (tds[6]) tds[6].innerHTML = '<span class="tag tag-green">已通过</span>';
+        if (tds[7]) tds[7].textContent = '李建国';
+        if (tds[8]) tds[8].textContent = regNow();
+        setRegRowOps(row);
+        showToast('已通过', 'success');
+      }
+    });
+  }
+  function openRejectModal(btn) {
+    window._rejRow = btn.closest('tr');
+    var ta = document.getElementById('rejectReason');
+    if (ta) ta.value = '';
+    openModal('rejectModal');
+  }
+  function confirmRejectReg() {
+    var ta = document.getElementById('rejectReason');
+    if (!ta || !ta.value.trim()) { showToast('请填写驳回原因', 'warning'); return; }
+    var row = window._rejRow;
+    if (row) {
+      var tds = row.querySelectorAll('td');
+      if (tds[6]) tds[6].innerHTML = '<span class="tag tag-red">已驳回</span>';
+      if (tds[7]) tds[7].textContent = '李建国';
+      if (tds[8]) tds[8].textContent = regNow();
+      setRegRowOps(row);
+      window._rejRow = null;
+    }
+    closeModal('rejectModal');
+    showToast('已驳回', 'success');
+  }
+  </script>
+
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

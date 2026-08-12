@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>工作台 - 乡村振兴数字平台</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="../shared/js/icons-local.js"></script>
+  <script src="../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ===== Dashboard Scoped Styles ===== */
+    body {
+      background: #f0f2f5;
+      padding: 24px;
+      margin: 0;
+      font-family: var(--font-family);
+      color: var(--text-primary);
+    }
+
+    /* --- Stat Cards --- */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: row-reverse; /* 对齐南丰首页：数值在左、圆形图标在右 */
+      align-items: center;
+      gap: 20px;
+      box-shadow: var(--shadow-xs);
+      transition: box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+    .stat-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.blue   { background: var(--color-primary-50);  color: var(--color-primary-600); }
+    .stat-icon.orange { background: #fff7ed;                  color: #ea580c; }
+    .stat-icon.red    { background: var(--color-error-light);  color: var(--color-error-dark); }
+    .stat-icon.yellow { background: var(--color-accent-50);    color: var(--color-accent-600); }
+
+    .stat-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .stat-value small {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-tertiary);
+      margin-left: 2px;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      margin-top: 6px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-change svg { flex-shrink: 0; }
+    .stat-change.up   { color: var(--color-success); }
+    .stat-change.down { color: var(--color-error); }
+
+    /* --- Dashboard Grid --- */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    /* --- Card --- */
+    .card {
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-xs);
+      transition: box-shadow 0.25s ease;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--color-neutral-100);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      display: none;
+    }
+
+    /* --- Affairs List --- */
+    .affairs-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .affairs-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--color-neutral-50);
+      transition: background 0.2s ease;
+    }
+    .affairs-list li:last-child {
+      border-bottom: none;
+    }
+    .affairs-list li:hover {
+      background: var(--color-neutral-50);
+      margin: 0 -12px;
+      padding-left: 12px;
+      padding-right: 12px;
+      border-radius: 8px;
+    }
+
+    .affairs-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .affairs-title {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .affairs-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    /* --- Todo List --- */
+    .todo-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .todo-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--color-neutral-50);
+      transition: background 0.2s ease;
+    }
+    .todo-list li:last-child {
+      border-bottom: none;
+    }
+    .todo-list li:hover {
+      background: var(--color-neutral-50);
+      margin: 0 -12px;
+      padding-left: 12px;
+      padding-right: 12px;
+      border-radius: 8px;
+    }
+
+    .todo-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .todo-title {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .todo-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    /* --- Tags --- */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .tag-success { background: var(--color-success-light); color: var(--color-success-dark); }
+    .tag-warning { background: var(--color-warning-light); color: var(--color-warning-dark); }
+    .tag-danger  { background: var(--color-error-light);   color: var(--color-error-dark); }
+    .tag-info    { background: var(--color-info-light);    color: var(--color-info-dark); }
+
+    /* --- Quick Actions --- */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+    }
+
+    .quick-action-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+      background: var(--color-neutral-50);
+    }
+    .quick-action-item:hover {
+      background: var(--color-primary-50);
+    }
+
+    .action-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--color-primary-600);
+      background: var(--color-primary-50);
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    .quick-action-item:hover .action-icon {
+      background: var(--color-primary-500);
+      color: #fff;
+    }
+
+    .action-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+    }
+    .quick-action-item:hover .action-text {
+      color: var(--color-primary-700);
+    }
+
+    /* 屏幕阅读器专用 */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#dashboardMain" class="skip-link">跳转到主内容</a>
+  <h1 class="sr-only">工作台</h1>
+
+  <main id="dashboardMain">
+  <!-- 页面标题区（参考南丰首页：标题 + 欢迎语 + 日期） -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;color:#1f2937;margin:0">工作台</h1>
+      <p style="color:#6b7280;font-size:13px;margin-top:4px">欢迎回来，管理员 · 乡村振兴数字平台</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;color:#6b7280;font-size:13px">
+      <svg aria-hidden="true" width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span id="todayDate"></span>
+    </div>
+  </div>
+
+  <!-- 统计卡片 -->
+  <div class="stat-cards">
+    <div class="stat-card" data-stat-label="村民总数" onclick="goPage('user/villager-list.html','村民管理')" style="cursor:pointer">
+      <div class="stat-icon blue">
+        <iconify-icon icon="ri:group-line"></iconify-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">村民总数</div>
+        <div class="stat-value">2,856 <small>人</small></div>
+        <div class="stat-change up"><svg aria-hidden="true" width="12" height="12" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>2.3% 较上月</div>
+      </div>
+    </div>
+    <div class="stat-card" data-stat-label="本月事件数" onclick="goPage('event/event-list.html','事件管理')" style="cursor:pointer">
+      <div class="stat-icon orange">
+        <iconify-icon icon="ri:calendar-event-line"></iconify-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">本月事件数</div>
+        <div class="stat-value">45 <small>件</small></div>
+        <div class="stat-change down"><svg aria-hidden="true" width="12" height="12" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg>5.1% 较上月</div>
+      </div>
+    </div>
+    <div class="stat-card" data-stat-label="待处理事件" onclick="goPage('event/event-list.html','事件管理')" style="cursor:pointer">
+      <div class="stat-icon red">
+        <iconify-icon icon="ri:alarm-warning-line"></iconify-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">待处理事件</div>
+        <div class="stat-value">3 <small>件</small></div>
+        <div class="stat-change" style="color: var(--color-error)">需要尽快处理</div>
+      </div>
+    </div>
+    <div class="stat-card" data-stat-label="积分待审核" onclick="goPage('village/points-shop/points-manage.html?tab=audit','积分管理')" style="cursor:pointer">
+      <div class="stat-icon yellow">
+        <iconify-icon icon="ri:star-line"></iconify-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">积分待审核</div>
+        <div class="stat-value">5 <small>件</small></div>
+        <div class="stat-change" style="color: var(--color-accent-600)">等待审批</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中间两列 -->
+  <div class="dashboard-grid">
+    <!-- 最近村务公开 -->
+    <div class="card">
+      <div class="card-title"><svg aria-hidden="true" width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"/></svg>最近村务公开</div>
+      <ul class="affairs-list">
+        <li onclick="goPage('affairs/affairs-list.html','村务公开')" style="cursor:pointer">
+          <div class="affairs-info">
+            <div class="affairs-title">关于2026年度村级财务预算的公示</div>
+            <div class="affairs-meta">2026-06-28 10:30</div>
+          </div>
+          <span class="tag tag-success">已发布</span>
+        </li>
+        <li onclick="goPage('affairs/affairs-list.html','村务公开')" style="cursor:pointer">
+          <div class="affairs-info">
+            <div class="affairs-title">幸福村第三季度基础设施建设规划方案</div>
+            <div class="affairs-meta">2026-06-25 14:20</div>
+          </div>
+          <span class="tag tag-success">已发布</span>
+        </li>
+        <li onclick="goPage('affairs/affairs-list.html','村务公开')" style="cursor:pointer">
+          <div class="affairs-info">
+            <div class="affairs-title">2026年夏季防汛工作安排及应急预案</div>
+            <div class="affairs-meta">2026-06-22 09:15</div>
+          </div>
+          <span class="tag tag-warning">审核中</span>
+        </li>
+        <li onclick="goPage('affairs/affairs-list.html','村务公开')" style="cursor:pointer">
+          <div class="affairs-info">
+            <div class="affairs-title">村民代表大会决议公告（第12次）</div>
+            <div class="affairs-meta">2026-06-18 16:45</div>
+          </div>
+          <span class="tag tag-success">已发布</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 待办事项 -->
+    <div class="card">
+      <div class="card-title"><svg aria-hidden="true" width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>待办事项</div>
+      <ul class="todo-list">
+        <li onclick="goPage('village/points-shop/points-manage.html?tab=audit','积分审核')" style="cursor:pointer">
+          <div class="todo-info">
+            <div class="todo-title">审核王建国积分申请（志愿服务+10分）</div>
+            <div class="todo-meta">2026-06-30 紧急</div>
+          </div>
+          <span class="tag tag-danger">紧急</span>
+        </li>
+        <li onclick="goPage('event/event-list.html','事件管理')" style="cursor:pointer">
+          <div class="todo-info">
+            <div class="todo-title">处理第三网格污水管道堵塞事件</div>
+            <div class="todo-meta">2026-06-30 紧急</div>
+          </div>
+          <span class="tag tag-danger">紧急</span>
+        </li>
+        <li onclick="goPage('village/my-village/register-audit.html','注册审核')" style="cursor:pointer">
+          <div class="todo-info">
+            <div class="todo-title">审批新增村民李秀兰的户籍迁入申请</div>
+            <div class="todo-meta">2026-06-29 重要</div>
+          </div>
+          <span class="tag tag-warning">重要</span>
+        </li>
+        <li onclick="goPage('affairs/affairs-list.html','村务公开')" style="cursor:pointer">
+          <div class="todo-info">
+            <div class="todo-title">发布7月份村民议事日程安排</div>
+            <div class="todo-meta">2026-06-28 一般</div>
+          </div>
+          <span class="tag tag-info">一般</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 快捷操作 -->
+  <div class="card">
+    <div class="card-title"><svg aria-hidden="true" width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>快捷操作</div>
+    <div class="quick-actions">
+      <div class="quick-action-item" onclick="goPage('user/villager-list.html','村民管理','addVillager')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:user-add-line"></iconify-icon>
+        </div>
+        <div class="action-text">新增村民</div>
+      </div>
+      <div class="quick-action-item" onclick="goPage('notice/notice-list.html','通知公告','addNotice')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:megaphone-line"></iconify-icon>
+        </div>
+        <div class="action-text">发布公告</div>
+      </div>
+      <div class="quick-action-item" onclick="goPage('event/event-list.html','事件管理','addEvent')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:route-line"></iconify-icon>
+        </div>
+        <div class="action-text">事件分派</div>
+      </div>
+      <div class="quick-action-item" onclick="goPage('village/points-shop/points-manage.html?tab=audit','积分审核')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:file-check-line"></iconify-icon>
+        </div>
+        <div class="action-text">积分审核</div>
+      </div>
+      <div class="quick-action-item" onclick="goPage('system/config.html','系统管理')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:settings-3-line"></iconify-icon>
+        </div>
+        <div class="action-text">系统设置</div>
+      </div>
+      <div class="quick-action-item" onclick="goPage('appeal/appeal-list.html','村民诉求')">
+        <div class="action-icon">
+          <iconify-icon icon="ri:chat-smile-line"></iconify-icon>
+        </div>
+        <div class="action-text">村民诉求</div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    // 页面跳转：主框架内用 parent.openPage（iframe 内切换+菜单高亮）；
+    // 独立打开时直接 location.href 跳转，避免点击无反应
+    function goPage(url, title) {
+      var opener = (window.parent && window.parent !== window) ? window.parent : null;
+      if (opener && typeof opener.openPage === 'function') {
+        opener.openPage(url, title);
+      } else {
+        window.location.href = url;
+      }
+    }
+
+    // 批量无障碍增强：可点击 div/li 加 role/tabindex/键盘；iconify 加 aria-hidden；数值加 tabular-nums
+    (function () {
+      // 可点击的 stat-card / li / quick-action-item
+      document.querySelectorAll('[onclick]').forEach(function (el) {
+        if (el.tagName === 'BUTTON' || el.tagName === 'A') return;
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        var label = el.getAttribute('data-stat-label')
+                 || el.querySelector('.affairs-title, .todo-title, .action-text')
+                 && el.querySelector('.affairs-title, .todo-title, .action-text').textContent.trim();
+        if (label) el.setAttribute('aria-label', label);
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+        });
+      });
+      // 装饰性 iconify-icon 加 aria-hidden
+      document.querySelectorAll('iconify-icon').forEach(function (ic) {
+        if (!ic.getAttribute('aria-label')) ic.setAttribute('aria-hidden', 'true');
+      });
+      // 数值/日期等宽
+      document.querySelectorAll('.stat-value, .affairs-meta, .todo-meta').forEach(function (n) {
+        n.classList.add('tnum');
+      });
+    })();
+
+    // 填充当前日期（南丰首页风格：YYYY年MM月DD日 星期X）
+    (function () {
+      var d = new Date();
+      var weeks = ['日', '一', '二', '三', '四', '五', '六'];
+      var el = document.getElementById('todayDate');
+      if (el) {
+        el.textContent = d.getFullYear() + '年' + String(d.getMonth() + 1).padStart(2, '0') + '月' + String(d.getDate()).padStart(2, '0') + '日 星期' + weeks[d.getDay()];
+      }
+    })();
+  </script>
+</body>
+</html>

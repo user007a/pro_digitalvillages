@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>兑换单详情 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="兑换单详情" data-page-subtitle="积分兑换订单审核与发放">
+
+  <!-- 顶部页头 -->
+  <div class="page-header" style="flex-direction:row;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="points-manage.html" class="btn"><iconify-icon icon="ri:arrow-left-line"></iconify-icon> 返回</a>
+      <h2>兑换单详情</h2>
+      <span class="text-muted" style="font-size:13px">积分兑换订单审核与发放</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="showConfirm({title:'审核通过确认',message:'确定审核通过并发放商品吗？',onConfirm:function(){showToast('审核通过，商品已发放','success')}})"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon> 审核通过</button>
+      <button class="btn" onclick="openModal('rejectOrderModal')"><iconify-icon icon="ri:close-circle-line"></iconify-icon> 驳回</button>
+    </div>
+  </div>
+
+  <!-- 兑换单详情卡片 -->
+  <div class="card" style="padding:24px">
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">兑换单号</span><span class="detail-value">EX-202608-1001</span></div>
+      <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag tag-orange">待审核</span></span></div>
+      <div class="detail-item"><span class="detail-label">兑换人</span><span class="detail-value">李建国</span></div>
+      <div class="detail-item"><span class="detail-label">手机号</span><span class="detail-value">138****5678</span></div>
+      <div class="detail-item"><span class="detail-label">商品名称</span><span class="detail-value">蓝月亮洗衣液 2kg</span></div>
+      <div class="detail-item"><span class="detail-label">所需积分</span><span class="detail-value" style="color:#22a84a;font-weight:600">300 分</span></div>
+      <div class="detail-item"><span class="detail-label">兑换数量</span><span class="detail-value">1 件</span></div>
+      <div class="detail-item"><span class="detail-label">兑换时间</span><span class="detail-value">2026-08-05 09:30</span></div>
+      <div class="detail-item"><span class="detail-label">审核人</span><span class="detail-value">—</span></div>
+      <div class="detail-item"><span class="detail-label">审核时间</span><span class="detail-value">—</span></div>
+      <div class="detail-item detail-full"><span class="detail-label">收货地址</span><span class="detail-value">幸福村三组 28 号</span></div>
+      <div class="detail-item detail-full"><span class="detail-label">备注</span><span class="detail-value">请在工作日到村委办公室领取，或联系网格员配送。</span></div>
+    </div>
+  </div>
+
+  <!-- 驳回弹窗 -->
+  <div class="modal-overlay" id="rejectOrderModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>驳回兑换单</h3>
+        <button type="button" class="modal-close" onclick="closeModal('rejectOrderModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="rejectForm" onsubmit="return false">
+          <div class="form-group">
+            <label for="rejectReason"><span class="req">*</span>驳回原因</label>
+            <textarea id="rejectReason" name="rejectReason" class="form-input" rows="4" placeholder="请输入驳回原因…" required autocomplete="off"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('rejectOrderModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('已驳回该兑换单','success');closeModal('rejectOrderModal')">确认驳回</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

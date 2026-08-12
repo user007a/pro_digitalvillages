@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#14532d">
+  <title>乡村振兴数字平台 · 管理后台</title>
+  <script src="../shared/js/icons-local.js"></script>
+  <!-- iconify-icon removed -->
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="js/page-enhancer.js"></script>
+  <style>
+    /* ---- scrollbar ---- */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 0; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+
+    /* ---- submenu animation ---- */
+    .sub-menu-wrap {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .sub-menu-wrap.open {
+      max-height: 500px;
+    }
+
+    /* ---- sidebar transition ---- */
+    #sidebar {
+      transition: width 0.3s ease;
+    }
+    #sidebar.collapsed .nav-text,
+    #sidebar.collapsed .brand-text,
+    #sidebar.collapsed .menu-arrow {
+      display: none;
+    }
+    #sidebar.collapsed .brand-logo {
+      margin: 0 auto;
+    }
+    #sidebar.collapsed .nav-title {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    #sidebar.collapsed .nav-icon {
+      margin-right: 0;
+    }
+
+    /* ---- iframe ---- */
+    #mainFrame {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ---- toast ---- */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast-item {
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      animation: toastIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-item.hiding { animation: toastOut 0.3s ease forwards; }
+    .toast-success { background: var(--color-primary-500); }
+    .toast-warning { background: #e6a23c; }
+    .toast-error { background: #f56c6c; }
+    .toast-info { background: var(--color-primary-600); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+
+    /* ---- dropdown animation ---- */
+    .dropdown-enter { animation: dropIn 0.2s ease; }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ============================================
+       Sidebar Navigation · Flat Dark-Green style
+       极简深绿扁平：纯色背景 / 无圆角 / 无彩色填充 / 仅左侧竖条指示激活
+       ============================================ */
+    /* 侧栏背景：深绿纯色 */
+    #sidebar {
+      background: var(--color-sidebar-bg);
+    }
+
+    /* 品牌 Logo */
+    .brand-logo svg {
+      width: 30px;
+      height: 30px;
+      color: #fff;
+      background: var(--color-primary-500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-text { letter-spacing: 1.5px; }
+
+    /* 菜单搜索框 — 扁平嵌入 */
+    .nav-search-wrap {
+      position: relative;
+      margin: 0 0 8px;
+    }
+    .nav-search-wrap svg {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      color: rgba(255, 255, 255, 0.35);
+      pointer-events: none;
+    }
+    .nav-search {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px 0 40px;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: transparent;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+    .nav-search::placeholder { color: rgba(255, 255, 255, 0.35); }
+    .nav-search:focus {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .nav-search:focus-visible {
+      outline: 2px solid var(--color-primary-500);
+      outline-offset: 2px;
+    }
+    .nav-search-empty {
+      display: none;
+      padding: 12px 12px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .nav-search-empty.show { display: block; }
+
+    /* ============== 一级菜单项 ============== */
+    .nav-title {
+      position: relative;
+      padding-left: 18px !important;
+      padding-right: 16px !important;
+      padding-top: 11px !important;
+      padding-bottom: 11px !important;
+      border-radius: 8px !important;
+      color: var(--color-sidebar-text) !important;
+      transition: color 0.15s ease, background 0.15s ease;
+    }
+    .nav-title:hover {
+      background: var(--color-sidebar-hover) !important;
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .nav-title:hover .nav-icon,
+    .nav-title:hover svg {
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .nav-title .nav-icon,
+    .nav-title > svg {
+      font-size: 17px;
+      width: 18px;
+      height: 18px;
+      color: var(--color-sidebar-icon) !important;
+      transition: color 0.15s ease;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .nav-title .menu-arrow {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.35) !important;
+      transition: transform 0.2s ease, color 0.15s ease;
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: -1px;
+    }
+    .nav-title:hover .menu-arrow {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+    .nav-title .menu-arrow svg {
+      width: 14px;
+      height: 14px;
+    }
+    .nav-title.active-menu .menu-arrow svg {
+      transform: rotate(90deg);
+    }
+    /* 一级激活态：左侧绿色竖条 + rgba 绿底 + 文字变亮 */
+    .nav-title.bg-primary\/20,
+    .nav-title.active-menu {
+      background: var(--color-sidebar-active-bg) !important;
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .nav-title.bg-primary\/20::before,
+    .nav-title.active-menu::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--color-sidebar-active);
+    }
+    .nav-title.bg-primary\/20 .nav-icon,
+    .nav-title.bg-primary\/20 svg,
+    .nav-title.active-menu .nav-icon,
+    .nav-title.active-menu svg {
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .nav-title .nav-text {
+      font-size: var(--sidebar-menu-font-size);
+      font-weight: 400;
+    }
+
+    /* ============== 分组小标题（可折叠的二级菜单） ============== */
+    .nav-group-title {
+      position: relative;
+      padding-left: 8px !important;
+      padding-right: 16px !important;
+      padding-top: 11px !important;
+      padding-bottom: 11px !important;
+      color: var(--color-sidebar-text) !important;
+      font-size: var(--sidebar-menu-font-size) !important;
+      font-weight: 400 !important;
+      text-transform: none !important;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s ease, background 0.15s ease;
+      border-top: none !important;
+      margin-top: 0 !important;
+      user-select: none;
+    }
+    .nav-group-title:hover {
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .nav-group-title .group-icon {
+      width: 14px;
+      height: 14px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      color: var(--color-sidebar-group-icon);
+    }
+    .nav-group-title .group-arrow {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.35) !important;
+      transition: transform 0.2s ease, color 0.15s ease;
+    }
+    .nav-group-title .group-arrow svg {
+      width: 14px;
+      height: 14px;
+    }
+    .nav-group-title:hover .group-arrow {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+    .nav-group-title.expanded .group-arrow svg {
+      transform: rotate(90deg);
+    }
+    .nav-group-title + .group-items,
+    .nav-group-title ~ .group-items {
+      overflow: hidden;
+      max-height: 500px;
+      transition: max-height 0.3s ease;
+    }
+
+    /* ============== 子菜单项（南丰风格：圆角 + 悬停提亮 + 绿色小图标） ============== */
+    .sub-link {
+      position: relative;
+      padding-left: 18px !important;
+      padding-right: 16px !important;
+      padding-top: 11px !important;
+      padding-bottom: 11px !important;
+      border-radius: 6px !important;
+      gap: 12px !important;
+      font-size: var(--sidebar-menu-font-size) !important;
+      color: var(--color-sidebar-text) !important;
+      background: transparent !important;
+      transition: color 0.15s ease, background 0.15s ease;
+      display: flex;
+      align-items: center;
+      line-height: 1.5;
+    }
+    .sub-link svg {
+      width: 18px;
+      height: 18px;
+      color: var(--color-sidebar-sub-icon) !important;
+      flex-shrink: 0;
+      transition: color 0.15s ease;
+    }
+    .sub-link:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .sub-link:hover svg { color: var(--color-sidebar-text-active) !important; }
+    /* 子项激活态：rgba 绿底 + 左侧绿竖条 + 文字亮 */
+    .sub-link.bg-white\/10 {
+      background: var(--color-sidebar-active-bg) !important;
+      color: var(--color-sidebar-text-active) !important;
+    }
+    .sub-link.bg-white\/10::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--color-sidebar-active);
+    }
+    .sub-link.bg-white\/10 svg { color: var(--color-sidebar-text-active) !important; }
+
+    /* 只读标签 */
+    .sub-link .text-white\/40 {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35) !important;
+      margin-left: auto;
+    }
+
+    /* ============== 数量徽标 ============== */
+    .nav-badge {
+      margin-left: auto;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 0;
+      background: #f56c6c;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .nav-badge.badge-red { background: #f56c6c; }
+    .nav-badge.badge-blue { background: var(--color-primary-500); }
+
+    /* 子菜单展开动效 */
+    .sub-menu-wrap { transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    .sub-menu-wrap.open { overflow-y: auto; }
+
+    /* 折叠态 */
+    #sidebar.collapsed {
+      width: 64px;
+    }
+    #sidebar.collapsed .nav-search-wrap,
+    #sidebar.collapsed .nav-search-empty,
+    #sidebar.collapsed .nav-badge {
+      display: none;
+    }
+    #sidebar.collapsed .sub-link {
+      font-size: 0;
+      justify-content: center;
+      padding: 10px 0 !important;
+    }
+    #sidebar.collapsed .sub-link svg {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
+
+    /* 键盘焦点可见性兜底：为使用 outline-none 的控件提供焦点环（WCAG 2.4.7） */
+    :focus-visible {
+      outline: 2px solid var(--color-primary-500);
+      outline-offset: 2px;
+    }
+
+    /* ============================================
+       本地工具类（替代 cdn.tailwindcss.com 外链）
+       仅覆盖本页使用的工具类，全部映射 v3.0 生态绿令牌
+       ============================================ */
+    .-mt-0\.5{margin-top:-2px;}
+    .-translate-y-1\/2{transform:translateY(-50%);}
+    .absolute{position:absolute;}
+    .backdrop-blur-sm{-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+    .bg-black\/40{background:rgba(0,0,0,.4);}
+    .bg-blue-50{background:var(--color-primary-50);}
+    .bg-blue-600{background:var(--color-primary-600);}
+    .bg-body-bg{background:#f0f2f5;}
+    .bg-gray-200{background:var(--color-neutral-200);}
+    .bg-gray-50{background:var(--color-neutral-50);}
+    .bg-gray-50\/50{background:rgba(250,250,249,.5);}
+    .bg-header-bg{background:#ffffff;}
+    .bg-primary-light{background:var(--color-primary-50);}
+    .bg-red-500{background:var(--color-error);}
+    .bg-sidebar{background:var(--color-sidebar-bg);}
+    .bg-white{background:#fff;}
+    .block{display:block;}
+    .border{border-width:1px;border-style:solid;}
+    .border-2{border-width:2px;border-style:solid;}
+    .border-b{border-bottom-width:1px;border-bottom-style:solid;}
+    .border-blue-200{border-color:var(--color-primary-200);}
+    .border-gray-100{border-color:var(--color-neutral-100);}
+    .border-gray-200{border-color:var(--color-neutral-200);}
+    .border-header-border{border-color:#e8ecf1;}
+    .border-t{border-top-width:1px;border-top-style:solid;}
+    .border-white\/10{border-color:rgba(255,255,255,.1);}
+    .cursor-not-allowed{cursor:not-allowed;}
+    .cursor-pointer{cursor:pointer;}
+    .duration-200{transition-duration:.2s;}
+    .fixed{position:fixed;}
+    .flex{display:flex;}
+    .flex-1{flex:1 1 0%;}
+    .flex-col{flex-direction:column;}
+    .flex-shrink-0{flex-shrink:0;}
+    .focus\:border-blue-500:focus{border-color:var(--color-primary-500);}
+    .focus\:ring-2:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+    .focus\:ring-blue-500\/10:focus{box-shadow:0 0 0 2px rgba(22,163,74,0.1);}
+    .font-bold{font-weight:700;}
+    .font-light{font-weight:300;}
+    .font-medium{font-weight:500;}
+    .font-sans{font-family:var(--font-family);}
+    .font-semibold{font-weight:600;}
+    .gap-1{gap:4px;}
+    .gap-2{gap:8px;}
+    .gap-2\.5{gap:10px;}
+    .gap-3{gap:12px;}
+    .gap-4{gap:16px;}
+    .h-1{height:4px;}
+    .h-10{height:40px;}
+    .h-12{height:48px;}
+    .h-16{height:64px;}
+    .h-2{height:8px;}
+    .h-4{height:16px;}
+    .h-5{height:20px;}
+    .h-7{height:28px;}
+    .h-8{height:32px;}
+    .h-9{height:36px;}
+    .h-full{height:100%;}
+    .h-screen{height:100vh;}
+    .hidden{display:none;}
+    .hover\:bg-blue-700:hover{background:var(--color-primary-700);}
+    .hover\:bg-gray-100:hover{background:var(--color-neutral-100);}
+    .hover\:bg-gray-50:hover{background:var(--color-neutral-50);}
+    .hover\:bg-red-50:hover{background:var(--color-error-light);}
+    .hover\:bg-sidebar-hover:hover{background:var(--color-sidebar-hover);}
+    .hover\:text-gray-600:hover{color:var(--color-neutral-600);}
+    .hover\:text-gray-700:hover{color:var(--color-neutral-700);}
+    .hover\:text-primary:hover{color:var(--color-primary-600);}
+    .hover\:text-white:hover{color:#fff;}
+    .inset-0{inset:0;}
+    .items-center{align-items:center;}
+    .justify-between{justify-content:space-between;}
+    .justify-center{justify-content:center;}
+    .justify-end{justify-content:flex-end;}
+    .leading-tight{line-height:1.25;}
+    .m-0{margin:0;}
+    .max-w-lg{max-width:32rem;}
+    .max-w-md{max-width:28rem;}
+    .mb-1\.5{margin-bottom:6px;}
+    .mb-6{margin-bottom:24px;}
+    .min-w-0{min-width:0;}
+    .ml-4{margin-left:16px;}
+    .ml-auto{margin-left:auto;}
+    .mr-3{margin-right:12px;}
+    .mt-1{margin-top:4px;}
+    .mt-1\.5{margin-top:6px;}
+    .mt-2{margin-top:8px;}
+    .mx-1{margin-left:4px;margin-right:4px;}
+    .mx-4{margin-left:16px;margin-right:16px;}
+    .my-1\.5{margin-top:6px;margin-bottom:6px;}
+    .outline-none{outline:none;}
+    .overflow-hidden{overflow:hidden;}
+    .overflow-y-auto{overflow-y:auto;}
+    .p-0{padding:0;}
+    .p-1\.5{padding:6px;}
+    .p-2{padding:8px;}
+    .pb-1{padding-bottom:4px;}
+    .pb-5{padding-bottom:20px;}
+    .pl-3{padding-left:12px;}
+    .pl-7{padding-left:28px;}
+    .pr-10{padding-right:40px;}
+    .pt-2{padding-top:8px;}
+    .px-2{padding-left:8px;padding-right:8px;}
+    .px-2\.5{padding-left:10px;padding-right:10px;}
+    .px-3{padding-left:12px;padding-right:12px;}
+    .px-4{padding-left:16px;padding-right:16px;}
+    .px-5{padding-left:20px;padding-right:20px;}
+    .px-6{padding-left:24px;padding-right:24px;}
+    .py-1{padding-top:4px;padding-bottom:4px;}
+    .py-1\.5{padding-top:6px;padding-bottom:6px;}
+    .py-2{padding-top:8px;padding-bottom:8px;}
+    .py-2\.5{padding-top:10px;padding-bottom:10px;}
+    .py-3{padding-top:12px;padding-bottom:12px;}
+    .py-4{padding-top:16px;padding-bottom:16px;}
+    .py-5{padding-top:20px;padding-bottom:20px;}
+    .relative{position:relative;}
+    .right-0{right:0;}
+    .right-1{right:4px;}
+    .right-3{right:12px;}
+    .ring-2{box-shadow:0 0 0 2px #fff;}
+    .ring-white{box-shadow:0 0 0 2px #fff;}
+    .rounded-2xl{border-radius:16px;}
+    .rounded-full{border-radius:9999px;}
+    .rounded-lg{border-radius:8px;}
+    .rounded-xl{border-radius:12px;}
+    .select-none{user-select:none;}
+    .shadow-2xl{box-shadow:var(--shadow-xl);}
+    .shadow-lg{box-shadow:var(--shadow-lg);}
+    .shadow-sm{box-shadow:var(--shadow-sm);}
+    .shrink-0{flex-shrink:0;}
+    .text-2xl{font-size:24px;}
+    .text-\[10px\]{font-size:10px;}
+    .text-\[15px\]{font-size:15px;}
+    .text-\[9px\]{font-size:9px;}
+    .text-blue-600{color:var(--color-primary-600);}
+    .text-gray-400{color:var(--color-neutral-400);}
+    .text-gray-500{color:var(--color-neutral-500);}
+    .text-gray-600{color:var(--color-neutral-600);}
+    .text-gray-700{color:var(--color-neutral-700);}
+    .text-gray-800{color:var(--color-neutral-800);}
+    .text-lg{font-size:18px;}
+    .text-red-500{color:var(--color-error);}
+    .text-sm{font-size:14px;}
+    .text-white{color:#fff;}
+    .text-white\/35{color:rgba(255,255,255,.35);}
+    .text-white\/40{color:rgba(255,255,255,.4);}
+    .text-white\/50{color:rgba(255,255,255,.5);}
+    .text-white\/60{color:rgba(255,255,255,.6);}
+    .text-white\/80{color:rgba(255,255,255,.8);}
+    .text-xl{font-size:20px;}
+    .text-xs{font-size:12px;}
+    .top-1{top:4px;}
+    .top-1\/2{top:50%;}
+    .top-full{top:100%;}
+    .tracking-\[2px\]{letter-spacing:2px;}
+    .tracking-wide{letter-spacing:0.025em;}
+    .tracking-wider{letter-spacing:0.05em;}
+    .transition-all{transition:all .15s ease;}
+    .transition-colors{transition:color .15s, background-color .15s, border-color .15s;}
+    .uppercase{text-transform:uppercase;}
+    .w-16{width:64px;}
+    .w-2{width:8px;}
+    .w-20{width:80px;}
+    .w-4{width:16px;}
+    .w-48{width:192px;}
+    .w-5{width:20px;}
+    .w-60{width:240px;}
+    .w-7{width:28px;}
+    .w-8{width:32px;}
+    .w-full{width:100%;}
+    .w-px{width:1px;}
+    .w-screen{width:100vw;}
+    .whitespace-nowrap{white-space:nowrap;}
+    .z-20{z-index:20;}
+    .z-30{z-index:30;}
+    .z-50{z-index:50;}
+    .z-\[9999\]{z-index:9999;}
+    .bg-primary\/20{background:rgba(34,168,74,0.20);}
+    .text-primary{color:var(--color-primary-500);}
+    .space-y-0\.5 > * + * { margin-top: 2px; }
+    .space-y-4 > * + * { margin-top: 16px; }
+    .space-y-5 > * + * { margin-top: 20px; }
+    @media (min-width: 1024px) { .lg\:hidden { display: none; } }
+    @media (min-width: 640px) { .sm\:block { display: block; } }
+
+    /* ============== 顶栏（消息/全屏/用户）补充工具类 ============== */
+    .h-6{height:24px;}
+    .w-40{width:160px;}
+    .my-1{margin-top:4px;margin-bottom:4px;}
+  </style>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-body-bg font-sans" data-end="backend">
+
+  <a href="#mainFrame" class="skip-link">跳转到主内容</a>
+
+  <div id="app" class="flex h-screen w-screen">
+
+    <!-- ========== LEFT SIDEBAR ========== -->
+    <aside id="sidebar" class="w-60 flex-shrink-0 bg-sidebar flex flex-col h-full z-30">
+      <!-- Brand Area -->
+      <div class="flex items-center h-16 px-5 border-b border-white/10 flex-shrink-0">
+        <div class="brand-logo flex items-center gap-2.5 overflow-hidden">
+          <svg aria-hidden="true" class="w-7 h-7" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 38L18 16L28 30L36 20L42 28V38H6V38Z" fill="#fff"/>
+            <path d="M6 38L16 24L24 34L32 22L42 28" stroke="#22c55e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+            <circle cx="14" cy="20" r="3" fill="#22c55e"/>
+            <circle cx="34" cy="18" r="2" fill="#fff"/>
+          </svg>
+          <div class="flex flex-col leading-tight">
+            <span class="brand-text text-white text-[15px] font-bold whitespace-nowrap tracking-wide">乡村振兴数字平台</span>
+            <span class="text-white/40 text-[9px] tracking-[2px] font-light -mt-0.5">乡村振兴 · 数字赋能</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Menu -->
+      <nav class="flex-1 overflow-y-auto sidebar-scroll py-3">
+        <ul class="space-y-0.5 px-2.5">
+
+          <!-- 工作台 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer active-menu"
+                 onclick="openPage('dashboard.html', '工作台', this)" data-menu="工作台">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 12l8.954-8.955a1.5 1.5 0 012.122 0L22.28 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap">工作台</span>
+            </div>
+          </li>
+
+          <!-- 县级管理 ★新增 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="县级管理">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9m0 3.01v.01M19 21v-4"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">县级管理</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('city/town-apply.html', '乡镇开通', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>乡镇开通
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('city/village-apply.html', '乡村开通', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>乡村开通
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('city/open-audit.html', '开通审核', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>开通审核
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('city/operator-list.html', '运营人员', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M8.25 8.25a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0z"/></svg>运营人员
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 乡级管理 ★新增 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="乡级管理">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">乡级管理</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('town/my-town/info.html', '乡镇信息', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>乡镇信息</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('town/party/org-manage.html', '党建管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>党建管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('town/data/industry-data.html', '产业数据', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>产业数据</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 村级管理 ★新增 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="村级管理">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">村级管理</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>我的乡村</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/overview.html', '乡村概况', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689A1.125 1.125 0 003 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/></svg>乡村概况</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/contacts.html', '便民通讯录', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>便民通讯录</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/poverty-household.html', '脱贫户管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.312-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>脱贫户管理</a>
+                </li>
+
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>阳光村务</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/sun/affairs-public.html', '三务公开', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>三务公开</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('notice/notice-list.html', '公告管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>公告管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('discuss/discuss-list.html', '村民说事', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.452 48.452 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>村民说事</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('service/service-guide.html', '办事指南', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 17.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>办事指南</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('service/service-apply.html', '申请审核', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>申请审核</a>
+                </li>
+
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>基层治理</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/governance/micro-grid.html', '微网格', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25A2.25 2.25 0 0113.5 8.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>微网格</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/governance/mediation.html', '矛盾调节', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.452 48.452 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>矛盾调节</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/governance/migrant.html', '外出务工', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>外出务工</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('event/event-list.html', '事件管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>事件管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('report/report-list.html', '随手拍管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.827 6.175A2.31 2.31 0 015.186 5.5H3.75A1.5 1.5 0 002.25 7v10.5A1.5 1.5 0 003.75 19h16.5a1.5 1.5 0 001.5-1.5V7a1.5 1.5 0 00-1.5-1.5h-1.436a2.31 2.31 0 01-1.64-.675l-.692-.693a1.5 1.5 0 00-1.06-.442H8.58a1.5 1.5 0 00-1.06.442l-.693.693zM12 16.5a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/></svg>随手拍管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('task/task-list.html', '任务管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h3.75M9 15h3.75M9 18h3.75M15.75 5.25a2.25 2.25 0 012.25 2.25v13.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25V7.5a2.25 2.25 0 012.25-2.25h7.5zM6.75 3.75h10.5M6 3v3m12-3v3"/></svg>任务管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('appeal/appeal-list.html', '村民诉求', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.639-.592 6.003 6.003 0 00-11.57-3.628M6.75 9a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zM18.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>村民诉求</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('journal/journal-list.html', '工作日志', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>工作日志</a>
+                </li>
+
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>表单应用</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/form/form-manage.html', '表单应用', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10.5v6m3-3H9m4.06-7.19l-1.06-1.06a2.25 2.25 0 00-1.591-.659H4.5A2.25 2.25 0 002.25 8.25v10.5A2.25 2.25 0 004.5 21h15a2.25 2.25 0 002.25-2.25V8.25A2.25 2.25 0 0019.5 6h-2.879c-.63 0-1.233-.27-1.659-.748l-.218-.243a2.25 2.25 0 00-1.591-.659z"/></svg>表单应用</a>
+                </li>
+
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>数据管理</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/data/industry-manage.html', '产业管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m1.198-1.051A.9.9 0 014.5 20.25v-5.25a.9.9 0 01.9-.9h9.2m-9.6 0h9.6"/></svg>产业管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/data/house.html', '房屋管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/></svg>房屋管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/data/land.html', '土地管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689A1.125 1.125 0 003 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/></svg>土地管理</a>
+                </li>
+
+                <li class="nav-group-title select-none"><svg aria-hidden="true" class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0V21"/></svg>乡村运营</li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/party/info-publish.html', '党员管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/></svg>党员管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/device/device-manage.html', '设备管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0017.25 4.5H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"/></svg>设备管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/points-shop/points-manage.html', '积分管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>积分管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/audit/audit-manage.html', '审核管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>审核管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/tourism/tourism-manage.html', '乡村旅游', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>乡村旅游</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/adopt/adopt-manage.html', '农业认养', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.312-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>农业认养</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 千村千面 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="千村千面">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">千村千面</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/designer/home-designer.html', '首页设计器', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z"/></svg>首页设计器</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 用户管理 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="用户管理">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.639-.592 6.003 6.003 0 00-11.57-3.628M6.75 9a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zM18.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 9.75v.75A.75.75 0 013.75 11h-.75a.75.75 0 01-.75-.75v-.75A2.25 2.25 0 014.5 7.5h15A2.25 2.25 0 0121.75 9.75v.75a.75.75 0 01-.75.75h-.75a.75.75 0 01-.75-.75v-.75m-15 4.5h4.5M6 15.75V18a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 18v-2.25"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">用户管理</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('user/org-tree.html', '组织架构', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>组织架构
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/team.html', '队组管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772"/></svg>队组管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('user/cadre-list.html', '村干部管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>村干部管理
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/farmer-manage.html', '家庭户管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>家庭户管理</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('user/villager-list.html', '村民管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>村民管理
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('village/my-village/register-audit.html', '注册审核', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>注册审核</a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('user/role-permission.html', '角色权限', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>角色权限
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 数据大屏 ★新增 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="数据大屏">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">数据大屏</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('datascreen/content-config.html', '内容配置', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25A2.25 2.25 0 0113.5 8.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>内容配置
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('datascreen/data-source.html', '数据源管理', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.43 9.75m11.141 0l4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25m5.571 3v6"/></svg>数据源管理
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('datascreen/display-rule.html', '展示规则', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 3h16.5M4.5 19.5h15M6 3v16.5M18 3v16.5M8.25 6.75h3v6h-3zM12 10.5h3v2.25h-3zM6 14.25h3V18H6z"/></svg>展示规则
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- 系统管理 -->
+          <li>
+            <div class="nav-title flex items-center px-3 py-2.5 cursor-pointer"
+                 onclick="toggleSubMenu(this)" data-menu="系统管理">
+              <span class="nav-icon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.076.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56 1.1-1.11 1.1h-2.594c-.55 0-1.019-.557-1.11-1.1l-.213-1.28c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span>
+              <span class="nav-text text-sm whitespace-nowrap flex-1">系统管理</span>
+              <span class="menu-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+            </div>
+            <div class="sub-menu-wrap">
+              <ul class="pl-7 py-1 space-y-0.5">
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('system/dict.html', '数据字典', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.43 9.75m11.141 0l4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25m5.571 3v6"/></svg>数据字典
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('system/log.html', '操作日志', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>操作日志
+                  </a>
+                </li>
+                <li>
+                  <a href="javascript:void(0)" onclick="openPage('system/config.html', '系统参数', this)"
+                     class="sub-link flex items-center px-3 py-2 text-sm">
+                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.064.071-2.63.822l-6.152 8.848a2.548 2.548 0 11-3.586-3.586l8.848-6.152c.751-.566.913-1.554.822-2.63a4.5 4.5 0 016.336-4.486l-3.276 3.276a3 3 0 002.25 2.25l3.276-3.276c.056.077.111.16.163.247zM6.75 15.75a.75.75 0 00-1.5 0v3a1.5 1.5 0 001.5 1.5h3a.75.75 0 000-1.5h-3v-3z"/></svg>系统参数
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+        </ul>
+      </nav>
+
+      <!-- Collapse Toggle -->
+      <div class="flex-shrink-0 border-t border-white/10">
+        <button id="collapseBtn" onclick="toggleSidebar()" aria-label="折叠侧边栏"
+                class="w-full flex items-center justify-center py-3 text-white/50 hover:text-white hover:bg-sidebar-hover transition-all duration-200">
+          <span id="collapseIcon"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h12.75A2.25 2.25 0 0121 6v12a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18V6zM6 3.75v16.5"/></svg></span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ========== RIGHT MAIN AREA ========== -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+
+      <!-- Top Header Bar -->
+      <header class="h-12 bg-header-bg border-b border-header-border flex items-center px-4 flex-shrink-0 z-20">
+
+        <!-- Left: Mobile sidebar toggle -->
+        <div class="flex-1 flex items-center min-w-0">
+          <button onclick="toggleSidebar()" aria-label="展开侧边栏" class="lg:hidden mr-3 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6.75h16.5m-16.5 3.75h16.5m-16.5 3.75h16.5m-16.5 3.75h16.5"/></svg>
+          </button>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+
+          <!-- 消息通知 -->
+          <button onclick="openNotificationModal()" aria-label="通知"
+                  class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+            <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+          </button>
+
+          <!-- 全屏 -->
+          <button onclick="toggleFullscreen()" aria-label="切换全屏"
+                  class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+            <span id="fullscreenIcon"><svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg></span>
+          </button>
+
+          <!-- Divider -->
+          <div class="w-px h-6 bg-gray-200 mx-1"></div>
+
+          <!-- 用户头像 -->
+          <div class="relative" id="userDropdown">
+            <button onclick="toggleUserMenu()" aria-label="用户菜单" class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+              <div class="w-7 h-7 rounded-full bg-primary-light text-primary flex items-center justify-center">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <span class="text-sm text-gray-700 font-medium hidden sm:block">管理员</span>
+              <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <!-- 下拉菜单 -->
+            <div id="userMenu" class="hidden absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1 dropdown-enter z-50">
+              <a href="javascript:void(0)" onclick="openProfileModal(); closeUserMenu();"
+                 class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.42 15.18l.497.12a4.5 4.5 0 014.243-7.466l1.219 1.22m-5.962 6.126l-.006.015-.006-.015a2.25 2.25 0 00-.011.058 15.09 15.09 0 01-.289 3.268l-.124.7c-.125.706.51 1.28 1.195.93l4.33-2.364m-5.095-2.53a18.67 18.67 0 01-3.488-4.464M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM2.25 12c0 2.326.83 4.467 2.21 6.113M16.5 8.25a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>个人设置
+              </a>
+              <a href="javascript:void(0)" onclick="openPasswordModal(); closeUserMenu();"
+                 class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>修改密码
+              </a>
+              <div class="my-1 border-t border-gray-100"></div>
+              <a href="login.html"
+                 class="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>退出登录
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Content Area (iframe) -->
+      <main class="flex-1 overflow-hidden bg-body-bg">
+        <iframe src="dashboard.html" id="mainFrame" title="工作台主内容" name="mainFrame"></iframe>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script>
+    /* ---- State ---- */
+
+    /* ---- Sidebar Toggle ---- */
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const icon = document.getElementById('collapseIcon');
+      sidebar.classList.toggle('collapsed');
+      if (sidebar.classList.contains('collapsed')) {
+        icon.innerHTML = '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h12.75A2.25 2.25 0 0121 6v12a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18V6zM6 3.75v16.5M15 9h6m-6 3h6m-6 3h6"/></svg>';
+      } else {
+        icon.innerHTML = '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h12.75A2.25 2.25 0 0121 6v12a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18V6zM6 3.75v16.5"/></svg>';
+      }
+    }
+
+    /* ---- Sub Menu Toggle ---- */
+    function toggleSubMenu(el) {
+      const li = el.closest('li');
+      const wrap = li.querySelector('.sub-menu-wrap');
+      const arrow = el.querySelector('.menu-arrow');
+
+      // Close all other open submenus
+      document.querySelectorAll('.sub-menu-wrap.open').forEach(function(w) {
+        if (w !== wrap) {
+          w.classList.remove('open');
+          const a = w.closest('li').querySelector('.menu-arrow');
+          if (a) a.style.transform = '';
+        }
+      });
+
+      wrap.classList.toggle('open');
+      if (wrap.classList.contains('open')) {
+        arrow.style.transform = 'rotate(90deg)';
+      } else {
+        arrow.style.transform = '';
+      }
+    }
+
+    /* ---- Sub-Group Toggle (三级菜单分组折叠) ---- */
+    function initSubGroupToggle() {
+      document.querySelectorAll('.nav-group-title').forEach(function(el) {
+        if (el.dataset.init) return;
+        el.dataset.init = '1';
+        // Add arrow（保留分组图标 group-icon）
+        var iconEl = el.querySelector('.group-icon');
+        var iconHtml = iconEl ? iconEl.outerHTML : '';
+        el.innerHTML = iconHtml + '<span class="group-title-text">' + el.textContent.trim() + '</span><span class="group-arrow"><svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>';
+        el.style.textIndent = '0';
+        el.addEventListener('click', function() {
+          var expanded = this.classList.toggle('expanded');
+          var next = this.nextElementSibling;
+          while (next && !next.classList.contains('nav-group-title')) {
+            if (expanded) {
+              next.style.display = '';
+            } else {
+              next.style.display = 'none';
+            }
+            next = next.nextElementSibling;
+          }
+        });
+      });
+    }
+
+    /* ---- Menu Highlight ---- */
+    function highlightMenu(name) {
+      // Clear all active states
+      document.querySelectorAll('.nav-title').forEach(function(el) {
+        el.classList.remove('bg-primary/20', 'text-white');
+        el.classList.add('text-white/80');
+        el.querySelector('.nav-icon')?.classList.remove('text-white');
+        el.querySelector('.nav-icon')?.classList.add('text-primary');
+      });
+      document.querySelectorAll('.sub-link').forEach(function(el) {
+        el.classList.remove('text-white', 'bg-white/10');
+        el.classList.add('text-white/60');
+      });
+
+      // Find and highlight the matching nav title
+      document.querySelectorAll('.nav-title').forEach(function(el) {
+        if (el.getAttribute('data-menu') === name) {
+          el.classList.add('bg-primary/20', 'text-white');
+          el.classList.remove('text-white/80');
+          el.querySelector('.nav-icon')?.classList.add('text-white');
+          el.querySelector('.nav-icon')?.classList.remove('text-primary');
+
+          // Open the submenu if it has one
+          const li = el.closest('li');
+          const wrap = li.querySelector('.sub-menu-wrap');
+          const arrow = el.querySelector('.menu-arrow');
+          if (wrap) {
+            wrap.classList.add('open');
+            if (arrow) arrow.style.transform = 'rotate(90deg)';
+          }
+        }
+      });
+    }
+
+    /* ---- Page Navigation ---- */
+    function openPage(url, name, triggerEl) {
+      // triggerEl can be an HTML element (sidebar click) or a string action (e.g. 'addVillager')
+      const isAction = typeof triggerEl === 'string';
+      const action = isAction ? triggerEl : null;
+      const el = isAction ? null : triggerEl;
+
+      // Highlight sidebar menu
+      if (el) {
+        const navItem = el.closest('li');
+        const parentLi = navItem?.parentElement?.closest('li');
+        const menuName = el.closest('.nav-title')?.getAttribute('data-menu')
+                      || parentLi?.querySelector('.nav-title')?.getAttribute('data-menu')
+                      || name;
+        highlightMenu(menuName);
+
+        document.querySelectorAll('.sub-link').forEach(function(item) {
+          item.classList.remove('text-white', 'bg-white/10');
+          item.classList.add('text-white/60');
+        });
+        if (el.classList?.contains('sub-link')) {
+          el.classList.add('text-white', 'bg-white/10');
+          el.classList.remove('text-white/60');
+        }
+      } else if (name) {
+        highlightMenu(name);
+      }
+
+      // Navigate iframe
+      const frame = document.getElementById('mainFrame');
+      frame.src = url;
+
+      // Inject toolbar & handle actions after iframe loads
+      frame.onload = function() {
+        try {
+          const doc = frame.contentDocument || frame.contentWindow.document;
+          // 注入南丰式页面头部 + CRUD 工具条（组件：js/page-enhancer.js）
+          if (window.PageEnhancer) PageEnhancer.inject(doc);
+
+          // Handle specific actions
+          if (action === 'addVillager' && typeof doc.defaultView.openModal === 'function') {
+            doc.defaultView.openModal('addVillagerModal');
+          } else if (action === 'addNotice' && typeof doc.defaultView.openModal === 'function') {
+            doc.defaultView.openModal('addNoticeModal');
+          } else if (action === 'addEvent' && typeof doc.defaultView.openModal === 'function') {
+            doc.defaultView.openModal('addEventModal');
+          }
+        } catch(e) { /* cross-origin safety */ }
+        frame.onload = null;
+      };
+    }
+
+    /* ---- User Dropdown ---- */
+    function toggleUserMenu() {
+      const menu = document.getElementById('userMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    function closeUserMenu() {
+      document.getElementById('userMenu').classList.add('hidden');
+    }
+
+    /* ---- 消息通知弹窗 ---- */
+    function openNotificationModal() {
+      const modal = document.getElementById('notiModal');
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      const first = modal.querySelector('button, a');
+      if (first) first.focus();
+    }
+
+    function closeNotificationModal() {
+      const modal = document.getElementById('notiModal');
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('userDropdown');
+      if (!dropdown.contains(e.target)) {
+        closeUserMenu();
+      }
+    });
+
+    /* ---- Fullscreen ---- */
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        document.getElementById('fullscreenIcon').innerHTML = '<svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9V4.5m0 0H4.5M9 9L3.75 3.75M9 15v4.5m0 0H4.5M9 15l-5.25 5.25M15 9h4.5m0 0V4.5M15 9l5.25-5.25M15 15h4.5m0 0V19.5M15 15l5.25 5.25"/></svg>';
+      } else {
+        document.exitFullscreen();
+        document.getElementById('fullscreenIcon').innerHTML = '<svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>';
+      }
+    }
+
+    document.addEventListener('fullscreenchange', function() {
+      const icon = document.getElementById('fullscreenIcon');
+      if (document.fullscreenElement) {
+        icon.innerHTML = '<svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9V4.5m0 0H4.5M9 9L3.75 3.75M9 15v4.5m0 0H4.5M9 15l-5.25 5.25M15 9h4.5m0 0V4.5M15 9l5.25-5.25M15 15h4.5m0 0V19.5M15 15l5.25 5.25"/></svg>';
+      } else {
+        icon.innerHTML = '<svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>';
+      }
+    });
+
+    /* ---- Toast ---- */
+    function showToast(message, type, duration) {
+      type = type || 'success';
+      duration = duration || 3000;
+
+      let container = document.querySelector('.toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(container);
+      }
+
+      const icons = {
+        success: '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.75l6 6 9-13.5"/></svg>',
+        error: '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        warning: '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>',
+        info: '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>'
+      };
+
+      const toast = document.createElement('div');
+      toast.className = 'toast-item toast-' + type;
+      toast.innerHTML = (icons[type] || icons.info) + '<span>' + message + '</span>';
+      container.appendChild(toast);
+
+      setTimeout(function() {
+        toast.classList.add('hiding');
+        setTimeout(function() {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+      }, duration);
+    }
+
+    /* ---- Nav badges: 待办/预警数量指示 ---- */
+    function injectNavBadges() {
+      var map = {
+        '待审核列表': { text: '3', cls: 'badge-red', label: '待审核列表 3 条待办' },
+        '村民说事': { text: '4', cls: '', label: '村民说事 4 条待办' },
+        '申请审核': { text: '6', cls: 'badge-red', label: '申请审核 6 条待办' },
+        '设备管理': { text: '5', cls: 'badge-red', label: '设备管理 5 条预警' },
+        '积分审核': { text: '5', cls: '', label: '积分审核 5 条待办' },
+        '村民诉求': { text: '2', cls: '', label: '村民诉求 2 条待办' }
+      };
+      document.querySelectorAll('.sub-link').forEach(function(link) {
+        // 取文本时排除已有徽标节点
+        var clone = link.cloneNode(true);
+        var badgeOld = clone.querySelector('.nav-badge');
+        if (badgeOld) badgeOld.remove();
+        var cfg = map[clone.textContent.trim()];
+        if (!cfg) return;
+        var badge = document.createElement('span');
+        badge.className = 'nav-badge' + (cfg.cls ? ' ' + cfg.cls : '');
+        badge.textContent = cfg.text;
+        badge.setAttribute('aria-label', cfg.label);
+        badge.setAttribute('role', 'status');
+        link.appendChild(badge);
+      });
+    }
+
+    /* ---- Nav a11y: 一级菜单 div 加 role/tabindex/键盘/aria-expanded ---- */
+    function initNavA11y() {
+      document.querySelectorAll('.nav-title').forEach(function(title) {
+        if (title.tagName === 'BUTTON') return;
+        title.setAttribute('role', 'button');
+        title.setAttribute('tabindex', '0');
+        var li = title.closest('li');
+        var wrap = li ? li.querySelector('.sub-menu-wrap') : null;
+        if (wrap) {
+          title.setAttribute('aria-expanded', wrap.classList.contains('open') ? 'true' : 'false');
+        }
+        title.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            title.click();
+          }
+        });
+      });
+      // 子菜单链接：补 aria-current 支持（高亮时由 JS 设置）
+      document.querySelectorAll('.sub-link').forEach(function(link) {
+        link.setAttribute('role', 'menuitem');
+      });
+    }
+
+    // 同步 aria-expanded 状态
+    var _origToggleSubMenu = toggleSubMenu;
+    toggleSubMenu = function(el) {
+      _origToggleSubMenu(el);
+      var wrap = el.closest('li').querySelector('.sub-menu-wrap');
+      if (wrap) {
+        el.setAttribute('aria-expanded', wrap.classList.contains('open') ? 'true' : 'false');
+      }
+    };
+
+    /* ---- Nav search: 按关键字过滤并自动展开命中分组 ---- */
+    function initNavSearch() {
+      var input = document.getElementById('navSearch');
+      if (!input) return;
+      var empty = document.getElementById('navSearchEmpty');
+      var groups = document.querySelectorAll('#sidebar nav > ul > li');
+
+      function apply() {
+        var kw = input.value.trim().toLowerCase();
+
+        // 清空搜索：恢复全部显示并收起分组
+        if (!kw) {
+          groups.forEach(function(li) {
+            var title = li.querySelector('.nav-title');
+            var links = li.querySelectorAll('.sub-link');
+            var wrap = li.querySelector('.sub-menu-wrap');
+            links.forEach(function(l) { l.style.display = ''; });
+            var gts = li.querySelectorAll('.nav-group-title');
+            gts.forEach(function(t){ t.style.display = ''; });
+            if (title) title.style.display = '';
+            if (wrap) {
+              wrap.classList.remove('open');
+              var arrow = title.querySelector('.menu-arrow');
+              if (arrow) arrow.style.transform = '';
+            }
+          });
+          if (empty) empty.classList.remove('show');
+          return;
+        }
+
+        var anyVisible = false;
+        groups.forEach(function(li) {
+          var title = li.querySelector('.nav-title');
+          var links = li.querySelectorAll('.sub-link');
+          var wrap = li.querySelector('.sub-menu-wrap');
+          var groupMatch = title && title.textContent.trim().toLowerCase().indexOf(kw) !== -1;
+          var hasChild = false;
+
+          links.forEach(function(link) {
+            var match = link.textContent.toLowerCase().indexOf(kw) !== -1 || groupMatch;
+            link.style.display = match ? '' : 'none';
+            if (match) hasChild = true;
+          });
+          // 分组小标题：本组内无可见子项则隐藏
+          var _ul = li.querySelector('.sub-menu-wrap > ul');
+          if (_ul) {
+            var _nodes = _ul.children;
+            for (var i = 0; i < _nodes.length; i++) {
+              if (!_nodes[i].classList.contains('nav-group-title')) continue;
+              var _vis = false;
+              for (var j = i + 1; j < _nodes.length; j++) {
+                if (_nodes[j].classList.contains('nav-group-title')) break;
+                var _sl = _nodes[j].querySelector('.sub-link');
+                if (_sl && _sl.style.display !== 'none') { _vis = true; break; }
+              }
+              _nodes[i].style.display = _vis ? '' : 'none';
+            }
+          }
+          // 无子菜单的项（如工作台）按标题匹配
+          if (!links.length && groupMatch) hasChild = true;
+
+          if (title) title.style.display = hasChild ? '' : 'none';
+          if (wrap) {
+            wrap.classList.toggle('open', hasChild);
+            var arrow = title ? title.querySelector('.menu-arrow') : null;
+            if (arrow) arrow.style.transform = hasChild ? 'rotate(90deg)' : '';
+          }
+          if (hasChild) anyVisible = true;
+        });
+
+        if (empty) empty.classList.toggle('show', !anyVisible);
+      }
+
+      input.addEventListener('input', apply);
+    }
+
+    /* ---- Init: highlight home ---- */
+    highlightMenu('工作台');
+    injectNavBadges();
+    initNavSearch();
+    initNavA11y();
+    initSubGroupToggle();
+
+    /* ---- Dialog 焦点管理辅助（Tailwind hidden 弹窗）---- */
+    var _dlgLastFocus = null;
+    var _dlgReleaseTrap = null;
+    function _dlgTrapFocus(container) {
+      if (!container) return function () {};
+      var sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      function handler(e) {
+        if (e.key !== 'Tab') return;
+        var nodes = container.querySelectorAll(sel);
+        if (!nodes.length) return;
+        var first = nodes[0], last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+      container.addEventListener('keydown', handler);
+      return function () { container.removeEventListener('keydown', handler); };
+    }
+    function openDialog(id) {
+      var dlg = document.getElementById(id);
+      if (!dlg) return;
+      dlg.classList.remove('hidden');
+      dlg.setAttribute('aria-hidden', 'false');
+      _dlgLastFocus = document.activeElement;
+      _dlgReleaseTrap = _dlgTrapFocus(dlg);
+      var focusable = dlg.querySelector('input, select, textarea, button, [tabindex]');
+      if (focusable) setTimeout(function () { focusable.focus(); }, 0);
+    }
+    function closeDialog(id) {
+      var dlg = document.getElementById(id);
+      if (!dlg) return;
+      dlg.classList.add('hidden');
+      dlg.setAttribute('aria-hidden', 'true');
+      if (_dlgReleaseTrap) { _dlgReleaseTrap(); _dlgReleaseTrap = null; }
+      if (_dlgLastFocus && _dlgLastFocus.focus) _dlgLastFocus.focus();
+    }
+    // ESC 关闭当前可见的 Tailwind 弹窗
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      ['profileModal', 'passwordModal'].forEach(function (id) {
+        var dlg = document.getElementById(id);
+        if (dlg && !dlg.classList.contains('hidden')) {
+          if (id === 'profileModal') closeProfileModal();
+          else closePasswordModal();
+        }
+      });
+    });
+
+    /* ---- Profile Modal ---- */
+    function openProfileModal() {
+      document.getElementById('profileAvatarText').textContent = '管';
+      document.getElementById('profileName').value = '管理员';
+      document.getElementById('profilePhone').value = '13800138000';
+      document.getElementById('profileEmail').value = 'guanli@shuzixiangcun.cn';
+      document.getElementById('profileRole').value = '超级管理员';
+      document.getElementById('profileDept').value = '村委会';
+      openDialog('profileModal');
+    }
+    function closeProfileModal() {
+      closeDialog('profileModal');
+    }
+    function saveProfile() {
+      var name = document.getElementById('profileName').value.trim();
+      var phone = document.getElementById('profilePhone').value.trim();
+      if (!name) { showToast('姓名不能为空', 'warning'); return; }
+      if (phone && !/^1[3-9]\d{9}$/.test(phone)) { showToast('手机号格式不正确', 'warning'); return; }
+      showToast('个人信息保存成功', 'success');
+      closeProfileModal();
+    }
+
+    /* ---- Password Modal ---- */
+    function openPasswordModal() {
+      document.getElementById('pwdOld').value = '';
+      document.getElementById('pwdNew').value = '';
+      document.getElementById('pwdConfirm').value = '';
+      openDialog('passwordModal');
+    }
+    function closePasswordModal() {
+      closeDialog('passwordModal');
+    }
+    function savePassword() {
+      var oldPwd = document.getElementById('pwdOld').value;
+      var newPwd = document.getElementById('pwdNew').value;
+      var confirmPwd = document.getElementById('pwdConfirm').value;
+      if (!oldPwd) { showToast('请输入当前密码', 'warning'); return; }
+      if (!newPwd) { showToast('请输入新密码', 'warning'); return; }
+      if (newPwd.length < 6) { showToast('新密码长度不能少于6位', 'warning'); return; }
+      if (newPwd !== confirmPwd) { showToast('两次输入的密码不一致', 'warning'); return; }
+      if (oldPwd === newPwd) { showToast('新密码不能与当前密码相同', 'warning'); return; }
+      showToast('密码修改成功', 'success');
+      closePasswordModal();
+    }
+    function togglePwdVisibility(inputId, iconEl) {
+      var input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.innerHTML = '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.98 8.223A4.49 4.49 0 003 12c0 4.418 4.03 8 9 8 1.523 0 2.92-.45 4.091-1.22M10.58 10.58a3 3 0 004.243 4.243M6.1 6.1l14.5 14.5M21 12c0-4.418-4.03-8-9-8a9.76 9.76 0 00-4.091.871"/></svg>';
+      } else {
+        input.type = 'password';
+        iconEl.innerHTML = '<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>';
+      }
+    }
+  </script>
+
+  <!-- 消息通知弹窗 -->
+  <div id="notiModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="notiModalTitle" aria-hidden="true" style="overscroll-behavior: contain; padding: 1rem;">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeNotificationModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style="animation:modalSlideIn .25s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 id="notiModalTitle" class="text-lg font-semibold text-gray-800">消息通知</h3>
+        <button type="button" onclick="closeNotificationModal()" aria-label="关闭" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors text-xl">&times;</button>
+      </div>
+      <div class="px-4 py-2" style="max-height:320px;overflow-y:auto">
+        <a href="javascript:void(0)" class="flex items-start gap-3 px-2 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <span class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm text-gray-700">幸福村提交了「农产品审核」申请</div>
+            <div class="text-xs text-gray-400 mt-1">2 分钟前</div>
+          </div>
+        </a>
+        <a href="javascript:void(0)" class="flex items-start gap-3 px-2 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <span class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm text-gray-700">一村网格上报了一条待处理事件</div>
+            <div class="text-xs text-gray-400 mt-1">1 小时前</div>
+          </div>
+        </a>
+        <a href="javascript:void(0)" class="flex items-start gap-3 px-2 py-3 hover:bg-gray-50 transition-colors">
+          <span class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></span>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm text-gray-700">幸福村广播设备离线，请及时处理</div>
+            <div class="text-xs text-gray-400 mt-1">昨天 16:20</div>
+          </div>
+        </a>
+      </div>
+      <div class="flex justify-center px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" onclick="showToast('暂无更多通知', 'info')" class="text-sm text-primary hover:text-gray-700 transition-colors">查看全部通知</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 个人设置弹窗 -->
+  <div id="profileModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" aria-hidden="true" style="overscroll-behavior: contain; padding: 1rem;">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeProfileModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden" style="animation:modalSlideIn .25s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 id="profileModalTitle" class="text-lg font-semibold text-gray-800">个人设置</h3>
+        <button type="button" onclick="closeProfileModal()" aria-label="关闭" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors text-xl">&times;</button>
+      </div>
+      <div class="px-6 py-5">
+        <!-- 头像区 -->
+        <div class="flex items-center gap-4 mb-6 pb-5 border-b border-gray-100">
+          <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center border-2 border-blue-200">
+            <span id="profileAvatarText" class="text-2xl font-bold text-blue-600" aria-hidden="true">管</span>
+          </div>
+          <div>
+            <div class="font-semibold text-gray-800">管理员</div>
+            <div class="text-sm text-gray-400">超级管理员 · 村委会</div>
+          </div>
+        </div>
+        <!-- 表单 -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <label for="profileName" class="w-20 text-sm font-medium text-gray-500 shrink-0">姓名</label>
+            <input type="text" id="profileName" name="profileName" placeholder="请输入姓名…" autocomplete="name" class="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+          </div>
+          <div class="flex items-center gap-4">
+            <label for="profilePhone" class="w-20 text-sm font-medium text-gray-500 shrink-0">手机号</label>
+            <input type="tel" id="profilePhone" name="profilePhone" placeholder="请输入手机号，如 13800138000…" autocomplete="tel" inputmode="tel" class="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+          </div>
+          <div class="flex items-center gap-4">
+            <label for="profileEmail" class="w-20 text-sm font-medium text-gray-500 shrink-0">邮箱</label>
+            <input type="email" id="profileEmail" name="profileEmail" placeholder="请输入邮箱，如 guanli@shuzixiangcun.cn…" autocomplete="email" inputmode="email" spellcheck="false" class="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+          </div>
+          <div class="flex items-center gap-4">
+            <label for="profileRole" class="w-20 text-sm font-medium text-gray-500 shrink-0">角色</label>
+            <input type="text" id="profileRole" name="profileRole" class="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" readonly>
+          </div>
+          <div class="flex items-center gap-4">
+            <label for="profileDept" class="w-20 text-sm font-medium text-gray-500 shrink-0">所属部门</label>
+            <input type="text" id="profileDept" name="profileDept" class="flex-1 h-9 px-3 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed" readonly>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" onclick="closeProfileModal()" class="btn btn-outline">取 消</button>
+        <button type="button" onclick="saveProfile()" class="btn btn-primary">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 修改密码弹窗 -->
+  <div id="passwordModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle" aria-hidden="true" style="overscroll-behavior: contain; padding: 1rem;">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePasswordModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style="animation:modalSlideIn .25s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 id="passwordModalTitle" class="text-lg font-semibold text-gray-800">修改密码</h3>
+        <button type="button" onclick="closePasswordModal()" aria-label="关闭" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors text-xl">&times;</button>
+      </div>
+      <div class="px-6 py-5">
+        <div class="space-y-5">
+          <!-- 当前密码 -->
+          <div>
+            <label for="pwdOld" class="block text-sm font-medium text-gray-600 mb-1.5">当前密码</label>
+            <div class="relative">
+              <input type="password" id="pwdOld" name="pwdOld" placeholder="请输入当前密码…" autocomplete="current-password" class="w-full h-10 pl-3 pr-10 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+              <button type="button" onclick="togglePwdVisibility('pwdOld', this.querySelector('svg'))" aria-label="显示或隐藏当前密码" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </button>
+            </div>
+          </div>
+          <!-- 新密码 -->
+          <div>
+            <label for="pwdNew" class="block text-sm font-medium text-gray-600 mb-1.5">新密码</label>
+            <div class="relative">
+              <input type="password" id="pwdNew" name="pwdNew" placeholder="请输入新密码，至少 6 位…" autocomplete="new-password" class="w-full h-10 pl-3 pr-10 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+              <button type="button" onclick="togglePwdVisibility('pwdNew', this.querySelector('svg'))" aria-label="显示或隐藏新密码" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </button>
+            </div>
+            <div class="mt-2 flex gap-1" aria-hidden="true">
+              <div id="pwdStrength1" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+              <div id="pwdStrength2" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+              <div id="pwdStrength3" class="h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+            </div>
+            <div id="pwdStrengthText" class="text-xs text-gray-400 mt-1" aria-live="polite"></div>
+          </div>
+          <!-- 确认密码 -->
+          <div>
+            <label for="pwdConfirm" class="block text-sm font-medium text-gray-600 mb-1.5">确认密码</label>
+            <div class="relative">
+              <input type="password" id="pwdConfirm" name="pwdConfirm" placeholder="请再次输入新密码…" autocomplete="new-password" class="w-full h-10 pl-3 pr-10 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-colors">
+              <button type="button" onclick="togglePwdVisibility('pwdConfirm', this.querySelector('svg'))" aria-label="显示或隐藏确认密码" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+        <button type="button" onclick="closePasswordModal()" class="btn btn-outline">取 消</button>
+        <button type="button" onclick="savePassword()" class="btn btn-primary">确认修改</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  </style>
+
+</body>
+</html>

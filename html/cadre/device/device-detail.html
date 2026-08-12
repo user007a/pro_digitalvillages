@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备详情 - 村口广场行为监控</title>
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="device-list.html" aria-label="返回">&#8249;</a>
+      <h1 class="nav-title">村口广场行为监控</h1>
+      <span class="nav-right"></span>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+
+    <!-- 实时视频面板 -->
+    <div class="mdv-video">
+      <div class="mdv-video-screen" id="mdvVideoScreen">
+        <div class="mdv-video-name">
+          <iconify-icon icon="ri:video-line"></iconify-icon>
+          <span>村口广场行为监控</span>
+        </div>
+        <div class="mdv-video-live">
+          <span class="mdv-live-dot"></span>
+          <span>实时</span>
+          <span id="mdvLiveTime">00:00:00</span>
+        </div>
+        <div class="mdv-video-center">
+          <iconify-icon icon="ri:video-line"></iconify-icon>
+          <span>实时视频画面</span>
+        </div>
+      </div>
+      <div class="mdv-video-toolbar">
+        <button type="button" class="mdv-tool-btn" onclick="showToast('截图已保存')">
+          <iconify-icon icon="ri:camera-line"></iconify-icon> 截图
+        </button>
+        <button type="button" class="mdv-tool-btn" onclick="videoFullscreen()">
+          <iconify-icon icon="ri:fullscreen-line"></iconify-icon> 全屏
+        </button>
+        <button type="button" class="mdv-tool-btn rec" onclick="showToast('已开始录像')">
+          <iconify-icon icon="ri:video-line"></iconify-icon> 录像
+        </button>
+      </div>
+    </div>
+
+    <!-- 云台控制 -->
+    <div class="mdv-card">
+      <div class="mdv-card-title">
+        <iconify-icon icon="ri:remote-control-2-line"></iconify-icon>
+        云台控制
+      </div>
+
+      <span class="mdv-ptz-label">方向控制</span>
+      <div class="mdv-ptz-grid" id="mdvPtzDirs">
+        <span></span>
+        <button type="button" class="mdv-ptz-btn" title="向上" onclick="ptzMove('up', this)"><iconify-icon icon="ri:arrow-up-line"></iconify-icon></button>
+        <span></span>
+        <button type="button" class="mdv-ptz-btn" title="向左" onclick="ptzMove('left', this)"><iconify-icon icon="ri:arrow-left-line"></iconify-icon></button>
+        <button type="button" class="mdv-ptz-btn mdv-ptz-home" title="居中复位" onclick="ptzReset(this)"><iconify-icon icon="ri:focus-2-line"></iconify-icon></button>
+        <button type="button" class="mdv-ptz-btn" title="向右" onclick="ptzMove('right', this)"><iconify-icon icon="ri:arrow-right-line"></iconify-icon></button>
+        <span></span>
+        <button type="button" class="mdv-ptz-btn" title="向下" onclick="ptzMove('down', this)"><iconify-icon icon="ri:arrow-down-line"></iconify-icon></button>
+        <span></span>
+      </div>
+
+      <span class="mdv-ptz-label">缩放控制</span>
+      <div class="mdv-ptz-row">
+        <button type="button" class="mdv-ptz-zoom-btn" title="放大" onclick="ptzZoom(1)"><iconify-icon icon="ri:zoom-in-line"></iconify-icon></button>
+        <button type="button" class="mdv-ptz-zoom-btn" title="缩小" onclick="ptzZoom(-1)"><iconify-icon icon="ri:zoom-out-line"></iconify-icon></button>
+      </div>
+
+      <span class="mdv-ptz-label">预置位</span>
+      <div class="mdv-ptz-row" id="mdvPtzPresets">
+        <button type="button" class="mdv-ptz-preset-btn" onclick="presetSet('A', this)">A</button>
+        <button type="button" class="mdv-ptz-preset-btn" onclick="presetSet('B', this)">B</button>
+        <button type="button" class="mdv-ptz-preset-btn" onclick="presetSet('C', this)">C</button>
+        <button type="button" class="mdv-ptz-preset-btn" onclick="presetSet('D', this)">D</button>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button type="button" class="mdv-ptz-area-btn" onclick="showToast('拖动框选监控区域')">
+          <iconify-icon icon="ri:crop-line"></iconify-icon> 框选监控区域
+        </button>
+      </div>
+
+      <div class="mdv-ptz-dir">
+        <iconify-icon icon="ri:compass-3-line"></iconify-icon>
+        当前视角：<strong id="mdvPtzDir">正北</strong>
+      </div>
+    </div>
+
+    <!-- 设备信息 -->
+    <div class="mdv-card">
+      <div class="mdv-card-title">
+        <iconify-icon icon="ri:information-line"></iconify-icon>
+        设备信息
+      </div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">设备编号</span><span class="mdv-detail-value">DEV-001</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">设备类型</span><span class="mdv-detail-value">人员行为监控</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">IP 地址</span><span class="mdv-detail-value">192.168.1.101</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">安装位置</span><span class="mdv-detail-value">幸福村村口广场</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">所属网格</span><span class="mdv-detail-value">第一网格</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">在线时长</span><span class="mdv-detail-value">持续在线 45 天</span></div>
+      <div class="mdv-detail-row"><span class="mdv-detail-label">固件版本</span><span class="mdv-detail-value">v2.3.1</span></div>
+    </div>
+
+    <!-- 类型功能卡 -->
+    <div class="mdv-card">
+      <div class="mdv-card-title">
+        <iconify-icon icon="ri:tools-line"></iconify-icon>
+        设备功能操作
+      </div>
+      <div class="mdv-func-select-row">
+        <span style="font-size:13px;color:#6B7280;flex-shrink:0;">切换设备类型</span>
+        <select class="form-select" id="mdvTypeSelect" onchange="switchDeviceType(this)">
+          <option value="人员行为监控">人员行为监控</option>
+          <option value="人员聚集">人员聚集</option>
+          <option value="山林火灾监控">山林火灾监控</option>
+          <option value="河道监控">河道监控</option>
+          <option value="垃圾治污监控">垃圾治污监控</option>
+          <option value="智能路灯">智能路灯</option>
+          <option value="老人手环">老人手环</option>
+          <option value="气象监控">气象监控</option>
+          <option value="大喇叭">大喇叭</option>
+        </select>
+      </div>
+      <div id="mdvFuncContent"><!-- JS 渲染 --></div>
+    </div>
+
+    <!-- 预警记录 -->
+    <div class="mdv-card">
+      <div class="mdv-card-title">
+        <iconify-icon icon="ri:alert-line"></iconify-icon>
+        预警记录
+        <span class="tag tag-red" style="margin-left:auto;">2 条待处理</span>
+      </div>
+
+      <div class="mdv-alert-item">
+        <div class="mdv-alert-top">
+          <span class="mdv-alert-time">2026-08-06 09:12</span>
+          <span class="tag tag-red">告警</span>
+        </div>
+        <div class="mdv-alert-content">集市口聚集人数超阈值，请及时处置</div>
+        <div class="mdv-alert-bottom">
+          <span class="mdv-alert-status tag tag-orange">待处理</span>
+          <button type="button" class="mdv-handle-btn" onclick="markHandled(this)">标记处理</button>
+        </div>
+      </div>
+
+      <div class="mdv-alert-item">
+        <div class="mdv-alert-top">
+          <span class="mdv-alert-time">2026-08-05 18:30</span>
+          <span class="tag tag-orange">预警</span>
+        </div>
+        <div class="mdv-alert-content">广场西南角有人长时间逗留</div>
+        <div class="mdv-alert-bottom">
+          <span class="mdv-alert-status tag tag-orange">待处理</span>
+          <button type="button" class="mdv-handle-btn" onclick="markHandled(this)">标记处理</button>
+        </div>
+      </div>
+
+      <div class="mdv-alert-item">
+        <div class="mdv-alert-top">
+          <span class="mdv-alert-time">2026-08-05 14:05</span>
+          <span class="tag tag-blue">提示</span>
+        </div>
+        <div class="mdv-alert-content">检测到老人摔倒风险，请留意</div>
+        <div class="mdv-alert-bottom">
+          <span class="mdv-alert-status tag tag-green">已处理</span>
+          <span class="text-sm text-gray">已处理</span>
+        </div>
+      </div>
+
+      <div class="mdv-alert-item">
+        <div class="mdv-alert-top">
+          <span class="mdv-alert-time">2026-08-04 20:47</span>
+          <span class="tag tag-red">告警</span>
+        </div>
+        <div class="mdv-alert-content">夜市摊位前聚集人数超阈值</div>
+        <div class="mdv-alert-bottom">
+          <span class="mdv-alert-status tag tag-green">已处理</span>
+          <span class="text-sm text-gray">已处理</span>
+        </div>
+      </div>
+
+      <div class="mdv-alert-item">
+        <div class="mdv-alert-top">
+          <span class="mdv-alert-time">2026-08-03 09:02</span>
+          <span class="tag tag-orange">预警</span>
+        </div>
+        <div class="mdv-alert-content">监控盲区出现异常停留</div>
+        <div class="mdv-alert-bottom">
+          <span class="mdv-alert-status tag tag-green">已处理</span>
+          <span class="text-sm text-gray">已处理</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+<script>
+/* ============ 实时视频时间戳 ============ */
+function updateClock() {
+  var now = new Date();
+  var hh = ('0' + now.getHours()).slice(-2);
+  var mm = ('0' + now.getMinutes()).slice(-2);
+  var ss = ('0' + now.getSeconds()).slice(-2);
+  var el = document.getElementById('mdvLiveTime');
+  if (el) el.textContent = hh + ':' + mm + ':' + ss;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ============ 视频面板全屏 ============ */
+function videoFullscreen() {
+  var screen = document.getElementById('mdvVideoScreen');
+  if (screen && screen.requestFullscreen) {
+    screen.requestFullscreen().catch(function () {
+      showToast('当前环境不支持全屏');
+    });
+  } else {
+    showToast('当前环境不支持全屏');
+  }
+}
+
+/* ============ 云台方向控制 ============ */
+var MDV_PTZ_DIRS = { up: '正北', down: '正南', left: '正西', right: '正东' };
+
+function ptzMove(dir, btn) {
+  var dirBtns = document.querySelectorAll('#mdvPtzDirs .mdv-ptz-btn');
+  for (var i = 0; i < dirBtns.length; i++) {
+    dirBtns[i].classList.remove('active');
+  }
+  btn.classList.add('active');
+  var dirEl = document.getElementById('mdvPtzDir');
+  if (dirEl) dirEl.textContent = MDV_PTZ_DIRS[dir];
+  showToast('云台已转向' + MDV_PTZ_DIRS[dir]);
+}
+
+function ptzReset(btn) {
+  var dirBtns = document.querySelectorAll('#mdvPtzDirs .mdv-ptz-btn');
+  for (var i = 0; i < dirBtns.length; i++) {
+    dirBtns[i].classList.remove('active');
+  }
+  btn.classList.add('active');
+  var dirEl = document.getElementById('mdvPtzDir');
+  if (dirEl) dirEl.textContent = '正北';
+  showToast('云台已复位至居中');
+}
+
+function ptzZoom(dir) {
+  showToast(dir > 0 ? '云台镜头放大' : '云台镜头缩小');
+}
+
+/* ============ 预置位 ============ */
+function presetSet(preset, btn) {
+  var presetBtns = document.querySelectorAll('#mdvPtzPresets .mdv-ptz-preset-btn');
+  for (var i = 0; i < presetBtns.length; i++) {
+    presetBtns[i].classList.remove('active');
+  }
+  btn.classList.add('active');
+  showToast('已切换预置位 ' + preset);
+}
+
+/* ============ 预警标记处理 ============ */
+function markHandled(btn) {
+  var item = btn.parentNode;
+  var statusSpan = item.querySelector('.mdv-alert-status');
+  if (statusSpan) {
+    statusSpan.className = 'mdv-alert-status tag tag-green';
+    statusSpan.textContent = '已处理';
+  }
+  btn.className = 'mdv-handle-btn done';
+  btn.textContent = '已处理';
+  btn.disabled = true;
+  showToast('预警记录已标记为处理');
+}
+
+/* ============ 设备类型差异化功能卡 ============ */
+
+/* 监控类通用：视频截图 / 视频巡检 / 预置位 */
+function cameraCard() {
+  return '<div class="mdv-func-btns">' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'视频截图已保存\')"><iconify-icon icon="ri:camera-line"></iconify-icon> 视频截图</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'视频巡检任务已下发\')"><iconify-icon icon="ri:eye-line"></iconify-icon> 视频巡检</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'已回到预置位 A\')"><iconify-icon icon="ri:focus-3-line"></iconify-icon> 预置位</button>' +
+    '</div>';
+}
+
+/* 智能路灯：开关 + 亮度调节 */
+var lampState = { on: false, brightness: 80 };
+
+function lampCard() {
+  return '<div class="mdv-func-btns">' +
+    '<button type="button" class="mdv-func-btn" id="mdvLampBtn" onclick="toggleLamp()"><iconify-icon icon="ri:lightbulb-flash-line"></iconify-icon> 路灯开</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="lampBright(-1)"><iconify-icon icon="ri:contrast-2-line"></iconify-icon> 亮度 -</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="lampBright(1)"><iconify-icon icon="ri:contrast-2-line"></iconify-icon> 亮度 +</button>' +
+    '</div>' +
+    '<div class="mdv-status-line">' +
+    '  当前状态：<span id="mdvLampStatus" class="mdv-status-badge mdv-status-off">已关闭</span>' +
+    '  <span class="mdv-brightness">' +
+    '    <span id="mdvLampBright">亮度 80%</span>' +
+    '    <span class="mdv-brightness-bar"><i id="mdvLampBar" style="width:80%"></i></span>' +
+    '  </span>' +
+    '</div>';
+}
+
+function renderLamp() {
+  var btn = document.getElementById('mdvLampBtn');
+  if (btn) {
+    btn.innerHTML = '<iconify-icon icon="ri:lightbulb-flash-line"></iconify-icon> 路灯' + (lampState.on ? '关' : '开');
+    if (lampState.on) btn.classList.add('mdv-func-active');
+    else btn.classList.remove('mdv-func-active');
+  }
+  var badge = document.getElementById('mdvLampStatus');
+  if (badge) {
+    badge.className = 'mdv-status-badge ' + (lampState.on ? 'mdv-status-on' : 'mdv-status-off');
+    badge.textContent = lampState.on ? '已开启' : '已关闭';
+  }
+  var bright = document.getElementById('mdvLampBright');
+  var bar = document.getElementById('mdvLampBar');
+  if (bright) bright.textContent = '亮度 ' + lampState.brightness + '%';
+  if (bar) bar.style.width = lampState.brightness + '%';
+}
+
+function toggleLamp() {
+  lampState.on = !lampState.on;
+  renderLamp();
+  showToast(lampState.on ? '路灯已开启' : '路灯已关闭');
+}
+
+function lampBright(dir) {
+  lampState.brightness = Math.max(0, Math.min(100, lampState.brightness + dir * 10));
+  renderLamp();
+  showToast('亮度已调节至 ' + lampState.brightness + '%');
+}
+
+/* 老人手环：定位 / 呼叫 / 处理呼救 */
+function wristbandCard() {
+  return '<div class="mdv-func-btns">' +
+    '<button type="button" class="mdv-func-btn" onclick="locateBand()"><iconify-icon icon="ri:map-pin-line"></iconify-icon> 定位</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'已呼叫手环，等待响应\')"><iconify-icon icon="ri:phone-line"></iconify-icon> 呼叫手环</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'紧急呼救已受理，已通知家属\')"><iconify-icon icon="ri:heart-pulse-line"></iconify-icon> 处理呼救</button>' +
+    '</div>' +
+    '<div class="mdv-status-line">最近定位：<span id="mdvBandPos" class="text-gray">--</span></div>';
+}
+
+function locateBand() {
+  showToast('正在定位…');
+  var el = document.getElementById('mdvBandPos');
+  setTimeout(function () {
+    if (el) {
+      el.className = 'mdv-pos-text';
+      el.textContent = '幸福村三组12号';
+    }
+    showToast('定位成功');
+  }, 800);
+}
+
+/* 气象监控：实时气象数据面板 */
+function weatherCard() {
+  return '<div class="mdv-weather">' +
+    '<div class="mdv-weather-item"><div class="mdv-weather-num">32℃</div><div class="mdv-weather-label">温度</div></div>' +
+    '<div class="mdv-weather-item"><div class="mdv-weather-num">68%</div><div class="mdv-weather-label">湿度</div></div>' +
+    '<div class="mdv-weather-item"><div class="mdv-weather-num">3.2m/s</div><div class="mdv-weather-label">风速</div></div>' +
+    '<div class="mdv-weather-item"><div class="mdv-weather-num">0mm</div><div class="mdv-weather-label">降雨量</div></div>' +
+    '</div>';
+}
+
+/* 大喇叭：喊话 / 定时广播 / 关闭广播 */
+var hornState = { broadcasting: false };
+
+function hornCard() {
+  return '<div class="mdv-func-btns">' +
+    '<button type="button" class="mdv-func-btn" onclick="hornBroadcast()"><iconify-icon icon="ri:volume-up-line"></iconify-icon> 喊话</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="showToast(\'定时广播已设置（每日 18:00）\')"><iconify-icon icon="ri:calendar-schedule-line"></iconify-icon> 定时广播</button>' +
+    '<button type="button" class="mdv-func-btn" onclick="hornStop()"><iconify-icon icon="ri:volume-mute-line"></iconify-icon> 关闭广播</button>' +
+    '</div>' +
+    '<div class="mdv-status-line">广播状态：<span id="mdvHornStatus" class="mdv-status-badge mdv-status-off">未广播</span></div>';
+}
+
+function renderHorn() {
+  var el = document.getElementById('mdvHornStatus');
+  if (el) {
+    el.className = 'mdv-status-badge ' + (hornState.broadcasting ? 'mdv-status-broadcast' : 'mdv-status-off');
+    el.textContent = hornState.broadcasting ? '广播中' : '未广播';
+  }
+}
+
+function hornBroadcast() {
+  hornState.broadcasting = true;
+  renderHorn();
+  showToast('喊话已发起，正在广播');
+}
+
+function hornStop() {
+  hornState.broadcasting = false;
+  renderHorn();
+  showToast('广播已关闭');
+}
+
+/* 类型 → 功能卡渲染函数 */
+var FUNC_CARDS = {
+  '人员行为监控': cameraCard,
+  '人员聚集': cameraCard,
+  '山林火灾监控': cameraCard,
+  '河道监控': cameraCard,
+  '垃圾治污监控': cameraCard,
+  '智能路灯': lampCard,
+  '老人手环': wristbandCard,
+  '气象监控': weatherCard,
+  '大喇叭': hornCard
+};
+
+/* ============ 切换设备类型 ============ */
+function switchDeviceType(select) {
+  var type = select.value;
+  var content = document.getElementById('mdvFuncContent');
+  if (!content || !FUNC_CARDS[type]) return;
+  content.innerHTML = FUNC_CARDS[type]();
+  if (type === '智能路灯') renderLamp();
+  if (type === '大喇叭') renderHorn();
+}
+
+/* ============ 按 URL 参数渲染设备信息 ============ */
+function renderDeviceFromUrl() {
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  if (!id) return; // 无参数：保持默认演示设备
+
+  var name = params.get('name') || id;
+  var type = params.get('type') || '';
+  var pos = params.get('pos') || '';
+  var grid = params.get('grid') || '';
+  var ip = params.get('ip') || '';
+
+  document.title = '设备详情 - ' + name;
+
+  var navTitle = document.querySelector('.nav-title');
+  if (navTitle) navTitle.textContent = name;
+
+  var videoName = document.querySelector('.mdv-video-name span');
+  if (videoName) videoName.textContent = name;
+
+  var labelMap = {
+    '设备编号': id,
+    '设备类型': type,
+    'IP 地址': ip,
+    '安装位置': pos,
+    '所属网格': grid
+  };
+  var rows = document.querySelectorAll('.mdv-detail-row');
+  for (var i = 0; i < rows.length; i++) {
+    var label = rows[i].querySelector('.mdv-detail-label');
+    var value = rows[i].querySelector('.mdv-detail-value');
+    if (label && value && labelMap[label.textContent] !== undefined) {
+      value.textContent = labelMap[label.textContent];
+    }
+  }
+
+  var select = document.getElementById('mdvTypeSelect');
+  if (select && type) {
+    var matched = false;
+    for (var j = 0; j < select.options.length; j++) {
+      if (select.options[j].value === type) { matched = true; break; }
+    }
+    if (matched) {
+      select.value = type;
+      switchDeviceType(select);
+    }
+  }
+}
+
+/* 初始化：默认人员行为监控 */
+(function init() {
+  var select = document.getElementById('mdvTypeSelect');
+  if (select) switchDeviceType(select);
+  renderDeviceFromUrl();
+})();
+</script>
+</body>
+</html>

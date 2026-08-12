@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>四议两公开详情 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="四议两公开详情" data-page-subtitle="四议两公开决议流程详情">
+
+  <!-- 返回 + 标题 -->
+  <div class="toolbar">
+    <button class="btn btn-outline" onclick="history.back()"><iconify-icon icon="ri:arrow-left-line"></iconify-icon> 返回列表</button>
+    <span style="margin-left:8px;color:#6b7280;font-size:14px">议题详情</span>
+  </div>
+
+  <!-- 议题基本信息 -->
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h3 style="margin:0;font-size:16px">议题基本信息</h3>
+      <span class="tag tag-green">公开</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item detail-full"><span class="detail-label">议题标题</span><span class="detail-value">幸福村主干道拓宽硬化工程</span></div>
+      <div class="detail-item"><span class="detail-label">议题类型</span><span class="detail-value"><span class="tag tag-blue">工程项目</span></span></div>
+      <div class="detail-item"><span class="detail-label">决议结果</span><span class="detail-value"><span class="tag tag-green">通过</span></span></div>
+      <div class="detail-item"><span class="detail-label">提议人</span><span class="detail-value">李建国</span></div>
+      <div class="detail-item"><span class="detail-label">提议时间</span><span class="detail-value">2026-07-06</span></div>
+      <div class="detail-item"><span class="detail-label">会议地点</span><span class="detail-value">幸福村党群服务中心会议室</span></div>
+      <div class="detail-item detail-full"><span class="detail-label">议题内容</span><span class="detail-value">拟对幸福村主干道（村口至村委会段，全长2.3公里）进行拓宽及硬化施工，预计投资48万元，资金来源为村集体资金及上级奖补资金。</span></div>
+    </div>
+  </div>
+
+  <!-- 四议流程时间轴 -->
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin:0 0 16px 0;font-size:16px"><iconify-icon icon="ri:flow-chart" style="vertical-align:-2px"></iconify-icon> "四议"流程</h3>
+    <div class="timeline">
+      <div class="timeline-item done">
+        <div style="font-weight:600;color:#1f2937">党支部会提议</div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px">2026-07-06</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:6px;line-height:1.6">党支部会议研究提出议题建议，形成初步方案，由党支部书记李建国主持。</div>
+      </div>
+      <div class="timeline-item done">
+        <div style="font-weight:600;color:#1f2937">"两委"会商议</div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px">2026-07-09</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:6px;line-height:1.6">村党支部、村委会班子联席商议，对方案进行完善，明确资金来源与施工范围。</div>
+      </div>
+      <div class="timeline-item done">
+        <div style="font-weight:600;color:#1f2937">党员大会审议</div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px">2026-07-15</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:6px;line-height:1.6">召开党员大会审议，应到党员31人，实到29人，一致表决通过。</div>
+      </div>
+      <div class="timeline-item done">
+        <div style="font-weight:600;color:#1f2937">村民代表会议决议</div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px">2026-07-20</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:6px;line-height:1.6">召开村民代表会议表决，应到代表21人，实到20人，19票赞成通过决议。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 两公开内容 -->
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin:0 0 16px 0;font-size:16px"><iconify-icon icon="ri:broadcast-line" style="vertical-align:-2px"></iconify-icon> "两公开"内容</h3>
+    <div class="detail-grid">
+      <div class="detail-item detail-full"><span class="detail-label">决议公开</span><span class="detail-value">2026-07-22 在村务公开栏公示决议结果及实施方案，公示期7天，接受村民监督，无异议。</span></div>
+      <div class="detail-item detail-full"><span class="detail-label">实施结果公开</span><span class="detail-value">工程于2026-08-01开工，预计2026-09-15完工，目前已完成路基施工，进度约30%，支出已实时公示。</span></div>
+    </div>
+  </div>
+
+  <!-- 底部审核操作 -->
+  <div class="card" style="display:flex;align-items:center;justify-content:flex-end;gap:12px">
+    <span style="margin-right:auto;font-size:13px;color:#6b7280">对该议题进行审核确认</span>
+    <button class="btn btn-outline" onclick="showConfirm({title:'驳回确认',message:'确定驳回该议题吗？驳回后需重新提交审议。',onConfirm:function(){showToast('已驳回','warning')}})"><iconify-icon icon="ri:close-circle-line"></iconify-icon> 驳 回</button>
+    <button class="btn btn-primary" onclick="showToast('审核已通过','success')"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon> 审 核</button>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+</body>
+</html>

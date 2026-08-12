@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>操作日志</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* 页面边距（对齐南丰 content-wrapper 24px） */
+    .admin-page { padding: 24px; }
+    /* 搜索筛选区（对齐南丰识别日志页：控件 14px + 8px 圆角 + 灰边框） */
+    .filter-bar .filter-item .form-input,
+    .filter-bar .filter-item .form-select {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+      border-color: #d1d5db;
+    }
+    .filter-bar .filter-actions .btn {
+      height: 34px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body data-page-title="操作日志" data-page-subtitle="系统操作日志记录查询与审计追溯">
+<div class="admin-page">
+  <!-- 操作按钮 -->
+  <div class="toolbar">
+    <button class="btn btn-outline" onclick="openModal('exportLogModal')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出日志</button>
+    <div class="toolbar-search">
+      <iconify-icon class="search-icon" icon="ri:search-line"></iconify-icon>
+      <input type="text" class="form-input" placeholder="搜索操作人/内容…" oninput="filterLogs(this.value)">
+    </div>
+  </div>
+
+  <!-- 搜索筛选（两行） -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>操作人</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>张国平</option>
+        <option>李卫东</option>
+        <option>王会计</option>
+        <option>管理员</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>操作类型</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>登录</option>
+        <option>新增</option>
+        <option>编辑</option>
+        <option>删除</option>
+        <option>审核</option>
+        <option>导出</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>操作模块</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>村务公开</option>
+        <option>产业管理</option>
+        <option>积分管理</option>
+        <option>事件管理</option>
+        <option>通知公告</option>
+        <option>系统管理</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>操作结果</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>成功</option>
+        <option>失败</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label>操作时间</label>
+      <div class="date-range-group">
+        <input type="date" class="form-input">
+        <span>至</span>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>IP地址</label>
+      <input type="text" class="form-input" placeholder="请输入IP地址…">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm"><iconify-icon icon="ri:search-line"></iconify-icon> 查询</button>
+      <button class="btn btn-sm btn-search-reset"><iconify-icon icon="ri:refresh-line"></iconify-icon> 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>操作时间</th>
+          <th>操作人</th>
+          <th>操作类型</th>
+          <th>操作模块</th>
+          <th>操作内容</th>
+          <th>操作结果</th>
+          <th>IP地址</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-time="2026-06-30 10:25:18" data-user="管理员" data-type="登录" data-module="系统管理" data-content="管理员账号登录系统" data-result="成功" data-ip="192.168.1.100" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0" data-params="{&quot;username&quot;:&quot;admin&quot;,&quot;password&quot;:&quot;******&quot;,&quot;loginType&quot;:&quot;password&quot;,&quot;captcha&quot;:&quot;a3x7k&quot;}">
+          <td>2026-06-30 10:25:18</td>
+          <td>管理员</td>
+          <td><span class="tag op-type-login">登录</span></td>
+          <td>系统管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">管理员账号登录系统</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.100</td>
+        </tr>
+        <tr data-time="2026-06-30 10:30:42" data-user="张国平" data-type="新增" data-module="村务公开" data-content="新增公开内容：2026年第二季度党支部工作总结" data-result="成功" data-ip="192.168.1.105" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0" data-params="{&quot;title&quot;:&quot;2026年第二季度党支部工作总结&quot;,&quot;categoryId&quot;:1}">
+          <td>2026-06-30 10:30:42</td>
+          <td>张国平</td>
+          <td><span class="tag op-type-add">新增</span></td>
+          <td>村务公开</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">新增公开内容：2026年第二季度党支部工作总结</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.105</td>
+        </tr>
+        <tr data-time="2026-06-30 10:35:08" data-user="王会计" data-type="编辑" data-module="村务公开" data-content="编辑公开内容：关于2026年度财务预算执行情况的报告" data-result="成功" data-ip="192.168.1.108" data-ua="Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari/17.0" data-params="{&quot;id&quot;:42,&quot;changes&quot;:{&quot;content&quot;:&quot;updated&quot;}}">
+          <td>2026-06-30 10:35:08</td>
+          <td>王会计</td>
+          <td><span class="tag op-type-edit">编辑</span></td>
+          <td>村务公开</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">编辑公开内容：关于2026年度财务预算执行情况的报告</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.108</td>
+        </tr>
+        <tr data-time="2026-06-30 11:02:55" data-user="李卫东" data-type="新增" data-module="事件管理" data-content="新增事件：村口垃圾堆积问题（EV-20260630-0001）" data-result="成功" data-ip="192.168.1.106" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/126.0.0" data-params="{&quot;title&quot;:&quot;村口垃圾堆积问题&quot;,&quot;priority&quot;:&quot;高&quot;,&quot;grid&quot;:&quot;第三网格&quot;}">
+          <td>2026-06-30 11:02:55</td>
+          <td>李卫东</td>
+          <td><span class="tag op-type-add">新增</span></td>
+          <td>事件管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">新增事件：村口垃圾堆积问题（EV-20260630-0001）</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.106</td>
+        </tr>
+        <tr data-time="2026-06-30 11:15:33" data-user="管理员" data-type="审核" data-module="积分管理" data-content="审核通过李大华的参与志愿服务加分申请（+10分）" data-result="成功" data-ip="192.168.1.100" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0" data-params="{&quot;applyId&quot;:108,&quot;userId&quot;:56,&quot;rule&quot;:&quot;参与志愿服务&quot;,&quot;score&quot;:10}">
+          <td>2026-06-30 11:15:33</td>
+          <td>管理员</td>
+          <td><span class="tag op-type-audit">审核</span></td>
+          <td>积分管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">审核通过李大华的参与志愿服务加分申请（+10分）</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.100</td>
+        </tr>
+        <tr data-time="2026-06-30 14:20:10" data-user="李卫东" data-type="删除" data-module="产业管理" data-content="删除产业信息：乡村优选电商服务站" data-result="失败" data-ip="192.168.1.106" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/126.0.0" data-params="{&quot;industryId&quot;:18,&quot;reason&quot;:&quot;权限不足&quot;}">
+          <td>2026-06-30 14:20:10</td>
+          <td>李卫东</td>
+          <td><span class="tag op-type-delete">删除</span></td>
+          <td>产业管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">删除产业信息：乡村优选电商服务站</button></td>
+          <td><span class="tag tag-red">失败</span></td>
+          <td>192.168.1.106</td>
+        </tr>
+        <tr data-time="2026-06-30 14:45:28" data-user="张国平" data-type="导出" data-module="村务公开" data-content="导出村务公开内容列表" data-result="成功" data-ip="192.168.1.105" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0" data-params="{&quot;format&quot;:&quot;excel&quot;,&quot;dateRange&quot;:&quot;2026-01-01~2026-06-30&quot;}">
+          <td>2026-06-30 14:45:28</td>
+          <td>张国平</td>
+          <td><span class="tag op-type-export">导出</span></td>
+          <td>村务公开</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">导出村务公开内容列表</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.105</td>
+        </tr>
+        <tr data-time="2026-06-30 15:00:05" data-user="王会计" data-type="编辑" data-module="积分管理" data-content="编辑积分规则：门前卫生达标 分值由+3调整为+5" data-result="成功" data-ip="192.168.1.108" data-ua="Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari/17.0" data-params="{&quot;ruleId&quot;:7,&quot;field&quot;:&quot;score&quot;,&quot;oldValue&quot;:3,&quot;newValue&quot;:5}">
+          <td>2026-06-30 15:00:05</td>
+          <td>王会计</td>
+          <td><span class="tag op-type-edit">编辑</span></td>
+          <td>积分管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">编辑积分规则：门前卫生达标 分值由+3调整为+5</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.108</td>
+        </tr>
+        <tr data-time="2026-06-30 16:12:40" data-user="管理员" data-type="编辑" data-module="系统管理" data-content="修改系统参数：大屏刷新间隔由600秒调整为300秒" data-result="成功" data-ip="192.168.1.100" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0" data-params="{&quot;configKey&quot;:&quot;refresh_interval&quot;,&quot;oldValue&quot;:&quot;600&quot;,&quot;newValue&quot;:&quot;300&quot;}">
+          <td>2026-06-30 16:12:40</td>
+          <td>管理员</td>
+          <td><span class="tag op-type-edit">编辑</span></td>
+          <td>系统管理</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">修改系统参数：大屏刷新间隔由600秒调整为300秒</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.100</td>
+        </tr>
+        <tr data-time="2026-06-30 17:30:22" data-user="李卫东" data-type="新增" data-module="通知公告" data-content="新增公告：关于缴纳2026年度城乡居民医保的通知" data-result="成功" data-ip="192.168.1.106" data-ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/126.0.0" data-params="{&quot;title&quot;:&quot;关于缴纳2026年度城乡居民医保的通知&quot;,&quot;range&quot;:&quot;全村&quot;,&quot;pushMethod&quot;:&quot;站内通知&quot;}">
+          <td>2026-06-30 17:30:22</td>
+          <td>李卫东</td>
+          <td><span class="tag op-type-add">新增</span></td>
+          <td>通知公告</td>
+          <td><button type="button" class="btn-op" onclick="openModal('viewLogModal');fillLogDetail(this)">新增公告：关于缴纳2026年度城乡居民医保的通知</button></td>
+          <td><span class="tag tag-green">成功</span></td>
+          <td>192.168.1.106</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-total">共 10 条记录，每页 10 条</span>
+      <div class="page-btns">
+        <button type="button" class="page-btn disabled">&laquo;</button>
+        <button type="button" class="page-btn active">1</button>
+        <button type="button" class="page-btn disabled">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/admin.js"></script>
+
+<!-- 查看日志详情弹窗 -->
+<div class="modal-overlay detail-modal" id="viewLogModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>日志详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewLogModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">操作时间</div>
+          <div class="detail-value">2026-06-30 10:25:18</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">操作人</div>
+          <div class="detail-value">管理员</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">操作类型</div>
+          <div class="detail-value"><span class="tag op-type-login">登录</span></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">操作模块</div>
+          <div class="detail-value">系统管理</div>
+        </div>
+        <div class="detail-item detail-full">
+          <div class="detail-label">操作内容</div>
+          <div class="detail-value">管理员账号登录系统</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">操作结果</div>
+          <div class="detail-value"><span class="tag tag-green">成功</span></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">IP地址</div>
+          <div class="detail-value">192.168.1.100</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">User-Agent</div>
+          <div class="detail-value" style="font-size:12px;">Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0</div>
+        </div>
+        <div class="detail-item detail-full">
+          <div class="detail-label">请求参数</div>
+          <div class="detail-value">
+            <pre style="background:var(--color-neutral-50);padding:12px;border-radius:6px;font-family:Consolas,'Courier New',monospace;font-size:13px;color:var(--color-neutral-600);white-space:pre-wrap;margin:0;overflow-x:auto;line-height:1.6;">{
+  "username": "admin",
+  "password": "******",
+  "loginType": "password",
+  "captcha": "a3x7k"
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('viewLogModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出日志弹窗 -->
+<div class="modal-overlay" id="exportLogModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>导出日志</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportLogModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>时间范围</label>
+        <div class="date-range-group">
+          <input type="date" class="form-input"> <span>至</span> <input type="date" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>操作类型</label>
+        <select class="form-select">
+          <option>全部</option>
+          <option>登录</option>
+          <option>新增</option>
+          <option>编辑</option>
+          <option>删除</option>
+          <option>审核</option>
+          <option>导出</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>导出格式</label>
+        <select class="form-select">
+          <option>Excel</option>
+          <option>PDF</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('exportLogModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('exportLogModal');showToast('导出任务已提交','success')">开始导出</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function fillLogDetail(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('viewLogModal');
+  if (!row || !modal) return;
+  var d = row.dataset;
+  var values = modal.querySelectorAll('.detail-value');
+  if (values[0]) values[0].textContent = d.time || '';
+  if (values[1]) values[1].textContent = d.user || '';
+  var typeClass = { '登录': 'op-type-login', '新增': 'op-type-add', '编辑': 'op-type-edit', '删除': 'op-type-delete', '审核': 'op-type-audit', '导出': 'op-type-export' };
+  if (values[2]) values[2].innerHTML = '<span class="tag ' + (typeClass[d.type] || '') + '">' + (d.type || '') + '</span>';
+  if (values[3]) values[3].textContent = d.module || '';
+  if (values[4]) values[4].textContent = d.content || '';
+  var resultClass = d.result === '成功' ? 'tag-green' : 'tag-red';
+  if (values[5]) values[5].innerHTML = '<span class="tag ' + resultClass + '">' + (d.result || '') + '</span>';
+  if (values[6]) values[6].textContent = d.ip || '';
+  if (values[7]) values[7].textContent = d.ua || '';
+  if (values[8]) {
+    var paramsObj;
+    try { paramsObj = JSON.parse(d.params || '{}'); } catch(e) { paramsObj = {}; }
+    values[8].innerHTML = '<pre style="background:var(--color-neutral-50);padding:12px;border-radius:6px;font-family:Consolas,\'Courier New\',monospace;font-size:13px;color:var(--color-neutral-600);white-space:pre-wrap;margin:0;overflow-x:auto;line-height:1.6;">' + JSON.stringify(paramsObj, null, 2) + '</pre>';
+  }
+}
+
+function filterLogs(keyword) {
+  var rows = document.querySelectorAll('.table-wrap tbody tr');
+  var kw = keyword.toLowerCase().trim();
+  rows.forEach(function(row) {
+    var text = (row.dataset.user || '') + (row.dataset.content || '') + (row.dataset.type || '') + (row.dataset.module || '');
+    if (!kw || text.toLowerCase().indexOf(kw) !== -1) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  syncLogPager();
+}
+</script>
+
+<script>
+  /* ---- 筛选/查询/重置后同步 pg-pager 分页信息（不修改公共脚本） ---- */
+  function syncLogPager() {
+    var pager = document.querySelector('.pagination.pg-pager');
+    if (!pager) return;
+    var table = pager.parentNode.querySelector('table');
+    if (!table) return;
+    var rows = table.querySelectorAll('tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].style.display === 'none') rows[i].classList.add('pg-filtered');
+      else rows[i].classList.remove('pg-filtered');
+    }
+    if (typeof pager._pgRender === 'function') pager._pgRender();
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var bars = document.querySelectorAll('.filter-bar, .search-filter');
+    for (var i = 0; i < bars.length; i++) {
+      var actions = bars[i].querySelector('.filter-actions');
+      if (!actions) continue;
+      var searchBtn = actions.querySelector('.btn-primary');
+      var resetBtn = actions.querySelector('.btn:not(.btn-primary):not(.btn-success)');
+      if (searchBtn) searchBtn.addEventListener('click', syncLogPager);
+      if (resetBtn) resetBtn.addEventListener('click', syncLogPager);
+    }
+  });
+</script>
+
+</body>
+</html>

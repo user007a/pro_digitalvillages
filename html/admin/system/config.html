@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统参数 - 系统管理</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    .config-table th:first-child { width: 200px; }
+    .config-table th:nth-child(2) { width: 120px; }
+    .config-table th:last-child { width: 80px; }
+    /* 页面边距（对齐南丰 content-wrapper 24px） */
+    .admin-page { padding: 24px; }
+    /* Tab 内容面板：白卡 */
+    .config-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+    /* 数据行字号对齐南丰规范 14px */
+    .config-table tbody td { font-size: 14px; }
+  </style>
+</head>
+<body data-page-title="系统参数" data-page-subtitle="系统基础参数、事件、积分与文件上传配置管理">
+<div class="admin-page">
+  <!-- Tab 切换：基础设置 / 事件管理设置 / 积分设置 / 文件上传设置 -->
+  <div class="tab-bar" role="tablist">
+    <div class="tab-item active" data-tab="base" role="tab" aria-selected="true" onclick="switchConfigTab('base')">基础设置</div>
+    <div class="tab-item" data-tab="event" role="tab" aria-selected="false" onclick="switchConfigTab('event')">事件管理设置</div>
+    <div class="tab-item" data-tab="points" role="tab" aria-selected="false" onclick="switchConfigTab('points')">积分设置</div>
+    <div class="tab-item" data-tab="upload" role="tab" aria-selected="false" onclick="switchConfigTab('upload')">文件上传设置</div>
+  </div>
+
+  <!-- 基础设置 -->
+  <div id="panel-base" class="tab-panel">
+    <div class="config-panel">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>参数键</th>
+            <th>参数名称</th>
+            <th>参数值</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="base-tbody"></tbody>
+      </table>
+      <div class="pagination" id="base-pagination"></div>
+    </div>
+  </div>
+
+  <!-- 事件管理设置 -->
+  <div id="panel-event" class="tab-panel" style="display:none">
+    <div class="config-panel">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>参数键</th>
+            <th>参数名称</th>
+            <th>参数值</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="event-tbody"></tbody>
+      </table>
+      <div class="pagination" id="event-pagination"></div>
+    </div>
+  </div>
+
+  <!-- 积分设置 -->
+  <div id="panel-points" class="tab-panel" style="display:none">
+    <div class="config-panel">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>参数键</th>
+            <th>参数名称</th>
+            <th>参数值</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="points-tbody"></tbody>
+      </table>
+      <div class="pagination" id="points-pagination"></div>
+    </div>
+  </div>
+
+  <!-- 文件上传设置 -->
+  <div id="panel-upload" class="tab-panel" style="display:none">
+    <div class="config-panel">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>参数键</th>
+            <th>参数名称</th>
+            <th>参数值</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="upload-tbody"></tbody>
+      </table>
+      <div class="pagination" id="upload-pagination"></div>
+    </div>
+  </div>
+</div>
+<script src="../js/admin.js"></script>
+
+<!-- 编辑系统参数弹窗 -->
+<div class="modal-overlay" id="editConfigModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>编辑系统参数</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editConfigModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>参数名称</label>
+        <input type="text" name="config_name" class="form-input" value="系统名称" readonly autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>参数键</label>
+        <input type="text" name="config_key" class="form-input" value="system_name" readonly autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label>参数值</label>
+        <input type="text" name="config_value" class="form-input" value="数字乡村（村级版）" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editConfigModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('editConfigModal');showToast('参数已更新','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var configData = {
+  base: [
+    ['system_name', '系统名称', '数字乡村（村级版）'],
+    ['village_name', '村庄名称', '幸福村'],
+    ['refresh_interval', '大屏刷新间隔', '300秒'],
+    ['carousel_enabled', '大屏轮播', '开启'],
+    ['carousel_interval', '轮播间隔', '30秒'],
+    ['sys_logo', '系统LOGO', '默认图标'],
+    ['home_title', '首页标题', '数字乡村 · 幸福村'],
+    ['sys_version', '系统版本', 'V1.2.0'],
+    ['icp_number', '备案号', '赣ICP备2026xxxx号'],
+    ['default_language', '默认语言', '简体中文'],
+    ['timezone', '时区', 'Asia/Shanghai'],
+    ['date_format', '日期格式', 'YYYY-MM-DD'],
+    ['theme_color', '主题色', '生态绿'],
+    ['login_timeout', '登录有效期', '120分钟'],
+    ['session_timeout', '会话超时', '30分钟'],
+    ['captcha_enabled', '验证码开关', '开启'],
+    ['sso_enabled', '单点登录', '关闭'],
+    ['watermark_enabled', '页面水印', '开启'],
+    ['register_enabled', '注册开关', '开启'],
+    ['guest_enabled', '游客访问', '关闭'],
+    ['pwd_complexity', '密码复杂度', '中等级'],
+    ['pwd_valid_days', '密码有效期', '180天'],
+    ['login_fail_limit', '登录失败次数', '5次'],
+    ['data_retention', '数据保留天数', '365天'],
+    ['api_timeout', '接口超时', '10秒']
+  ],
+  event: [
+    ['event_auto_close_days', '自动关闭天数', '7天'],
+    ['event_max_handle_hours', '最大处理时长', '48小时'],
+    ['event_priority_level', '事件优先级', '高/中/低'],
+    ['event_remind_enabled', '催办提醒', '开启'],
+    ['event_escalate_enabled', '超时升级', '开启'],
+    ['event_category', '事件分类', '环境卫生/矛盾调解/公共设施/安全隐患/其他'],
+    ['event_handle_limit', '处理时限', '24小时'],
+    ['event_reply_required', '回复要求', '必须回复'],
+    ['event_satisfaction', '满意度调查', '开启'],
+    ['event_export_enabled', '事件导出', '开启'],
+    ['event_notify_way', '通知方式', '站内+短信'],
+    ['event_grid_scope', '网格事件范围', '本网格'],
+    ['event_report_level', '上报层级', '村→乡'],
+    ['event_dedup_enabled', '重复事件去重', '开启'],
+    ['event_attach_size', '事件附件大小', '10MB'],
+    ['event_img_count', '事件图片数量', '9张'],
+    ['event_status_flow', '状态流转', '待处理→处理中→已办结'],
+    ['event_tags_enabled', '事件标签', '开启'],
+    ['event_key_mark', '重点事件标记', '开启'],
+    ['event_stat_cycle', '统计周期', '月度'],
+    ['event_remind_times', '提醒次数', '3次'],
+    ['event_archive_days', '归档天数', '30天'],
+    ['event_owner_required', '责任人必填', '是'],
+    ['event_sync_enabled', '事件同步', '开启'],
+    ['event_data_retention', '事件数据保留', '3年']
+  ],
+  points: [
+    ['points_exchange_rate', '兑换比例', '1:1'],
+    ['points_max_per_month', '月加分上限', '200'],
+    ['points_activity', '参与活动', '10分/次'],
+    ['points_volunteer', '志愿服务', '15分/次'],
+    ['points_three_bags', '门前三包', '5分/周'],
+    ['points_garbage', '垃圾分类', '5分/次'],
+    ['points_good_deed', '好人好事', '20分/次'],
+    ['points_report_clue', '举报线索', '10分/次'],
+    ['points_suggestion', '意见建议', '5分/次'],
+    ['points_neighbor_help', '邻里互助', '8分/次'],
+    ['points_reading', '阅读学习', '3分/次'],
+    ['points_exercise', '体育锻炼', '2分/次'],
+    ['points_min_exchange', '积分起兑', '100分'],
+    ['points_daily_sign', '每日签到', '1分/天'],
+    ['points_invite', '邀请注册', '20分/人'],
+    ['points_clear_enabled', '积分清零', '年末清零'],
+    ['points_expire_days', '过期天数', '365天'],
+    ['points_shop_enabled', '积分商城', '开启'],
+    ['points_exchange_audit', '兑换审核', '人工审核'],
+    ['points_warn_enabled', '积分预警', '开启'],
+    ['points_rank_enabled', '积分排行', '开启'],
+    ['points_negative_limit', '负分限制', '-50分'],
+    ['points_exchange_limit', '兑换次数', '10次/月'],
+    ['points_detail_retention', '明细保留', '2年'],
+    ['points_rule_version', '规则版本', 'V3']
+  ],
+  upload: [
+    ['upload_max_size_mb', '文件大小限制', '20MB'],
+    ['upload_max_count', '上传数量限制', '10'],
+    ['upload_allowed_types', '允许文件类型', 'jpg, png, pdf, doc, docx, xls, xlsx'],
+    ['upload_img_size', '图片大小限制', '5MB'],
+    ['upload_img_types', '图片格式', 'jpg, png, gif, webp'],
+    ['upload_video_size', '视频大小限制', '50MB'],
+    ['upload_video_types', '视频格式', 'mp4, mov, avi'],
+    ['upload_compress_enabled', '图片压缩', '开启'],
+    ['upload_compress_ratio', '压缩比例', '70%'],
+    ['upload_video_transcode', '视频转码', '关闭'],
+    ['upload_concurrent', '上传并发', '5'],
+    ['upload_resume_enabled', '断点续传', '开启'],
+    ['upload_oss_enabled', '直传OSS', '关闭'],
+    ['upload_preview_enabled', '在线预览', '开启'],
+    ['upload_download_auth', '下载权限', '登录可见'],
+    ['upload_attach_limit', '附件数量', '10个'],
+    ['upload_avatar_size', '头像大小', '2MB'],
+    ['upload_avatar_types', '头像格式', 'jpg, png'],
+    ['upload_doc_size', '文档大小', '20MB'],
+    ['upload_doc_types', '文档格式', 'pdf, doc, docx, xls, xlsx, ppt'],
+    ['upload_batch_enabled', '批量上传', '开启'],
+    ['upload_dir_rule', '上传目录', '按日期分目录'],
+    ['upload_naming_rule', '文件命名', '时间戳+随机'],
+    ['upload_watermark', '水印开关', '关闭'],
+    ['upload_storage_limit', '存储空间', '100GB']
+  ]
+};
+var configPage = { base: 1, event: 1, points: 1, upload: 1 };
+var configPageSize = 10;
+
+function renderConfigTable(tab, page) {
+  configPage[tab] = page;
+  var data = configData[tab];
+  var totalPages = Math.max(1, Math.ceil(data.length / configPageSize));
+  if (page > totalPages) { configPage[tab] = totalPages; page = totalPages; }
+  var start = (page - 1) * configPageSize;
+  var pageData = data.slice(start, start + configPageSize);
+
+  var html = '';
+  pageData.forEach(function (row) {
+    html += '<tr data-key="' + row[0] + '" data-name="' + row[1] + '" data-value="' + row[2] + '">' +
+      '<td class="config-key">' + row[0] + '</td>' +
+      '<td>' + row[1] + '</td>' +
+      '<td>' + row[2] + '</td>' +
+      '<td class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="openModal(\'editConfigModal\');fillConfigEdit(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></td>' +
+      '</tr>';
+  });
+  document.getElementById(tab + '-tbody').innerHTML = html;
+  renderConfigPagination(tab, page, totalPages);
+}
+
+function renderConfigPagination(tab, page, totalPages) {
+  var box = document.getElementById(tab + '-pagination');
+  if (!box) return;
+  var html = '<span class="page-total">共 ' + configData[tab].length + ' 条记录，每页 ' + configPageSize + ' 条</span>';
+  html += '<div class="page-btns">';
+  html += '<button type="button" class="page-btn' + (page <= 1 ? ' disabled' : '') + '" onclick="renderConfigTable(\'' + tab + '\',' + (page - 1) + ')">&laquo; 上一页</button>';
+  for (var i = 1; i <= totalPages; i++) {
+    html += '<button type="button" class="page-btn' + (i === page ? ' active' : '') + '" onclick="renderConfigTable(\'' + tab + '\',' + i + ')">' + i + '</button>';
+  }
+  html += '<button type="button" class="page-btn' + (page >= totalPages ? ' disabled' : '') + '" onclick="renderConfigTable(\'' + tab + '\',' + (page + 1) + ')">下一页 &raquo;</button>';
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+function switchConfigTab(tab) {
+  document.querySelectorAll('.tab-bar .tab-item').forEach(function (el) {
+    el.classList.remove('active');
+    el.setAttribute('aria-selected', 'false');
+  });
+  var activeTab = document.querySelector('.tab-bar .tab-item[data-tab="' + tab + '"]');
+  if (activeTab) {
+    activeTab.classList.add('active');
+    activeTab.setAttribute('aria-selected', 'true');
+  }
+  document.querySelectorAll('.tab-panel').forEach(function (el) { el.style.display = 'none'; });
+  var panel = document.getElementById('panel-' + tab);
+  if (panel) panel.style.display = '';
+}
+
+function fillConfigEdit(btn) {
+  var row = btn.closest('tr');
+  var modal = document.getElementById('editConfigModal');
+  if (!row || !modal) return;
+  var inputs = modal.querySelectorAll('.form-input');
+  if (inputs[0]) inputs[0].value = row.dataset.name || '';
+  if (inputs[1]) inputs[1].value = row.dataset.key || '';
+  if (inputs[2]) inputs[2].value = row.dataset.value || '';
+}
+
+['base', 'event', 'points', 'upload'].forEach(function (tab) { renderConfigTable(tab, 1); });
+</script>
+
+</body>
+</html>

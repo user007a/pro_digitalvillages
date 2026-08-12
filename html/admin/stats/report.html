@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据统计与报表</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../shared/js/echarts.min.js"></script>
+  <style>
+    .report-layout { display: flex; gap: 16px; }
+    .report-main { flex: 1; min-width: 0; }
+    .report-chart-area { display: flex; gap: 16px; flex-wrap: wrap; }
+    .report-chart-left { flex: 1; min-width: 400px; }
+    .report-chart-right { flex: 1; min-width: 400px; }
+    .report-data-table th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; padding: 8px 10px; }
+    .report-data-table td { font-size: 14px; padding: 8px 10px; }
+    .report-data-table .col-num { text-align: right; }
+    .report-data-table tfoot { font-weight: 600; border-top: 2px solid var(--color-neutral-200); }
+    .date-range-group { display: flex; align-items: center; gap: 8px; }
+    .filter-bar-actions { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body data-page-title="数据统计与报表" data-page-subtitle="乡村振兴数字平台 · 后台管理" data-no-pg-toolbar>
+<div class="admin-page">
+  <!-- 5个维度统计卡片 -->
+  <div class="stat-cards cols-5">
+    <div class="dimension-card dim-green">
+      <div class="dim-title">产业兴旺</div>
+      <div class="dim-value">1,286万</div>
+      <div class="dim-sub">产业总数 6 个</div>
+      <div class="dim-trend">+8.5%</div>
+    </div>
+    <div class="dimension-card dim-cyan">
+      <div class="dim-title">生态宜居</div>
+      <div class="dim-value">85.7%</div>
+      <div class="dim-sub">事件处置率</div>
+      <div class="dim-trend">同比 +3.2%</div>
+    </div>
+    <div class="dimension-card dim-orange">
+      <div class="dim-title">乡风文明</div>
+      <div class="dim-value">72%</div>
+      <div class="dim-sub">参与率 / 兑换率 65%</div>
+      <div class="dim-trend">+5.0%</div>
+    </div>
+    <div class="dimension-card dim-blue">
+      <div class="dim-title">治理有效</div>
+      <div class="dim-value">88.9%</div>
+      <div class="dim-sub">处置率 / 平均时长 18h</div>
+      <div class="dim-trend">+2.1%</div>
+    </div>
+    <div class="dimension-card dim-purple">
+      <div class="dim-title">生活富裕</div>
+      <div class="dim-value">28,600元</div>
+      <div class="dim-sub">人均收入 / 参保率 92%</div>
+      <div class="dim-trend">+6.8%</div>
+    </div>
+  </div>
+
+  <!-- 筛选区 -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>时间范围</label>
+      <div class="date-range-group">
+        <input type="date" class="form-input"> <span>至</span> <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>所属组</label>
+      <select class="form-select">
+        <option value="">全部</option>
+        <option>第一组</option>
+        <option>第二组</option>
+        <option>第三组</option>
+        <option>第四组</option>
+      </select>
+    </div>
+    <div class="filter-item filter-bar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('exportReportModal')"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出当前维度</button>
+      <button class="btn btn-sm" onclick="openModal('exportReportModal')"><iconify-icon icon="ri:file-download-line"></iconify-icon> 导出全维度汇总</button>
+    </div>
+  </div>
+
+  <!-- Tab切换 -->
+  <div class="tab-bar">
+    <div class="tab-item active">产业兴旺</div>
+    <div class="tab-item">乡风文明</div>
+    <div class="tab-item">治理有效</div>
+  </div>
+
+  <!-- 详细数据区（两列） -->
+  <div class="report-chart-area">
+    <!-- 左侧图表区 -->
+    <div class="report-chart-left">
+      <div class="detail-card">
+        <h4>各产业产值分布（万元）</h4>
+        <div id="chartBar" style="width:100%;height:320px;"></div>
+      </div>
+    </div>
+
+    <!-- 右侧数据表格 -->
+    <div class="report-chart-right">
+      <div class="detail-card">
+        <h4>产业数据明细</h4>
+        <table class="report-data-table">
+          <thead>
+            <tr>
+              <th>产业名称</th>
+              <th class="col-num">产值(万)</th>
+              <th class="col-num">从业人数</th>
+              <th>同比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>幸福种植合作社</td>
+              <td class="col-num">320</td>
+              <td class="col-num">45</td>
+              <td><span class="text-green">+12.3%</span></td>
+            </tr>
+            <tr>
+              <td>兴旺养殖场</td>
+              <td class="col-num">280</td>
+              <td class="col-num">30</td>
+              <td><span class="text-green">+5.6%</span></td>
+            </tr>
+            <tr>
+              <td>绿水农产品加工厂</td>
+              <td class="col-num">260</td>
+              <td class="col-num">80</td>
+              <td><span class="text-green">+8.2%</span></td>
+            </tr>
+            <tr>
+              <td>田园家庭农场</td>
+              <td class="col-num">150</td>
+              <td class="col-num">18</td>
+              <td><span class="text-red">-3.4%</span></td>
+            </tr>
+            <tr>
+              <td>幸福农家乐</td>
+              <td class="col-num">120</td>
+              <td class="col-num">12</td>
+              <td><span class="text-green">+15.0%</span></td>
+            </tr>
+            <tr>
+              <td>乡村优选电商服务站</td>
+              <td class="col-num">156</td>
+              <td class="col-num">25</td>
+              <td><span class="text-green">+22.1%</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>合计</td>
+              <td class="col-num">1,286</td>
+              <td class="col-num">210</td>
+              <td><span class="text-green">+8.5%</span></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div id="chartPie" style="width:100%;height:260px;margin-top:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 第二行图表区：趋势折线图 + 雷达图 -->
+  <div class="report-chart-area" style="margin-top:16px;">
+    <div class="report-chart-left">
+      <div class="detail-card">
+        <h4>近6个月产值趋势</h4>
+        <div id="chartLine" style="width:100%;height:280px;"></div>
+      </div>
+    </div>
+    <div class="report-chart-right">
+      <div class="detail-card">
+        <h4>乡村振兴五维综合评分</h4>
+        <div id="chartRadar" style="width:100%;height:280px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/admin.js"></script>
+<script>
+// 等DOM和ECharts加载完成
+document.addEventListener('DOMContentLoaded', function() {
+  initBarChart();
+  initPieChart();
+  initLineChart();
+  initRadarChart();
+});
+
+function initBarChart() {
+  var chart = echarts.init(document.getElementById('chartBar'));
+  var option = {
+    title: { text: '各产业产值分布（万元）', left: 'center', top: 5, textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-neutral-700)' } },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '3%', right: '4%', bottom: '8%', top: '15%', containLabel: true },
+    xAxis: { type: 'category', data: ['种植业', '养殖业', '加工业', '家庭农场', '服务业', '电商'], axisLabel: { fontSize: 12, color: '#6b7280' }, axisLine: { lineStyle: { color: '#e5e7eb' } }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 12, color: '#6b7280' }, splitLine: { lineStyle: { color: '#f0f2f5' } }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [{
+      type: 'bar', barWidth: '40%',
+      data: [
+        { value: 320, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#16A34A'},{offset:1,color:'#4ade80'}]) } },
+        { value: 280, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#22C55E'},{offset:1,color:'#86efac'}]) } },
+        { value: 260, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#84CC16'},{offset:1,color:'#bef264'}]) } },
+        { value: 150, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#EAB308'},{offset:1,color:'#fde047'}]) } },
+        { value: 120, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#F97316'},{offset:1,color:'#fdba74'}]) } },
+        { value: 156, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#10b981'},{offset:1,color:'#6ee7b7'}]) } }
+      ],
+      itemStyle: { borderRadius: [4,4,0,0] },
+      label: { show: true, position: 'top', fontSize: 12, fontWeight: 600, color: 'var(--color-neutral-700)' }
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+}
+
+function initPieChart() {
+  var chart = echarts.init(document.getElementById('chartPie'));
+  var option = {
+    title: { text: '产业占比分布', left: 'center', top: 5, textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-neutral-700)' } },
+    tooltip: { trigger: 'item', formatter: '{b}: {c}万 ({d}%)' },
+    legend: { bottom: 5, itemWidth: 12, itemHeight: 12, textStyle: { fontSize: 12, color: '#6b7280' } },
+    series: [{
+      type: 'pie', radius: ['40%', '65%'], center: ['50%', '48%'],
+      label: { show: true, formatter: '{d}%', fontSize: 12 },
+      data: [
+        { value: 320, name: '种植业', itemStyle: { color: '#16A34A' } },
+        { value: 280, name: '养殖业', itemStyle: { color: '#22C55E' } },
+        { value: 260, name: '加工业', itemStyle: { color: '#84CC16' } },
+        { value: 150, name: '家庭农场', itemStyle: { color: '#EAB308' } },
+        { value: 120, name: '服务业', itemStyle: { color: '#F97316' } },
+        { value: 156, name: '电商', itemStyle: { color: '#10b981' } }
+      ]
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+}
+
+function initLineChart() {
+  var chart = echarts.init(document.getElementById('chartLine'));
+  var option = {
+    title: { text: '近6个月产值趋势（万元）', left: 'center', top: 5, textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-neutral-700)' } },
+    tooltip: { trigger: 'axis' },
+    legend: { top: 30, itemWidth: 16, itemHeight: 3, textStyle: { fontSize: 12, color: '#6b7280' } },
+    grid: { left: '3%', right: '4%', bottom: '8%', top: '20%', containLabel: true },
+    xAxis: { type: 'category', boundaryGap: false, data: ['2月', '3月', '4月', '5月', '6月', '7月'], axisLabel: { fontSize: 12, color: '#6b7280' }, axisLine: { lineStyle: { color: '#e5e7eb' } }, axisTick: { show: false } },
+    yAxis: { type: 'value', axisLabel: { fontSize: 12, color: '#6b7280' }, splitLine: { lineStyle: { color: '#f0f2f5' } }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [
+      { name: '种植业', type: 'line', smooth: true, data: [260, 280, 300, 310, 315, 320], lineStyle: { color: '#16A34A', width: 2 }, itemStyle: { color: '#16A34A' }, areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(22,163,74,0.15)'},{offset:1,color:'rgba(22,163,74,0)'}]) } },
+      { name: '养殖业', type: 'line', smooth: true, data: [230, 240, 260, 265, 270, 280], lineStyle: { color: '#EAB308', width: 2 }, itemStyle: { color: '#EAB308' }, areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(234,179,8,0.15)'},{offset:1,color:'rgba(234,179,8,0)'}]) } },
+      { name: '加工业', type: 'line', smooth: true, data: [220, 225, 240, 245, 250, 260], lineStyle: { color: '#F97316', width: 2 }, itemStyle: { color: '#F97316' } }
+    ]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+}
+
+function initRadarChart() {
+  var chart = echarts.init(document.getElementById('chartRadar'));
+  var option = {
+    title: { text: '乡村振兴五维综合评分', left: 'center', top: 5, textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-neutral-700)' } },
+    tooltip: {},
+    radar: {
+      indicator: [
+        { name: '产业兴旺', max: 100 },
+        { name: '生态宜居', max: 100 },
+        { name: '乡风文明', max: 100 },
+        { name: '治理有效', max: 100 },
+        { name: '生活富裕', max: 100 }
+      ],
+      radius: '60%',
+      axisName: { color: '#6b7280', fontSize: 12 },
+      splitArea: { areaStyle: { color: ['rgba(22, 163, 74,0.05)', 'rgba(22, 163, 74,0.1)'] } },
+      axisLine: { lineStyle: { color: '#e5e7eb' } },
+      splitLine: { lineStyle: { color: '#f0f2f5' } }
+    },
+    series: [{
+      type: 'radar',
+      data: [{
+        value: [78, 86, 72, 89, 82],
+        name: '幸福村',
+        areaStyle: { color: 'rgba(22, 163, 74,0.2)' },
+        lineStyle: { color: 'var(--color-primary-600)', width: 2 },
+        itemStyle: { color: 'var(--color-primary-600)' }
+      }]
+    }]
+  };
+  chart.setOption(option);
+  window.addEventListener('resize', function() { chart.resize(); });
+}
+</script>
+
+<!-- 导出报表弹窗 -->
+<div class="modal-overlay" id="exportReportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>导出报表</h3>
+      <button type="button" class="modal-close" onclick="closeModal('exportReportModal')" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>导出范围</label>
+        <div class="checkbox-group">
+          <label class="checkbox"><input type="checkbox" checked> 产业兴旺</label>
+          <label class="checkbox"><input type="checkbox" checked> 生态宜居</label>
+          <label class="checkbox"><input type="checkbox" checked> 乡风文明</label>
+          <label class="checkbox"><input type="checkbox" checked> 治理有效</label>
+          <label class="checkbox"><input type="checkbox" checked> 生活富裕</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>时间范围</label>
+        <div class="date-range-group">
+          <input type="date" class="form-input"> <span>至</span> <input type="date" class="form-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>导出格式</label>
+        <select class="form-select">
+          <option>Excel</option>
+          <option>PDF</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>数据粒度</label>
+        <select class="form-select">
+          <option>汇总</option>
+          <option>明细</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('exportReportModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('exportReportModal');showToast('导出任务已提交','success')">开始导出</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

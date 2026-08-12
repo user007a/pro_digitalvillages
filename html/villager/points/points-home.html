@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字乡村 - 我的积分</title>
+<link rel="stylesheet" href="../css/villager.css">
+<style>
+  /* 顶部积分卡与个人中心头部同高（约129px） */
+  .points-card { padding: 18px 20px 14px; }
+  .points-card .points-label { font-size: 12px; line-height: 1.35; margin-bottom: 5px; }
+  .points-card .points-total { font-size: 24px; line-height: 1.2; margin-bottom: 5px; }
+  .points-card .points-row { padding-top: 6px; }
+  .points-card .points-row .points-change { font-size: 15px; line-height: 1.3; }
+  .points-card .points-row .points-desc { font-size: 11px; line-height: 1.4; margin-top: 1px; }
+</style>
+</head>
+<body data-end="citizen">
+<div class="phone-container">
+<header>
+  <div class="nav-bar"><div class="nav-back" aria-label="返回"></div><h1 class="nav-title">我的积分</h1><div class="nav-right"></div></div>
+</header>
+<main class="page-content"><div class="page-body" style="padding-top:0;"><div class="points-card" style="margin-top:0;"><div class="points-label">当前总积分</div><div class="points-total">280</div><div class="points-row"><div class="points-item"><div class="points-change plus">+45</div><div class="points-desc">本月获得</div></div><div class="points-item"><div class="points-change minus">-80</div><div class="points-desc">本月消费</div></div></div></div><div class="points-actions"><a href="points-mall.html" class="action-btn">积分兑换</a><a href="exchange-log.html" class="action-btn">兑换记录</a></div><div style="text-align:center;margin-bottom:16px;"><a class="link-text" onclick="showModal('积分获取规则', '1. 每日签到 +2分\n2. 参与志愿服务 +10分\n3. 参加村民会议 +5分\n4. 门前卫生达标 +3分\n5. 举报违规行为 +5分\n6. 被采纳建议 +10分')">查看积分获取规则</a></div><div style="font-size:15px;font-weight:600;color:#333;margin-bottom:8px;">近期积分变动</div><div class="points-list"><div class="points-list-item"><div class="points-date">07-01</div><div class="points-type">参加志愿服务</div><div class="points-change plus">+10</div></div><div class="points-list-item"><div class="points-date">06-28</div><div class="points-type">门前卫生达标</div><div class="points-change plus">+5</div></div><div class="points-list-item"><div class="points-date">06-25</div><div class="points-type">兑换节能灯泡</div><div class="points-change minus">-100</div></div><div class="points-list-item"><div class="points-date">06-20</div><div class="points-type">兑换金龙鱼调和油</div><div class="points-change minus">-200</div></div><div class="points-list-item"><div class="points-date">06-15</div><div class="points-type">参加村民会议</div><div class="points-change plus">+10</div></div><div class="points-list-item"><div class="points-date">06-10</div><div class="points-type">义务劳动</div><div class="points-change plus">+20</div></div><div class="points-list-item"><div class="points-date">06-05</div><div class="points-type">每日签到</div><div class="points-change plus">+2</div></div><div class="points-list-item"><div class="points-date">06-01</div><div class="points-type">举报违规行为</div><div class="points-change plus">+5</div></div><div class="points-list-item"><div class="points-date">05-28</div><div class="points-type">兑换洗衣液</div><div class="points-change minus">-50</div></div><div class="points-list-item"><div class="points-date">05-22</div><div class="points-type">参与志愿服务</div><div class="points-change plus">+10</div></div></div></div></div></main>
+<nav role="tablist">
+      <div class="tab-bar">
+        <a class="tab-item" role="tab" href="../index.html"><div class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="tab-label">首页</div></a>
+        <a class="tab-item" role="tab" href="../service/service-home.html"><div class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div class="tab-label">服务</div></a>
+        <a class="tab-item active" role="tab" aria-current="page" href="../points/points-home.html"><div class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="tab-label">积分</div></a>
+        <a class="tab-item" role="tab" href="../profile/profile.html"><div class="tab-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tab-label">我的</div></a>
+      </div>
+    </nav>
+</div>
+<script src="../js/villager.js"></script>
+</body>
+</html>

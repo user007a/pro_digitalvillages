@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>土地管理 - 村级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「运营人员」页面规范：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 分页：默认 10 条/页 + 页码数字；弹窗：白底圆角、标题 18px
+       ============================================ */
+    body { background: #f0f2f5; }
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-actions-header .header-actions { display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+
+    /* 表格底部统计 */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-page-title="土地管理" data-page-subtitle="村级土地与地块信息档案管理" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧），导出（右侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>土地管理</h2>
+        <p>村级土地资源信息管理，支持按地块名称、土地类型与状态筛选</p>
+      </div>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-panel">
+      <div class="filter-item">
+        <label for="fName">地块名称</label>
+        <input type="text" id="fName" class="form-input" placeholder="请输入地块名称…" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="fType">土地类型</label>
+        <select id="fType" class="form-select">
+          <option value="">全部</option>
+          <option>耕地</option>
+          <option>林地</option>
+          <option>宅基地</option>
+          <option>水域</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="fStatus">状态</label>
+        <select id="fStatus" class="form-select">
+          <option value="">全部</option>
+          <option>在用</option>
+          <option>闲置</option>
+          <option>流转中</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn btn-query" onclick="renderLandRows()">查 询</button>
+        <button type="button" class="btn btn-reset" onclick="resetLandFilter()">重 置</button>
+      </div>
+    </div>
+
+    <!-- 表格卡 -->
+    <div class="card">
+      <!-- 列表标题 + 新增按钮 -->
+      <div class="table-actions-header">
+        <h3>地块信息列表</h3>
+        <div class="header-actions">
+          <button type="button" class="btn btn-primary" onclick="openModal('addModal')">
+            <iconify-icon icon="ri:map-pin-2-line"></iconify-icon> 新增地块
+          </button>
+          <button type="button" class="btn btn-export" onclick="openExportModal()">
+            <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+          </button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="table-body">
+        <table class="data-table config-table">
+          <thead>
+            <tr>
+              <th>地块编号</th>
+              <th>地块名称</th>
+              <th>土地类型</th>
+              <th>面积(亩)</th>
+              <th>使用人</th>
+              <th>所属村</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="landTbody">
+            <tr data-type="耕地" data-status="在用">
+              <td class="nums">XF-T001</td>
+              <td class="town-name">蜜桔园一号地</td>
+              <td><span class="tag tag-green">耕地</span></td>
+              <td class="nums">320</td>
+              <td>李建国</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-green">在用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-type="耕地" data-status="在用">
+              <td class="nums">XF-T002</td>
+              <td class="town-name">蜜桔园二号地</td>
+              <td><span class="tag tag-green">耕地</span></td>
+              <td class="nums">280</td>
+              <td>王桂花</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-green">在用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-type="耕地" data-status="在用">
+              <td class="nums">XF-T003</td>
+              <td class="town-name">村东水稻田</td>
+              <td><span class="tag tag-green">耕地</span></td>
+              <td class="nums">260</td>
+              <td>赵铁柱</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-green">在用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-type="林地" data-status="闲置">
+              <td class="nums">XF-T004</td>
+              <td class="town-name">后山林果地</td>
+              <td><span class="tag tag-yellow">林地</span></td>
+              <td class="nums">150</td>
+              <td>孙富贵</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-yellow">闲置</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-type="水域" data-status="流转中">
+              <td class="nums">XF-T005</td>
+              <td class="town-name">幸福塘水域</td>
+              <td><span class="tag tag-blue">水域</span></td>
+              <td class="nums">60</td>
+              <td>周小敏</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-orange">流转中</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr data-type="宅基地" data-status="在用">
+              <td class="nums">XF-T006</td>
+              <td class="town-name">村南宅基地</td>
+              <td><span class="tag tag-orange">宅基地</span></td>
+              <td class="nums">45</td>
+              <td>吴德发</td>
+              <td>幸福村</td>
+              <td><span class="tag tag-green">在用</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <span class="op-divider"></span>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该地块记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- 表格底部统计 + 分页（默认 10 条/页） -->
+        <div class="table-footer">
+          <span>共 <b id="rowCount">6</b> 条记录</span>
+          <div class="pager">
+            <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+            <select class="pager-size" aria-label="每页条数">
+              <option value="10" selected>10条/页</option>
+              <option value="20">20条/页</option>
+              <option value="50">50条/页</option>
+            </select>
+            <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+            <span class="pager-nums"></span>
+            <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增弹窗 -->
+  <div class="modal-overlay" id="addModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:map-pin-2-line"></iconify-icon> 新增地块</h3>
+        <button type="button" class="modal-close" onclick="closeModal('addModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addCode"><span class="req">*</span>地块编号</label>
+              <input type="text" id="addCode" class="form-input" placeholder="请输入地块编号…" required autocomplete="off" spellcheck="false">
+            </div>
+            <div class="form-group">
+              <label for="addName"><span class="req">*</span>地块名称</label>
+              <input type="text" id="addName" class="form-input" placeholder="请输入地块名称…" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addType"><span class="req">*</span>土地类型</label>
+              <select id="addType" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>耕地</option>
+                <option>林地</option>
+                <option>宅基地</option>
+                <option>水域</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="addArea"><span class="req">*</span>面积(亩)</label>
+              <input type="number" id="addArea" class="form-input" placeholder="请输入面积…" required inputmode="numeric" min="0" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addUser"><span class="req">*</span>使用人</label>
+              <input type="text" id="addUser" class="form-input" placeholder="请输入使用人姓名…" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="addVillage"><span class="req">*</span>所属村</label>
+              <select id="addVillage" class="form-select" required>
+                <option value="">请选择…</option>
+                <option>幸福村</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="addStatus"><span class="req">*</span>状态</label>
+            <select id="addStatus" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>在用</option>
+              <option>闲置</option>
+              <option>流转中</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('addModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addModal')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查看弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-list-3-line"></iconify-icon> 地块详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">地块编号</span><span class="detail-value">XF-T001</span></div>
+          <div class="detail-item"><span class="detail-label">地块名称</span><span class="detail-value">蜜桔园一号地</span></div>
+          <div class="detail-item"><span class="detail-label">土地类型</span><span class="detail-value"><span class="tag tag-green">耕地</span></span></div>
+          <div class="detail-item"><span class="detail-label">面积(亩)</span><span class="detail-value">320</span></div>
+          <div class="detail-item"><span class="detail-label">使用人</span><span class="detail-value">李建国</span></div>
+          <div class="detail-item"><span class="detail-label">所属村</span><span class="detail-value">幸福村</span></div>
+          <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag tag-green">在用</span></span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑弹窗 -->
+  <div class="modal-overlay" id="editModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑地块</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="return false">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editCode"><span class="req">*</span>地块编号</label>
+              <input type="text" id="editCode" class="form-input" value="XF-T001" required autocomplete="off" spellcheck="false">
+            </div>
+            <div class="form-group">
+              <label for="editName"><span class="req">*</span>地块名称</label>
+              <input type="text" id="editName" class="form-input" value="蜜桔园一号地" required autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editType"><span class="req">*</span>土地类型</label>
+              <select id="editType" class="form-select" required>
+                <option selected>耕地</option>
+                <option>林地</option>
+                <option>宅基地</option>
+                <option>水域</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="editArea"><span class="req">*</span>面积(亩)</label>
+              <input type="number" id="editArea" class="form-input" value="320" required inputmode="numeric" min="0" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editUser"><span class="req">*</span>使用人</label>
+              <input type="text" id="editUser" class="form-input" value="李建国" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="editVillage"><span class="req">*</span>所属村</label>
+              <select id="editVillage" class="form-select" required>
+                <option selected>幸福村</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editStatus"><span class="req">*</span>状态</label>
+            <select id="editStatus" class="form-select" required>
+              <option selected>在用</option>
+              <option>闲置</option>
+              <option>流转中</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editModal')">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出土地数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前筛选结果导出土地资源列表。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="土地资源列表" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- 搜索筛选：地块名称 / 土地类型 / 状态 + 分页（默认 10 条/页） ---- */
+      var tbody = document.getElementById('landTbody');
+      var rowCountEl = document.getElementById('rowCount');
+      var pagerCurEl = document.querySelector('.pager-cur');
+      var pagerTotalEl = document.querySelector('.pager-total');
+      var pagerNumsEl = document.querySelector('.pager-nums');
+      var pagerPrevEl = document.querySelector('.pager-prev');
+      var pagerNextEl = document.querySelector('.pager-next');
+      var pagerSizeEl = document.querySelector('.pager-size');
+      var pageSize = 10;
+      var currentPage = 1;
+
+      function getVisibleRows() {
+        var name = document.getElementById('fName').value.trim().toLowerCase();
+        var type = document.getElementById('fType').value;
+        var status = document.getElementById('fStatus').value;
+        var out = [];
+        tbody.querySelectorAll('tr').forEach(function (row) {
+          var show = true;
+          if (name && row.cells[1].textContent.trim().toLowerCase().indexOf(name) === -1) show = false;
+          if (show && type && row.getAttribute('data-type') !== type) show = false;
+          if (show && status && row.getAttribute('data-status') !== status) show = false;
+          if (show) out.push(row);
+        });
+        return out;
+      }
+
+      function renderRows() {
+        var visible = getVisibleRows();
+        var total = visible.length;
+        var totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * pageSize;
+        tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+        for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+        rowCountEl.textContent = total;
+        pagerCurEl.textContent = currentPage;
+        pagerTotalEl.textContent = totalPages;
+        pagerPrevEl.classList.toggle('disabled', currentPage <= 1);
+        pagerNextEl.classList.toggle('disabled', currentPage >= totalPages);
+        var html = '';
+        for (var p = 1; p <= totalPages; p++) {
+          html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+        }
+        pagerNumsEl.innerHTML = html;
+      }
+
+      document.querySelector('.pager').addEventListener('click', function (e) {
+        var numBtn = e.target.closest('.pager-btn[data-page]');
+        if (numBtn) { currentPage = parseInt(numBtn.getAttribute('data-page'), 10); renderRows(); return; }
+        if (e.target.closest('.pager-prev')) { if (currentPage > 1) { currentPage--; renderRows(); } return; }
+        if (e.target.closest('.pager-next')) {
+          var tp = Math.max(1, Math.ceil(getVisibleRows().length / pageSize));
+          if (currentPage < tp) { currentPage++; renderRows(); }
+        }
+      });
+      pagerSizeEl.addEventListener('change', function () {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderRows();
+      });
+
+      window.renderLandRows = function () { currentPage = 1; renderRows(); };
+      window.resetLandFilter = function () {
+        document.getElementById('fName').value = '';
+        document.getElementById('fType').value = '';
+        document.getElementById('fStatus').value = '';
+        renderLandRows();
+      };
+
+      /* ---- 追加 19 条 Mock 数据（共 25 条，验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var names = ['蜜桔园三号地','村西稻虾田','北坡油茶地','南湾柑橘园','河滩砂土地','屋后菜园地','村口藕塘','东岭杂粮地','水库边旱地','竹林沟地','晒谷场边地','塘角洼地','田冲大丘','西埂垄田','枣树坳地','棉花田','甘蔗地','鱼塘边水田','老屋基宅地'];
+        // 土地类型与地块名称一一对应：稻虾田/水田→耕地、油茶地→林地、柑橘园→耕地、旱地→耕地、洼地→其他、藕塘/鱼塘边→水域、宅地→宅基地
+        var types = ['耕地','耕地','林地','耕地','其他','耕地','水域','耕地','耕地','林地','其他','其他','耕地','耕地','其他','耕地','耕地','水域','宅基地'];
+        var users = ['刘桂芳','赵国强','孙丽华','郑海燕','王建国','李秀兰','张明远','陈志远','王丽','周建军','吴秀英','冯志刚','褚桂兰','钱进','孙晓红','李慧敏','何建平','罗玉凤','郭大庆'];
+        var statuses = ['在用','闲置','流转中'];
+        function pad(n) { return String(n).padStart(3, '0'); }
+        var opCell =
+          '<button type="button" class="btn-op" onclick="openModal(\'viewModal\')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-edit" onclick="openModal(\'editModal\')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>' +
+          '<span class="op-divider"></span>' +
+          '<button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:\'删除确认\',message:\'确定删除该地块记录吗？删除后不可恢复。\',onConfirm:function(){showToast(\'删除成功\',\'success\')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>';
+        for (var i = 0; i < 19; i++) {
+          var type = types[i];
+          var status = statuses[i % statuses.length];
+          var typeClass = type === '耕地' ? 'green' : type === '林地' ? 'yellow' : type === '水域' ? 'blue' : 'orange';
+          var statusClass = status === '在用' ? 'green' : status === '闲置' ? 'yellow' : 'orange';
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-type', type);
+          tr.setAttribute('data-status', status);
+          tr.innerHTML =
+            '<td class="nums">XF-T' + pad(7 + i) + '</td>' +
+            '<td class="town-name">' + names[i % names.length] + '</td>' +
+            '<td><span class="tag tag-' + typeClass + '">' + type + '</span></td>' +
+            '<td class="nums">' + (25 + ((i * 23) % 300)) + '</td>' +
+            '<td>' + users[i % users.length] + '</td>' +
+            '<td>幸福村</td>' +
+            '<td><span class="tag tag-' + statusClass + '">' + status + '</span></td>' +
+            '<td class="op-cell">' + opCell + '</td>';
+          tbody.appendChild(tr);
+        }
+      })();
+
+      renderRows();
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () { openModal('exportModal'); };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '土地资源列表';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+    })();
+  </script>
+</body>
+</html>

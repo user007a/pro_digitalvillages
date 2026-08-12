@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>党建管理 - 乡级管理</title>
+  <link rel="stylesheet" href="../../css/admin.css">
+  <!-- 本页样式：对齐「南丰蜜桔监测数据页」——标题/副标题字号、Tab、表格、分页、页面边距，
+       并美化弹窗、党委班子列表加入照片。 -->
+  <style>
+    /* ========== 页面容器与页头（对齐监测数据页：padding 24px / h1 20px / p 14px） ========== */
+    .dv-page { padding: 24px; box-sizing: border-box; }
+    .dv-page-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 16px; margin-bottom: 24px; text-align: left; }
+    .dv-page-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; align-items: flex-start; }
+    .dv-page-header h2 { font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; margin: 0; text-align: left; }
+    .dv-page-header .text-muted { font-size: 14px; color: #6b7280; margin: 0; text-align: left; }
+
+    /* ========== Tab（对齐监测数据页：白卡圆角 + 轻阴影，激活绿色下划线） ========== */
+    .dv-tabbar { border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 0 8px; margin-bottom: 16px; }
+    .dv-tabbar .tab-item { padding: 16px 16px; margin-right: 24px; font-size: 14px; color: #6b7280; text-align: left; }
+    .dv-tabbar .tab-item:hover { color: #374151; }
+    .dv-tabbar .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* ========== 搜索筛选区（白卡 + 紧凑控件，对齐监测数据页） ========== */
+    .dv-filter { background: #fff; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03); padding: 14px 20px; margin-bottom: 16px; }
+
+    /* ========== 数据列表卡片：标题行（标题左 + 新增按钮右） + 表格 + 分页 ========== */
+    .table-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+    .table-card .table-actions-header { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .table-card .table-title { font-size: 15px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; text-align: left; margin: 0; }
+    .table-card .table-title iconify-icon { font-size: 16px; color: #16a34a; }
+    .table-card .table-actions-header .btn { height: 32px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
+
+    /* ========== 表格（对齐监测数据页：表头 text-xs / 数据 text-sm / px-4 py-3） ========== */
+    .data-table thead th { padding: 12px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; background: #f9fafb; color: #6b7280; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+
+    /* 表格图片缩略图 / 头像 */
+    .thumb-img { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #eef0f3; display: inline-block; vertical-align: middle; background: #f9fafb; }
+    .thumb-img-lg { width: 96px; height: 64px; }
+    .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-block; vertical-align: middle; border: 1px solid #eef0f3; background: #f9fafb; }
+    .avatar-img-lg { width: 72px; height: 72px; }
+
+    /* ========== 分页（对齐监测数据页：text-xs / 上分隔线） ========== */
+    .table-card .pagination { border: none; box-shadow: none; border-radius: 0 0 12px 12px; border-top: 1px solid #f0f2f5; margin: 0; padding: 12px 20px; }
+    .pagination.pg-pager .page-total { font-size: 12px; color: #6b7280; }
+    .pagination.pg-pager .page-size-select { height: 30px; font-size: 12px; }
+    .pagination.pg-pager .page-btn { height: 30px; font-size: 12px; }
+
+    /* ========== 弹窗美化（对齐监测数据页：圆角 12px / 头部图标 / footer 灰底） ========== */
+    .modal-overlay { padding: 16px; }
+    .modal-overlay .modal { border-radius: 12px; border: 1px solid #eef0f3; box-shadow: 0 20px 45px rgba(0,0,0,0.18); overflow: hidden; }
+    .modal-overlay:not(.detail-modal) .modal-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eef0f3; }
+    .modal-overlay:not(.detail-modal) .modal-header::before { display: none; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 { padding-left: 0; display: flex; align-items: center; gap: 8px; font-size: 16px; text-align: left; }
+    .modal-overlay:not(.detail-modal) .modal-header h3 iconify-icon { font-size: 18px; color: #16a34a; }
+    .modal-overlay:not(.detail-modal) .modal-close { width: 32px; height: 32px; border-radius: 8px; color: #6b7280; font-size: 22px; }
+    .modal-overlay:not(.detail-modal) .modal-close:hover { background: #f3f4f6; color: #111827; }
+    .modal-overlay .modal-body { padding: 24px; }
+    .modal-overlay .modal-footer { background: #fafafa; border-top: 1px solid #eef0f3; padding: 14px 24px; }
+    .modal-overlay .modal-footer .btn { height: 34px; padding: 0 20px; font-size: 13px; min-width: 88px; }
+    /* 详情弹窗（绿色渐变头）内部图标颜色 */
+    .detail-modal .modal-header h3 { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .detail-modal .modal-header h3 iconify-icon { font-size: 18px; }
+    /* 确认删除弹窗 */
+    .confirm-modal .modal { max-width: 420px; }
+    .confirm-modal .confirm-icon { border-radius: 50%; background: #fef2f2; color: #dc2626; }
+
+    @media (max-width: 768px) {
+      .dv-page-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+  <script src="../../../shared/js/icons-local.js"></script>
+  <script src="../../../shared/js/iconify-icon.min.js"></script>
+  <script src="../../../shared/js/export-helper.js"></script>
+</head>
+<body style="background:#f0f2f5" data-page-title="党建管理" data-page-subtitle="党组织、党委班子、会议与三会一课管理">
+
+<div class="dv-page">
+
+  <!-- 页面头部区域 -->
+  <div class="page-header dv-page-header">
+    <div class="dv-page-title">
+      <h2>党建管理</h2>
+      <span class="text-muted">党组织、党委班子、党委会议与三会一课统一管理</span>
+    </div>
+  </div>
+
+  <!-- Tab 切换：党组织管理 → 党委班子 → 党委会议 → 三会一课 -->
+  <div class="tab-bar dv-tabbar" id="partyTabs">
+    <div class="tab-item active" onclick="switchPartyTab(this)" data-tab="org">党组织管理</div>
+    <div class="tab-item" onclick="switchPartyTab(this)" data-tab="committee">党委班子</div>
+    <div class="tab-item" onclick="switchPartyTab(this)" data-tab="meeting">党委会议</div>
+    <div class="tab-item" onclick="switchPartyTab(this)" data-tab="three">三会一课</div>
+  </div>
+
+  <!-- ==================== Tab 面板：党组织管理 ==================== -->
+  <div class="tab-panel" id="tab-org">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="orgFName">组织名称</label>
+        <input type="text" id="orgFName" name="name" class="form-input" placeholder="请输入组织名称…" style="width:180px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="orgFType">组织类型</label>
+        <select id="orgFType" name="type" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>党委</option>
+          <option>党总支</option>
+          <option>党支部</option>
+          <option>党小组</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:community-line"></iconify-icon>党组织列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addOrgModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增组织</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>党组织名称</th>
+              <th>上级组织</th>
+              <th>组织类型</th>
+              <th>负责人</th>
+              <th>成立日期</th>
+              <th>党员数</th>
+              <th>联系电话</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>益农镇党委</td>
+              <td>无</td>
+              <td><span class="tag tag-blue">党委</span></td>
+              <td>李建国</td>
+              <td>1998-06-12</td>
+              <td>156</td>
+              <td>138****5678</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村党支部</td>
+              <td>益农镇党委</td>
+              <td><span class="tag tag-green">党支部</span></td>
+              <td>李建国</td>
+              <td>2000-03-01</td>
+              <td>48</td>
+              <td>138****5678</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>平安村党支部</td>
+              <td>益农镇党委</td>
+              <td><span class="tag tag-green">党支部</span></td>
+              <td>张明远</td>
+              <td>2002-09-10</td>
+              <td>42</td>
+              <td>137****7890</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>丰收村党支部</td>
+              <td>益农镇党委</td>
+              <td><span class="tag tag-green">党支部</span></td>
+              <td>孙志强</td>
+              <td>2005-04-20</td>
+              <td>36</td>
+              <td>188****2345</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>益农镇机关党支部</td>
+              <td>益农镇党委</td>
+              <td><span class="tag tag-green">党支部</span></td>
+              <td>陈丽华</td>
+              <td>2010-01-15</td>
+              <td>30</td>
+              <td>136****8901</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村第一党小组</td>
+              <td>幸福村党支部</td>
+              <td><span class="tag tag-orange">党小组</span></td>
+              <td>赵卫国</td>
+              <td>2018-05-08</td>
+              <td>12</td>
+              <td>135****9012</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewOrgModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editOrgModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该党组织吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 2 页，共 12 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：党委班子 ==================== -->
+  <div class="tab-panel" id="tab-committee" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="comFName">姓名</label>
+        <input type="text" id="comFName" name="name" class="form-input" placeholder="请输入姓名…" style="width:120px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="comFPost">党内职务</label>
+        <select id="comFPost" name="post" class="form-select" style="width:140px">
+          <option value="">全部</option>
+          <option>书记</option>
+          <option>副书记</option>
+          <option>委员</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="comFStatus">状态</label>
+        <select id="comFStatus" name="status" class="form-select" style="width:100px">
+          <option value="">全部</option>
+          <option>在任</option>
+          <option>离职</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:group-2-line"></iconify-icon>党委班子列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addCommitteeModal')"><iconify-icon icon="ri:user-add-line"></iconify-icon> 新增成员</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>照片</th>
+              <th>姓名</th>
+              <th>党内职务</th>
+              <th>分管工作</th>
+              <th>联系电话</th>
+              <th>任职日期</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-cadre.jpg" alt="李建国"></td>
+              <td>李建国</td>
+              <td><span class="tag tag-blue">书记</span></td>
+              <td>全面工作</td>
+              <td>138****5678</td>
+              <td>2018-03-15</td>
+              <td><span class="tag tag-green">在任</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-cadre.jpg" alt="张明远"></td>
+              <td>张明远</td>
+              <td><span class="tag tag-green">副书记</span></td>
+              <td>组织工作</td>
+              <td>137****7890</td>
+              <td>2019-07-01</td>
+              <td><span class="tag tag-green">在任</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-villager.jpg" alt="陈丽华"></td>
+              <td>陈丽华</td>
+              <td><span class="tag tag-orange">委员</span></td>
+              <td>宣传工作</td>
+              <td>136****8901</td>
+              <td>2020-09-10</td>
+              <td><span class="tag tag-green">在任</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-cadre.jpg" alt="孙志强"></td>
+              <td>孙志强</td>
+              <td><span class="tag tag-orange">委员</span></td>
+              <td>纪检工作</td>
+              <td>188****2345</td>
+              <td>2021-04-20</td>
+              <td><span class="tag tag-green">在任</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-villager.jpg" alt="王秀英"></td>
+              <td>王秀英</td>
+              <td><span class="tag tag-orange">委员</span></td>
+              <td>群团工作</td>
+              <td>139****6789</td>
+              <td>2022-06-01</td>
+              <td><span class="tag tag-green">在任</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><img class="avatar-img" src="../../../images/avatar-cadre.jpg" alt="赵卫国"></td>
+              <td>赵卫国</td>
+              <td><span class="tag tag-orange">委员</span></td>
+              <td>统战工作</td>
+              <td>135****9012</td>
+              <td>2017-11-08</td>
+              <td><span class="tag tag-gray">离职</span></td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewCommitteeModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editCommitteeModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该成员记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 1 页，共 8 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next disabled">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：党委会议 ==================== -->
+  <div class="tab-panel" id="tab-meeting" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="meetFTopic">会议主题</label>
+        <input type="text" id="meetFTopic" name="topic" class="form-input" placeholder="请输入会议主题…" style="width:200px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="meetFDateFrom">会议时间</label>
+        <input type="date" id="meetFDateFrom" name="dateFrom" class="form-input" style="width:140px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="meetFDateTo">至</label>
+        <input type="date" id="meetFDateTo" name="dateTo" class="form-input" style="width:140px" autocomplete="off">
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:calendar-event-line"></iconify-icon>党委会议列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addMeetingModal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增会议</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>会议主题</th>
+              <th>会议时间</th>
+              <th>会议地点</th>
+              <th>主持人</th>
+              <th>参会人员</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>益农镇党委7月份党委会</td>
+              <td>2026-07-05 09:00</td>
+              <td>镇党委会议室</td>
+              <td>李建国</td>
+              <td>李建国、张明远、陈丽华 等 8 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>"七一"建党节座谈会</td>
+              <td>2026-07-01 14:30</td>
+              <td>镇大礼堂</td>
+              <td>李建国</td>
+              <td>李建国、王秀英、孙志强 等 40 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>幸福村党支部7月份支委会</td>
+              <td>2026-07-10 15:00</td>
+              <td>幸福村村委会</td>
+              <td>李建国</td>
+              <td>李建国、赵卫国 等 5 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>平安村党支部8月份党员大会</td>
+              <td>2026-08-05 09:30</td>
+              <td>平安村村委会</td>
+              <td>张明远</td>
+              <td>张明远、王秀英 等 42 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>2026年第二季度党建工作总结会</td>
+              <td>2026-07-20 14:00</td>
+              <td>镇党委会议室</td>
+              <td>李建国</td>
+              <td>李建国、孙志强、陈丽华 等 12 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>丰收村党支部8月份支委会</td>
+              <td>2026-08-08 10:00</td>
+              <td>丰收村村委会</td>
+              <td>孙志强</td>
+              <td>孙志强、周小燕 等 5 人</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeetingModal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeetingModal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该会议记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 4 页，共 24 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 面板：三会一课 ==================== -->
+  <div class="tab-panel" id="tab-three" style="display:none">
+
+    <!-- 搜索筛选区 -->
+    <div class="search-filter dv-filter">
+      <div class="filter-item">
+        <label for="m3FType">会议类型</label>
+        <select id="m3FType" name="type" class="form-select" style="width:160px">
+          <option value="">全部</option>
+          <option>支部党员大会</option>
+          <option>支委会</option>
+          <option>党小组会</option>
+          <option>党课</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="m3FDateFrom">会议时间</label>
+        <input type="date" id="m3FDateFrom" name="dateFrom" class="form-input" style="width:140px" autocomplete="off">
+      </div>
+      <div class="filter-item">
+        <label for="m3FDateTo">至</label>
+        <input type="date" id="m3FDateTo" name="dateTo" class="form-input" style="width:140px" autocomplete="off">
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="showToast('查询完成', 'success')">查 询</button>
+        <button class="btn btn-search-reset">重 置</button>
+      </div>
+    </div>
+
+    <!-- 数据列表 -->
+    <div class="card table-card">
+      <div class="table-actions-header">
+        <h3 class="table-title"><iconify-icon icon="ri:calendar-check-line"></iconify-icon>三会一课列表</h3>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('addMeeting3Modal')"><iconify-icon icon="ri:add-line"></iconify-icon> 新增记录</button>
+          <button type="button" class="btn btn-outline btn-export"><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>会议类型</th>
+              <th>会议主题</th>
+              <th>会议时间</th>
+              <th>主持人</th>
+              <th>参会人数</th>
+              <th>应到人数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-blue">支部党员大会</span></td>
+              <td>幸福村7月份支部党员大会</td>
+              <td>2026-07-10 09:00</td>
+              <td>李建国</td>
+              <td>45</td>
+              <td>48</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-green">支委会</span></td>
+              <td>平安村7月份支委会</td>
+              <td>2026-07-15 14:30</td>
+              <td>张明远</td>
+              <td>5</td>
+              <td>5</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-orange">党小组会</span></td>
+              <td>幸福村第一党小组学习会</td>
+              <td>2026-07-20 19:00</td>
+              <td>赵卫国</td>
+              <td>11</td>
+              <td>12</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gray">党课</span></td>
+              <td>《习近平谈治国理政》第四卷专题党课</td>
+              <td>2026-07-25 15:00</td>
+              <td>李建国</td>
+              <td>40</td>
+              <td>48</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">支部党员大会</span></td>
+              <td>丰收村8月份支部党员大会</td>
+              <td>2026-08-05 09:00</td>
+              <td>孙志强</td>
+              <td>34</td>
+              <td>36</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-green">支委会</span></td>
+              <td>益农镇机关党支部8月份支委会</td>
+              <td>2026-08-08 14:00</td>
+              <td>陈丽华</td>
+              <td>5</td>
+              <td>5</td>
+              <td class="op-cell">
+                <button type="button" class="btn-op" onclick="openModal('viewMeeting3Modal')"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                <button type="button" class="btn-op btn-op-edit" onclick="openModal('editMeeting3Modal')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button>
+                <button type="button" class="btn-op btn-op-danger" onclick="showConfirm({title:'删除确认',message:'确定删除该记录吗？删除后不可恢复。',onConfirm:function(){showToast('删除成功','success')}})"><iconify-icon icon="ri:delete-bin-line"></iconify-icon>删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination pg-pager">
+        <span class="page-total">第 1 / 5 页，共 32 条</span>
+        <div class="page-btns">
+          <select class="page-size-select" aria-label="每页条数">
+            <option>20条/页</option>
+            <option>50条/页</option>
+            <option>100条/页</option>
+          </select>
+          <button type="button" class="page-btn pg-prev disabled">&laquo; 上一页</button>
+          <button type="button" class="page-btn pg-next">下一页 &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== 弹窗：党组织管理 ==================== -->
+
+<!-- 新增组织弹窗 -->
+<div class="modal-overlay" id="addOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:community-line"></iconify-icon>新增党组织</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="orgForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="orgName"><span class="req">*</span>党组织名称</label>
+          <input type="text" id="orgName" name="orgName" class="form-input" placeholder="请输入党组织名称…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="orgParent">上级组织</label>
+            <select id="orgParent" name="orgParent" class="form-select">
+              <option value="无">无</option>
+              <option>益农镇党委</option>
+              <option>幸福村党支部</option>
+              <option>平安村党支部</option>
+              <option>丰收村党支部</option>
+              <option>益农镇机关党支部</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="orgType"><span class="req">*</span>组织类型</label>
+            <select id="orgType" name="orgType" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>党委</option>
+              <option>党总支</option>
+              <option>党支部</option>
+              <option>党小组</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="orgLeader"><span class="req">*</span>负责人</label>
+            <input type="text" id="orgLeader" name="orgLeader" class="form-input" placeholder="请输入负责人姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="orgDate"><span class="req">*</span>成立日期</label>
+            <input type="date" id="orgDate" name="orgDate" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="orgPhone">联系电话</label>
+          <input type="tel" id="orgPhone" name="orgPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addOrgModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addOrgModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看组织弹窗 -->
+<div class="modal-overlay detail-modal" id="viewOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>党组织详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">党组织名称</span><span class="detail-value">益农镇党委</span></div>
+        <div class="detail-item"><span class="detail-label">上级组织</span><span class="detail-value">无</span></div>
+        <div class="detail-item"><span class="detail-label">组织类型</span><span class="detail-value"><span class="tag tag-blue">党委</span></span></div>
+        <div class="detail-item"><span class="detail-label">负责人</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">成立日期</span><span class="detail-value">1998-06-12</span></div>
+        <div class="detail-item"><span class="detail-label">党员数</span><span class="detail-value">156</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value">138****5678</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewOrgModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑组织弹窗 -->
+<div class="modal-overlay" id="editOrgModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑党组织</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editOrgModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editOrgName"><span class="req">*</span>党组织名称</label>
+          <input type="text" id="editOrgName" class="form-input" value="益农镇党委" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editOrgParent">上级组织</label>
+            <select id="editOrgParent" class="form-select">
+              <option value="无" selected>无</option>
+              <option>益农镇党委</option>
+              <option>幸福村党支部</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editOrgType"><span class="req">*</span>组织类型</label>
+            <select id="editOrgType" class="form-select" required>
+              <option selected>党委</option>
+              <option>党总支</option>
+              <option>党支部</option>
+              <option>党小组</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editOrgLeader"><span class="req">*</span>负责人</label>
+            <input type="text" id="editOrgLeader" class="form-input" value="李建国" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editOrgDate"><span class="req">*</span>成立日期</label>
+            <input type="date" id="editOrgDate" class="form-input" value="1998-06-12" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editOrgPhone">联系电话</label>
+          <input type="tel" id="editOrgPhone" class="form-input" value="138****5678" autocomplete="tel" inputmode="tel">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editOrgModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editOrgModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：党委班子 ==================== -->
+
+<!-- 新增成员弹窗 -->
+<div class="modal-overlay" id="addCommitteeModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:user-add-line"></iconify-icon>新增党委班子成员</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addCommitteeModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="committeeForm" onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cName"><span class="req">*</span>姓名</label>
+            <input type="text" id="cName" name="cName" class="form-input" placeholder="请输入姓名…" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="cPost"><span class="req">*</span>党内职务</label>
+            <select id="cPost" name="cPost" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>书记</option>
+              <option>副书记</option>
+              <option>委员</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cWork">分管工作</label>
+          <input type="text" id="cWork" name="cWork" class="form-input" placeholder="请输入分管工作…" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cPhone">联系电话</label>
+            <input type="tel" id="cPhone" name="cPhone" class="form-input" placeholder="请输入联系电话…" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="cDate"><span class="req">*</span>任职日期</label>
+            <input type="date" id="cDate" name="cDate" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cStatus"><span class="req">*</span>状态</label>
+          <select id="cStatus" name="cStatus" class="form-select" required>
+            <option value="在任">在任</option>
+            <option value="离职">离职</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addCommitteeModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addCommitteeModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看成员弹窗 -->
+<div class="modal-overlay detail-modal" id="viewCommitteeModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>成员详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewCommitteeModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">照片</span><span class="detail-value"><img class="avatar-img avatar-img-lg" src="../../../images/avatar-cadre.jpg" alt="李建国"></span></div>
+        <div class="detail-item"><span class="detail-label">姓名</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">党内职务</span><span class="detail-value"><span class="tag tag-blue">书记</span></span></div>
+        <div class="detail-item detail-full"><span class="detail-label">分管工作</span><span class="detail-value">全面工作</span></div>
+        <div class="detail-item"><span class="detail-label">联系电话</span><span class="detail-value">138****5678</span></div>
+        <div class="detail-item"><span class="detail-label">任职日期</span><span class="detail-value">2018-03-15</span></div>
+        <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag tag-green">在任</span></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewCommitteeModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑成员弹窗 -->
+<div class="modal-overlay" id="editCommitteeModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑党委班子成员</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editCommitteeModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editCName"><span class="req">*</span>姓名</label>
+            <input type="text" id="editCName" class="form-input" value="李建国" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="editCPost"><span class="req">*</span>党内职务</label>
+            <select id="editCPost" class="form-select" required>
+              <option selected>书记</option>
+              <option>副书记</option>
+              <option>委员</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editCWork">分管工作</label>
+          <input type="text" id="editCWork" class="form-input" value="全面工作" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editCPhone">联系电话</label>
+            <input type="tel" id="editCPhone" class="form-input" value="138****5678" autocomplete="tel" inputmode="tel">
+          </div>
+          <div class="form-group">
+            <label for="editCDate"><span class="req">*</span>任职日期</label>
+            <input type="date" id="editCDate" class="form-input" value="2018-03-15" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editCStatus"><span class="req">*</span>状态</label>
+          <select id="editCStatus" class="form-select" required>
+            <option selected>在任</option>
+            <option>离职</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editCommitteeModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editCommitteeModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：党委会议 ==================== -->
+
+<!-- 新增会议弹窗 -->
+<div class="modal-overlay" id="addMeetingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:calendar-event-line"></iconify-icon>新增会议</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addMeetingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="meetingForm" onsubmit="return false">
+        <div class="form-group">
+          <label for="meetTopic"><span class="req">*</span>会议主题</label>
+          <input type="text" id="meetTopic" name="meetTopic" class="form-input" placeholder="请输入会议主题…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="meetTime"><span class="req">*</span>会议时间</label>
+            <input type="datetime-local" id="meetTime" name="meetTime" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="meetPlace"><span class="req">*</span>会议地点</label>
+            <input type="text" id="meetPlace" name="meetPlace" class="form-input" placeholder="请输入会议地点…" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="meetHost"><span class="req">*</span>主持人</label>
+          <input type="text" id="meetHost" name="meetHost" class="form-input" placeholder="请输入主持人姓名…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="meetAttend"><span class="req">*</span>参会人员</label>
+          <input type="text" id="meetAttend" name="meetAttend" class="form-input" placeholder="多人用逗号分隔…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="meetContent"><span class="req">*</span>会议内容</label>
+          <textarea id="meetContent" name="meetContent" class="form-input" rows="4" placeholder="请输入会议内容…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="meetResolution">会议决议</label>
+          <textarea id="meetResolution" name="meetResolution" class="form-input" rows="3" placeholder="请输入会议决议…"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addMeetingModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addMeetingModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看会议弹窗 -->
+<div class="modal-overlay detail-modal" id="viewMeetingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>会议详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewMeetingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item detail-full"><span class="detail-label">会议主题</span><span class="detail-value">益农镇党委7月份党委会</span></div>
+        <div class="detail-item"><span class="detail-label">会议时间</span><span class="detail-value">2026-07-05 09:00</span></div>
+        <div class="detail-item"><span class="detail-label">会议地点</span><span class="detail-value">镇党委会议室</span></div>
+        <div class="detail-item"><span class="detail-label">主持人</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">参会人员</span><span class="detail-value">李建国、张明远、陈丽华 等 8 人</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">会议内容</span><span class="detail-value">1. 通报6月份党建工作完成情况；2. 讨论7月份党建重点工作安排；3. 研究党员发展工作。</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">会议决议</span><span class="detail-value">1. 同意7月份党建工作计划；2. 同意吸收2名预备党员。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewMeetingModal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑会议弹窗 -->
+<div class="modal-overlay" id="editMeetingModal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑会议</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editMeetingModal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-group">
+          <label for="editMeetTopic"><span class="req">*</span>会议主题</label>
+          <input type="text" id="editMeetTopic" class="form-input" value="益农镇党委7月份党委会" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editMeetTime"><span class="req">*</span>会议时间</label>
+            <input type="datetime-local" id="editMeetTime" class="form-input" value="2026-07-05T09:00" required>
+          </div>
+          <div class="form-group">
+            <label for="editMeetPlace"><span class="req">*</span>会议地点</label>
+            <input type="text" id="editMeetPlace" class="form-input" value="镇党委会议室" required autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editMeetHost"><span class="req">*</span>主持人</label>
+          <input type="text" id="editMeetHost" class="form-input" value="李建国" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editMeetAttend"><span class="req">*</span>参会人员</label>
+          <input type="text" id="editMeetAttend" class="form-input" value="李建国,张明远,陈丽华" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editMeetContent"><span class="req">*</span>会议内容</label>
+          <textarea id="editMeetContent" class="form-input" rows="4" required>1. 通报6月份党建工作完成情况；2. 讨论7月份党建重点工作安排；3. 研究党员发展工作。</textarea>
+        </div>
+        <div class="form-group">
+          <label for="editMeetResolution">会议决议</label>
+          <textarea id="editMeetResolution" class="form-input" rows="3">1. 同意7月份党建工作计划；2. 同意吸收2名预备党员。</textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editMeetingModal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editMeetingModal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：三会一课 ==================== -->
+
+<!-- 新增记录弹窗 -->
+<div class="modal-overlay" id="addMeeting3Modal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:calendar-check-line"></iconify-icon>新增三会一课记录</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addMeeting3Modal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="meeting3Form" onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="m3Type"><span class="req">*</span>会议类型</label>
+            <select id="m3Type" name="m3Type" class="form-select" required>
+              <option value="">请选择…</option>
+              <option>支部党员大会</option>
+              <option>支委会</option>
+              <option>党小组会</option>
+              <option>党课</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="m3Time"><span class="req">*</span>会议时间</label>
+            <input type="datetime-local" id="m3Time" name="m3Time" class="form-input" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="m3Topic"><span class="req">*</span>会议主题</label>
+          <input type="text" id="m3Topic" name="m3Topic" class="form-input" placeholder="请输入会议主题…" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="m3Host"><span class="req">*</span>主持人</label>
+          <input type="text" id="m3Host" name="m3Host" class="form-input" placeholder="请输入主持人姓名…" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="m3Actual"><span class="req">*</span>参会人数</label>
+            <input type="number" id="m3Actual" name="m3Actual" class="form-input" placeholder="请输入参会人数…" min="0" inputmode="numeric" required>
+          </div>
+          <div class="form-group">
+            <label for="m3Expect"><span class="req">*</span>应到人数</label>
+            <input type="number" id="m3Expect" name="m3Expect" class="form-input" placeholder="请输入应到人数…" min="0" inputmode="numeric" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="m3Content"><span class="req">*</span>会议内容</label>
+          <textarea id="m3Content" name="m3Content" class="form-input" rows="4" placeholder="请输入会议内容…" required></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('addMeeting3Modal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('addMeeting3Modal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看记录弹窗 -->
+<div class="modal-overlay detail-modal" id="viewMeeting3Modal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:eye-line"></iconify-icon>三会一课详情</h3>
+      <button type="button" class="modal-close" onclick="closeModal('viewMeeting3Modal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item"><span class="detail-label">会议类型</span><span class="detail-value"><span class="tag tag-blue">支部党员大会</span></span></div>
+        <div class="detail-item"><span class="detail-label">会议时间</span><span class="detail-value">2026-07-10 09:00</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">会议主题</span><span class="detail-value">幸福村7月份支部党员大会</span></div>
+        <div class="detail-item"><span class="detail-label">主持人</span><span class="detail-value">李建国</span></div>
+        <div class="detail-item"><span class="detail-label">参会人数</span><span class="detail-value">45</span></div>
+        <div class="detail-item"><span class="detail-label">应到人数</span><span class="detail-value">48</span></div>
+        <div class="detail-item detail-full"><span class="detail-label">会议内容</span><span class="detail-value">1. 学习《党章》；2. 通报7月份党建工作情况；3. 讨论党员发展工作；4. 部署下阶段重点任务。</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="closeModal('viewMeeting3Modal')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑记录弹窗 -->
+<div class="modal-overlay" id="editMeeting3Modal" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><iconify-icon icon="ri:edit-2-line"></iconify-icon>编辑三会一课记录</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editMeeting3Modal')" aria-label="关闭弹窗">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editM3Type"><span class="req">*</span>会议类型</label>
+            <select id="editM3Type" class="form-select" required>
+              <option selected>支部党员大会</option>
+              <option>支委会</option>
+              <option>党小组会</option>
+              <option>党课</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editM3Time"><span class="req">*</span>会议时间</label>
+            <input type="datetime-local" id="editM3Time" class="form-input" value="2026-07-10T09:00" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editM3Topic"><span class="req">*</span>会议主题</label>
+          <input type="text" id="editM3Topic" class="form-input" value="幸福村7月份支部党员大会" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="editM3Host"><span class="req">*</span>主持人</label>
+          <input type="text" id="editM3Host" class="form-input" value="李建国" required autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editM3Actual"><span class="req">*</span>参会人数</label>
+            <input type="number" id="editM3Actual" class="form-input" value="45" min="0" inputmode="numeric" required>
+          </div>
+          <div class="form-group">
+            <label for="editM3Expect"><span class="req">*</span>应到人数</label>
+            <input type="number" id="editM3Expect" class="form-input" value="48" min="0" inputmode="numeric" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editM3Content"><span class="req">*</span>会议内容</label>
+          <textarea id="editM3Content" class="form-input" rows="4" required>1. 学习《党章》；2. 通报7月份党建工作情况；3. 讨论党员发展工作；4. 部署下阶段重点任务。</textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('editMeeting3Modal')">取 消</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('保存成功','success');closeModal('editMeeting3Modal')">保 存</button>
+    </div>
+  </div>
+</div>
+
+  <script src="../../js/admin.js"></script>
+  <script>
+    function switchPartyTab(tab) {
+      document.querySelectorAll('#partyTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var key = tab.getAttribute('data-tab');
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+      var panel = document.getElementById('tab-' + key);
+      if (panel) panel.style.display = '';
+    }
+    (function () {
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#partyTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchPartyTab(t);
+      }
+    })();
+  </script>
+</body>
+</html>

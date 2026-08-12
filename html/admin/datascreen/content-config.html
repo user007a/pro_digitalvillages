@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>内容配置 - 数据大屏管理</title>
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="../css/admin.css">
+  
+  <style>
+    body { background: var(--color-neutral-100); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    /* 页头（对齐南丰监测数据页：标题横排 + 副标题描述） */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      padding: 20px 24px;
+      background: #fff;
+      border-bottom: 1px solid #eef0f3;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+    .page-header .page-header-actions { display: flex; align-items: center; gap: 8px; }
+    .page-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .config-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--color-neutral-100); }
+    .config-row:last-child { border-bottom: none; }
+    .switch { position: relative; width: 40px; height: 22px; background: var(--color-neutral-300); border-radius: 11px; cursor: pointer; transition: background 0.2s; }
+    .switch.on { background: var(--color-primary-500); }
+    .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .switch.on::after { transform: translateX(18px); }
+    .drag-handle { cursor: grab; color: var(--color-neutral-400); }
+    .tab-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--color-primary-50); color: var(--color-primary-600); border-radius: 6px; font-size: 12px; font-weight: 500; }
+    /* 大屏预览弹窗 */
+    .dash-preview { background: #0b1f2e; border-radius: 8px; overflow: hidden; color: #e2e8f0; }
+    .dp-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #123049; font-size: 13px; }
+    .dp-header .dp-time { color: #94a3b8; font-size: 12px; }
+    .dp-tabs { display: flex; gap: 18px; padding: 9px 16px; background: #0f2940; font-size: 12px; }
+    .dp-tabs span { color: #94a3b8; padding-bottom: 3px; cursor: default; }
+    .dp-tabs span.on { color: #22c55e; border-bottom: 2px solid #22c55e; font-weight: 600; }
+    .dp-body { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; padding: 12px; }
+    .dp-col { display: flex; flex-direction: column; gap: 10px; }
+    .dp-panel { background: #123049; border: 1px solid #1e3a5f; border-radius: 6px; padding: 12px; font-size: 12px; color: #94a3b8; display: flex; align-items: center; justify-content: center; min-height: 56px; }
+    .dp-panel.dp-tall { flex: 1; }
+    .dp-panel .dp-ico { font-size: 16px; margin-right: 6px; color: #22c55e; }
+    .dp-footer { display: flex; justify-content: space-between; padding: 8px 16px; background: #0f2940; font-size: 11px; color: #64748b; }
+  
+    .flex{display:flex;}
+.flex-1{flex:1 1 0%;}
+.grid{display:grid;}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.items-center{align-items:center;}
+.justify-between{justify-content:space-between;}
+.block{display:block;}
+.relative{position:relative;}
+.overflow-hidden{overflow:hidden;}
+.cursor-pointer{cursor:pointer;}
+.m-0{margin:0;}
+.p-0{padding:0;}
+.uppercase{text-transform:uppercase;}
+.transition-colors{transition:color .15s, background-color .15s, border-color .15s;}
+.text-left{text-align:left;}
+.text-right{text-align:right;}
+.m-0{margin:0;}
+.mb-2{margin-bottom:8px;}
+.mb-3{margin-bottom:12px;}
+.mb-5{margin-bottom:20px;}
+.mr-2{margin-right:8px;}
+.mt-0\.5{margin-top:2.0px;}
+.mt-1{margin-top:4px;}
+.mt-2{margin-top:8px;}
+.p-0{padding:0;}
+.p-3{padding:12px;}
+.p-4{padding:16px;}
+.p-5{padding:20px;}
+.p-6{padding:24px;}
+.pl-8{padding-left:32px;}
+.pr-3{padding-right:12px;}
+.px-3{padding-left:12px;padding-right:12px;}
+.px-4{padding-left:16px;padding-right:16px;}
+.px-5{padding-left:20px;padding-right:20px;}
+.px-6{padding-left:24px;padding-right:24px;}
+.py-1{padding-top:4px;padding-bottom:4px;}
+.py-1\.5{padding-top:6.0px;padding-bottom:6.0px;}
+.py-2{padding-top:8px;padding-bottom:8px;}
+.py-3{padding-top:12px;padding-bottom:12px;}
+.py-3\.5{padding-top:14.0px;padding-bottom:14.0px;}
+.py-4{padding-top:16px;padding-bottom:16px;}
+.gap-1{gap:4px;}
+.gap-1\.5{gap:6px;}
+.gap-2{gap:8px;}
+.gap-3{gap:12px;}
+.gap-4{gap:16px;}
+.space-y-2 > * + * {margin-top:8px;}
+.space-y-4 > * + * {margin-top:16px;}
+.bg-primary{background:var(--color-primary-500);}
+.border-primary{border-color:var(--color-primary-500);}
+.bg-gray-50{background:var(--color-neutral-50);}
+.bg-gray-100{background:var(--color-neutral-100);}
+.bg-white{background:#fff;}
+.text-white{color:#fff;}
+.text-gray-400{color:var(--color-neutral-400);}
+.text-gray-500{color:var(--color-neutral-500);}
+.text-gray-600{color:var(--color-neutral-600);}
+.text-gray-700{color:var(--color-neutral-700);}
+.text-gray-800{color:var(--color-neutral-800);}
+.text-red-500{color:var(--color-error);}
+.text-green-600{color:var(--color-success-dark);}
+.text-yellow-600{color:var(--color-accent-700);}
+.border-gray-100{border-color:var(--color-neutral-100);}
+.border-gray-200{border-color:var(--color-neutral-200);}
+.border-gray-300{border-color:var(--color-neutral-300);}
+.divide-gray-100{border-color:var(--color-neutral-100);}
+.border{border-width:1px;border-style:solid;}
+.border-2{border-width:2px;border-style:solid;}
+.border-b{border-bottom-width:1px;border-bottom-style:solid;}
+.border-t{border-top-width:1px;border-top-style:solid;}
+.rounded{border-radius:4px;}
+.rounded-lg{border-radius:8px;}
+.font-bold{font-weight:700;}
+.font-semibold{font-weight:600;}
+.font-medium{font-weight:500;}
+.text-xs{font-size:12px;}
+.text-sm{font-size:14px;}
+.text-base{font-size:16px;}
+.text-lg{font-size:18px;}
+.w-full{width:100%;}
+.w-56{width:224px;}
+.divide-y > * + * { border-top-width: 1px; border-top-style: solid; border-top-color: var(--color-neutral-100); }
+.focus\:ring-primary:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:ring-2:focus{box-shadow:0 0 0 2px var(--color-primary-100);}
+.focus\:border-transparent:focus{border-color:transparent;}
+.hover\:bg-primary-hover:hover{background:var(--color-primary-600);}
+.hover\:bg-gray-200:hover{background:var(--color-neutral-200);}
+.hover\:bg-gray-50:hover{background:var(--color-neutral-50);}
+.hover\:border-gray-300:hover{border-color:var(--color-neutral-300);}
+.hover\:text-primary:hover{color:var(--color-primary-600);}
+.hover\:text-red-500:hover{color:var(--color-error);}
+  </style>
+</head>
+<body class="m-0 p-0" data-no-pg-toolbar data-end="backend" data-page-title="内容配置" data-page-subtitle="数据大屏管理">
+
+  <!-- 页面头部 -->
+  <div class="page-header">
+    <div class="page-header-main">
+      <h2>大屏内容配置</h2>
+      <p>配置数据大屏各页展示的模块、图表和核心指标</p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn btn-outline" onclick="openModal('previewModal')"><iconify-icon icon="ri:eye-line"></iconify-icon> 预览</button>
+      <button type="button" class="btn btn-primary" onclick="openModal('saveConfigModal')"><iconify-icon icon="ri:save-line"></iconify-icon> 保存配置</button>
+    </div>
+  </div>
+
+  <!-- 内容区域 -->
+  <div class="p-6 space-y-4">
+
+    <!-- 页面管理 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <iconify-icon icon="ri:layout-grid-line" style="color: var(--color-primary-600);"></iconify-icon>
+          页面管理
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">拖拽排序各页面展示顺序，开关控制是否显示</p>
+      </div>
+      <div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-1"></iconify-icon>第 1 页</span>
+            <span class="text-sm font-medium text-gray-800">村情总览</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-2"></iconify-icon>第 2 页</span>
+            <span class="text-sm font-medium text-gray-800">产业兴旺</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-3"></iconify-icon>第 3 页</span>
+            <span class="text-sm font-medium text-gray-800">生态宜居</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-4"></iconify-icon>第 4 页</span>
+            <span class="text-sm font-medium text-gray-800">乡风文明</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-5"></iconify-icon>第 5 页</span>
+            <span class="text-sm font-medium text-gray-800">治理有效</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="ri:draggable" class="drag-handle"></iconify-icon>
+            <span class="tab-badge"><iconify-icon icon="ri:number-6"></iconify-icon>第 6 页</span>
+            <span class="text-sm font-medium text-gray-800">生活富裕</span>
+            <span class="text-xs text-gray-400">4 项指标 · 5 个面板</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="op-cell"><button type="button" class="btn-op btn-op-edit" onclick="showToast('编辑Tab配置')"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑</button></span>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero区域配置 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <iconify-icon icon="ri:image-line" style="color: var(--color-primary-600);"></iconify-icon>
+          顶部实景图配置
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">配置每个页面顶部的实景图和核心指标</p>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-2">实景图来源</label>
+            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+              <option>本地实景图（自动）</option>
+              <option>自定义上传</option>
+              <option>不显示实景图</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-2">顶部区域高度</label>
+            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+              <option>140px（推荐）</option>
+              <option>100px（紧凑）</option>
+              <option>180px（宽松）</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-2">核心指标数量</label>
+            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+              <option>4个（推荐）</option>
+              <option>3个</option>
+              <option>5个</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-2">指标数据入场动效</label>
+            <div class="flex items-center gap-3 mt-2">
+              <div class="switch" onclick="this.classList.toggle('on')"></div>
+              <span class="text-sm text-gray-600">数值淡入显示</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 面板布局配置 -->
+    <div class="page-card">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+          <iconify-icon icon="ri:layout-3-line" style="color: var(--color-primary-600);"></iconify-icon>
+          三栏面板布局
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">配置左中右三栏面板的宽度和内容</p>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <iconify-icon icon="ri:align-left" style="color: var(--color-primary-600);"></iconify-icon>
+              <span class="text-sm font-semibold text-gray-800">左栏（30%）</span>
+            </div>
+            <div class="space-y-2 text-xs text-gray-600">
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>人口结构（饼图）</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>治理指标（4卡）</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:add-circle-line" style="color: var(--color-neutral-400); font-size: 14px;"></iconify-icon>添加面板</div>
+            </div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <iconify-icon icon="ri:align-justify" style="color: var(--color-primary-600);"></iconify-icon>
+              <span class="text-sm font-semibold text-gray-800">中栏（40%）</span>
+            </div>
+            <div class="space-y-2 text-xs text-gray-600">
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>村庄电子地图</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>环境指标雷达图</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:add-circle-line" style="color: var(--color-neutral-400); font-size: 14px;"></iconify-icon>添加面板</div>
+            </div>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <iconify-icon icon="ri:align-right" style="color: var(--color-primary-600);"></iconify-icon>
+              <span class="text-sm font-semibold text-gray-800">右栏（30%）</span>
+            </div>
+            <div class="space-y-2 text-xs text-gray-600">
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>年龄段分布（柱状）</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:checkbox-circle-fill" style="color: #10b981; font-size: 14px;"></iconify-icon>主要产业产值排行（横条）</div>
+              <div class="flex items-center gap-2"><iconify-icon icon="ri:add-circle-line" style="color: var(--color-neutral-400); font-size: 14px;"></iconify-icon>添加面板</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 大屏预览弹窗 -->
+  <div class="modal-overlay" id="previewModal" aria-hidden="true">
+    <div class="modal" style="width:960px;max-width:94vw">
+      <div class="modal-header">
+        <h3>大屏预览</h3>
+        <button type="button" class="modal-close" onclick="closeModal('previewModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:16px 24px 20px;background:#f0f2f5">
+        <div class="dash-preview">
+          <div class="dp-header">
+            <span><iconify-icon icon="ri:community-line" style="margin-right:6px;color:#22c55e"></iconify-icon>幸福村 · 数字乡村数据大屏</span>
+            <span class="dp-time">2026-08-11 10:30:00</span>
+          </div>
+          <div class="dp-tabs">
+            <span class="on">村情总览</span><span>产业兴旺</span><span>生态宜居</span><span>乡风文明</span><span>治理有效</span><span>生活富裕</span>
+          </div>
+          <div class="dp-body">
+            <div class="dp-col">
+              <div class="dp-panel dp-tall"><iconify-icon icon="ri:pie-chart-2-line" class="dp-ico"></iconify-icon>人口结构 · 饼图</div>
+              <div class="dp-panel"><iconify-icon icon="ri:shield-check-line" class="dp-ico"></iconify-icon>治理指标 · 4 卡</div>
+            </div>
+            <div class="dp-col">
+              <div class="dp-panel dp-tall"><iconify-icon icon="ri:map-2-line" class="dp-ico"></iconify-icon>村庄 GIS 电子地图</div>
+              <div class="dp-panel"><iconify-icon icon="ri:radar-line" class="dp-ico"></iconify-icon>环境指标雷达图</div>
+            </div>
+            <div class="dp-col">
+              <div class="dp-panel dp-tall"><iconify-icon icon="ri:bar-chart-grouped-line" class="dp-ico"></iconify-icon>年龄段分布 · 柱状</div>
+              <div class="dp-panel"><iconify-icon icon="ri:medal-line" class="dp-ico"></iconify-icon>产业产值排行</div>
+            </div>
+          </div>
+          <div class="dp-footer">
+            <span>数据来源：村级数字乡村数据平台</span>
+            <span>1920×1080 大屏适配</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('previewModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 保存配置弹窗 -->
+  <div class="modal-overlay" id="saveConfigModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>保存配置</h3>
+        <button type="button" class="modal-close" onclick="closeModal('saveConfigModal')" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-tip">保存后将按所选方式生效于监测大屏展示。</p>
+        <form id="saveConfigForm" onsubmit="return false">
+          <div class="form-group">
+            <label>配置名称 <span style="color:#dc2626">*</span></label>
+            <input type="text" class="form-input" value="村情总览大屏配置" placeholder="请输入配置名称…" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>生效方式 <span style="color:#dc2626">*</span></label>
+            <select class="form-select">
+              <option selected>保存后立即生效</option>
+              <option>定时发布</option>
+              <option>仅保存不发布</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>配置备注</label>
+            <textarea class="form-textarea" rows="3" placeholder="选填，记录本次配置说明…" autocomplete="off"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('saveConfigModal')">取 消</button>
+        <button class="btn btn-primary" onclick="closeModal('saveConfigModal');showToast('配置已保存','success')">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    function showToast(msg, type) {
+      if (window.parent && window.parent !== window && window.parent.showToast) {
+        window.parent.showToast(msg, type || 'info');
+      } else {
+        alert(msg);
+      }
+    }
+  </script>
+</body>
+</html>

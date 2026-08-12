@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>开通审核 - 县级运营平台</title>
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../../shared/js/icons-local.js"></script>
+  <script src="../../shared/js/iconify-icon.min.js"></script>
+  <style>
+    /* ============================================
+       本页样式对齐「南丰蜜桔·病虫害模型·监测数据」页面规范（同乡村开通）：
+       - 页面内容区 24px 内边距 / 标题 20px 粗体 / 副标题 14px 灰字
+       - Tab 独立白卡（px-4 py-4 / text-sm / 激活绿色下划线加粗）
+       - 搜索筛选区白卡：控件 px-3 py-2 / border-gray-300 / rounded-lg / text-sm
+       - 表格：表头 12px 大写灰字，数据单元格 14px，行分隔线
+       - 弹窗：白底圆角、标题 18px、表单标签 13px
+       ============================================ */
+    body { background: #f0f2f5; }
+
+    .content-wrapper { padding: 24px; }
+
+    /* 页面标题区 */
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .page-header-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .page-header h2 { margin: 0; font-size: 20px; font-weight: 700; color: #1f2937; line-height: 1.4; }
+    .page-header p { margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5; }
+
+    /* 操作按钮 */
+    .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 8px; gap: 6px; }
+    .btn-export { background: #f3f4f6; border: 1px solid #e5e7eb; color: #374151; }
+    .btn-export:hover { background: #e5e7eb; border-color: #d1d5db; color: #1f2937; }
+
+    /* Tab 独立白卡 */
+    .tab-bar { margin-bottom: 24px; padding: 0 24px; border-bottom: 1px solid #f0f2f5; border-radius: 12px; background: #fff; }
+    .tab-item { padding: 16px 24px; font-size: 14px; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+    .tab-item:hover { color: #374151; }
+    .tab-item.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
+
+    /* 搜索筛选区 */
+    .filter-panel {
+      background: #fff;
+      border: 1px solid #eef0f3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px 16px;
+    }
+    .filter-panel .filter-item { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+    .filter-panel .filter-item label { font-size: 12px; font-weight: 500; color: #6b7280; white-space: nowrap; }
+    .filter-panel .filter-item .form-input,
+    .filter-panel .filter-item .form-select {
+      height: 36px;
+      font-size: 14px;
+      color: #374151;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-panel .filter-item .form-input:focus,
+    .filter-panel .filter-item .form-select:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+      outline: none;
+    }
+    .filter-panel .filter-actions { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+    .filter-panel .filter-actions .btn { height: 36px; font-size: 14px; padding: 0 16px; border-radius: 8px; }
+    .btn-query { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .btn-query:hover { background: #15803d; border-color: #15803d; color: #fff; }
+    .btn-reset { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-reset:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* 表格卡 */
+    .card { padding: 0; overflow: hidden; border: 1px solid #eef0f3; border-radius: 12px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+    .table-actions-header { padding: 16px 24px; border-bottom: 1px solid #f0f2f5; }
+    .table-actions-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .table-body { padding: 24px; overflow-x: auto; }
+
+    /* 表格 */
+    .data-table thead th { background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    .data-table tbody td { padding: 12px 16px; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+    .data-table tbody td.town-name { font-weight: 500; color: #1f2937; }
+    .data-table tbody td.reason-cell { font-size: 12px; color: #6b7280; max-width: 280px; }
+
+    /* 表格底部统计 */
+    .table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; }
+    .table-footer b { color: #374151; font-weight: 600; }
+
+    /* ---- 分页条（默认 10 条/页） ---- */
+    .pager { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pager-info { font-size: 13px; color: #6b7280; }
+    .pager-info b { color: #374151; font-weight: 600; }
+    .pager-size { height: 32px; padding: 0 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; background: #fff; cursor: pointer; }
+    .pager-size:focus { outline: none; border-color: #16a34a; }
+    .pager-btn { min-width: 32px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font-size: 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .pager-btn:hover:not(.disabled):not(.active) { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+    .pager-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .pager-btn.disabled { opacity: 0.45; cursor: not-allowed; }
+    .pager-nums { display: inline-flex; gap: 4px; }
+
+    /* 弹窗 */
+    .modal { border-radius: 12px; }
+    .modal-header { padding: 16px 24px; }
+    .modal-header h3 { font-size: 18px; font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: 8px; }
+    .modal-header h3 iconify-icon { font-size: 20px; color: #16a34a; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 14px 24px; background: #fff; }
+    .modal-body .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .modal-body .form-input,
+    .modal-body .form-select { font-size: 14px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .detail-modal .modal-header h3 { color: #fff; }
+    .detail-modal .modal-header h3 iconify-icon { color: #fff; }
+
+    /* 审核弹窗：概要信息区 + 提示条 */
+    .audit-summary { background: #f9fafb; border: 1px solid #f0f2f5; border-radius: 10px; padding: 4px 12px; margin-bottom: 20px; }
+    .audit-summary .detail-item { padding: 8px 8px; border-bottom: 1px solid #f0f2f5; }
+    .audit-summary .detail-item:last-child { border-bottom: none; }
+    .info-tip { display: flex; align-items: flex-start; gap: 6px; padding: 10px 12px; background: var(--color-primary-50); border: 1px solid var(--color-primary-200); border-radius: 8px; color: var(--color-primary-700); font-size: 13px; line-height: 1.5; }
+    .info-tip iconify-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* 导出弹窗：格式选择卡片 */
+    .export-tip { font-size: 13px; color: #6b7280; margin: 0 0 16px; line-height: 1.6; }
+    .export-formats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .format-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px; border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; text-align: center; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+    .format-card:hover { border-color: #16a34a; background: #f0fdf4; }
+    .format-card.active { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+    .format-card iconify-icon { font-size: 26px; color: #6b7280; }
+    .format-card.active iconify-icon { color: #16a34a; }
+    .format-card b { font-size: 13px; color: #1f2937; font-weight: 600; }
+    .format-card span { font-size: 11px; color: #9ca3af; }
+  </style>
+</head>
+<body style="background:#f0f2f5" data-no-pg-toolbar>
+
+  <div class="content-wrapper">
+
+    <!-- 页面标题区：标题 + 副标题（左侧），导出（右侧） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2>开通审核</h2>
+        <p>处理乡村与乡镇开通申请的审核，审计开通账号初始化与权限配置情况</p>
+      </div>
+      <button type="button" class="btn btn-export" onclick="openExportModal()">
+        <iconify-icon icon="ri:download-2-line"></iconify-icon> 导出
+      </button>
+    </div>
+
+    <!-- Tab 切换 -->
+    <div class="tab-bar" id="auditTabs">
+      <div class="tab-item active" onclick="switchAuditTab(this)" data-tab="audit">开通审核</div>
+      <div class="tab-item" onclick="switchAuditTab(this)" data-tab="check">开通审计</div>
+    </div>
+
+    <!-- Tab 面板：开通审核 -->
+    <div class="tab-panel" id="tab-audit">
+      <!-- 搜索筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-item">
+          <label for="fType">申请类型</label>
+          <select id="fType" class="form-select">
+            <option value="">全部</option>
+            <option>乡村开通</option>
+            <option>乡镇开通</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="fResult">审核结果</label>
+          <select id="fResult" class="form-select">
+            <option value="">全部</option>
+            <option>待审核</option>
+            <option>通过</option>
+            <option>驳回</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="button" class="btn btn-query" onclick="renderAuditRows()">查 询</button>
+          <button type="button" class="btn btn-reset" onclick="resetAuditFilter()">重 置</button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="card">
+        <div class="table-actions-header">
+          <h3>开通审核列表</h3>
+        </div>
+        <div class="table-body">
+          <table class="data-table config-table">
+            <thead>
+              <tr>
+                <th>关联申请</th>
+                <th>申请类型</th>
+                <th>申请人</th>
+                <th>开通对象</th>
+                <th>申请日期</th>
+                <th>审核结果</th>
+                <th>审核人</th>
+                <th>审核日期</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="auditTbody">
+              <tr data-type="乡村开通" data-result="待审核">
+                <td class="town-name">VA-2026-0001</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td>李建国</td>
+                <td>幸福村</td>
+                <td class="nums">2026-07-15</td>
+                <td><span class="tag tag-orange">待审核</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openAuditModal(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-result="通过">
+                <td class="town-name">VA-2026-0002</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td>王秀英</td>
+                <td>金桔村</td>
+                <td class="nums">2026-07-18</td>
+                <td><span class="tag tag-green">通过</span></td>
+                <td>陈丽华</td>
+                <td class="nums">2026-07-19</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-result="驳回">
+                <td class="town-name">VA-2026-0003</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td>张明远</td>
+                <td>平安村</td>
+                <td class="nums">2026-07-20</td>
+                <td><span class="tag tag-red">驳回</span></td>
+                <td>陈丽华</td>
+                <td class="nums">2026-07-21</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-result="通过">
+                <td class="town-name">TA-2026-0001</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td>陈丽华</td>
+                <td>青松乡</td>
+                <td class="nums">2026-07-16</td>
+                <td><span class="tag tag-green">通过</span></td>
+                <td>周慧敏</td>
+                <td class="nums">2026-07-17</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-result="待审核">
+                <td class="town-name">TA-2026-0002</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td>孙志强</td>
+                <td>白云镇</td>
+                <td class="nums">2026-08-02</td>
+                <td><span class="tag tag-orange">待审核</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openAuditModal(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-result="通过">
+                <td class="town-name">VA-2026-0004</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td>周慧敏</td>
+                <td>金桔村</td>
+                <td class="nums">2026-08-03</td>
+                <td><span class="tag tag-green">通过</span></td>
+                <td>周慧敏</td>
+                <td class="nums">2026-08-05</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-result="通过">
+                <td class="town-name">TA-2026-0003</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td>吴建军</td>
+                <td>红星镇</td>
+                <td class="nums">2026-08-06</td>
+                <td><span class="tag tag-green">通过</span></td>
+                <td>周慧敏</td>
+                <td class="nums">2026-08-07</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span>共 <b id="auditRowCount">7</b> 条记录</span>
+            <div class="pager">
+              <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+              <select class="pager-size" aria-label="每页条数">
+                <option value="10" selected>10条/页</option>
+                <option value="20">20条/页</option>
+                <option value="50">50条/页</option>
+              </select>
+              <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+              <span class="pager-nums"></span>
+              <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 面板：开通审计 -->
+    <div class="tab-panel" id="tab-check" style="display:none">
+      <!-- 搜索筛选区 -->
+      <div class="filter-panel">
+        <div class="filter-item">
+          <label for="checkFType">开通类型</label>
+          <select id="checkFType" class="form-select">
+            <option value="">全部</option>
+            <option>乡村开通</option>
+            <option>乡镇开通</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="checkFStatus">审计状态</label>
+          <select id="checkFStatus" class="form-select">
+            <option value="">全部</option>
+            <option>正常</option>
+            <option>异常</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button type="button" class="btn btn-query" onclick="renderCheckRows()">查 询</button>
+          <button type="button" class="btn btn-reset" onclick="resetCheckFilter()">重 置</button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="card">
+        <div class="table-actions-header">
+          <h3>开通审计列表</h3>
+        </div>
+        <div class="table-body">
+          <table class="data-table config-table">
+            <thead>
+              <tr>
+                <th>审计记录ID</th>
+                <th>开通对象</th>
+                <th>开通类型</th>
+                <th>开通日期</th>
+                <th>操作人</th>
+                <th>生成账号</th>
+                <th>审计状态</th>
+                <th>审计备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="checkTbody">
+              <tr data-type="乡村开通" data-status="正常">
+                <td class="town-name">AU-2026-0001</td>
+                <td>金桔村</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td class="nums">2026-07-19</td>
+                <td>陈丽华</td>
+                <td class="nums">jjc_admin</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td class="reason-cell">账号初始化正常，权限配置完整。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-status="正常">
+                <td class="town-name">AU-2026-0002</td>
+                <td>青松乡</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td class="nums">2026-07-17</td>
+                <td>周慧敏</td>
+                <td class="nums">qsx_admin</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td class="reason-cell">开通流程合规，数据同步正常。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-status="异常">
+                <td class="town-name">AU-2026-0003</td>
+                <td>红星镇</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td class="nums">2026-08-07</td>
+                <td>周慧敏</td>
+                <td class="nums">hxz_admin</td>
+                <td><span class="tag tag-red">异常</span></td>
+                <td class="reason-cell">初始化账号延迟生成，需复核短信下发记录。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-status="正常">
+                <td class="town-name">AU-2026-0004</td>
+                <td>金桔村</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td class="nums">2026-08-05</td>
+                <td>周慧敏</td>
+                <td class="nums">jjc_op</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td class="reason-cell">数据同步正常，权限范围正确。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-status="异常">
+                <td class="town-name">AU-2026-0005</td>
+                <td>平安村</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td class="nums">2026-07-21</td>
+                <td>陈丽华</td>
+                <td class="nums">pac_admin</td>
+                <td><span class="tag tag-red">异常</span></td>
+                <td class="reason-cell">申请材料缺失被驳回后重复开通，需进一步核查。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡村开通" data-status="正常">
+                <td class="town-name">AU-2026-0006</td>
+                <td>幸福村</td>
+                <td><span class="tag tag-blue">乡村开通</span></td>
+                <td class="nums">2026-08-08</td>
+                <td>周慧敏</td>
+                <td class="nums">xfc_admin</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td class="reason-cell">一切正常，已纳入例行审计。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+              <tr data-type="乡镇开通" data-status="正常">
+                <td class="town-name">AU-2026-0007</td>
+                <td>白云镇</td>
+                <td><span class="tag tag-purple">乡镇开通</span></td>
+                <td class="nums">2026-08-09</td>
+                <td>陈丽华</td>
+                <td class="nums">byz_admin</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td class="reason-cell">待复核，账号生成与权限分配均符合规范。</td>
+                <td class="op-cell">
+                  <button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>
+                  <span class="op-divider"></span>
+                  <button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-footer">
+            <span>共 <b id="checkRowCount">7</b> 条记录</span>
+            <div class="pager">
+              <span class="pager-info">第 <b class="pager-cur">1</b> / <b class="pager-total">1</b> 页</span>
+              <select class="pager-size" aria-label="每页条数">
+                <option value="10" selected>10条/页</option>
+                <option value="20">20条/页</option>
+                <option value="50">50条/页</option>
+              </select>
+              <button type="button" class="pager-btn pager-prev disabled">&laquo; 上一页</button>
+              <span class="pager-nums"></span>
+              <button type="button" class="pager-btn pager-next disabled">下一页 &raquo;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 弹窗：开通审核 ==================== -->
+
+  <!-- 查看详情弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewAuditModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-search-line"></iconify-icon> 审核详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewAuditModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">关联申请</span><span class="detail-value" id="viewApplyNo">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请类型</span><span class="detail-value" id="viewType">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请人</span><span class="detail-value" id="viewApplicant">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通对象</span><span class="detail-value" id="viewObject">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请日期</span><span class="detail-value" id="viewApplyDate">—</span></div>
+          <div class="detail-item"><span class="detail-label">审核结果</span><span class="detail-value" id="viewResult">—</span></div>
+          <div class="detail-item"><span class="detail-label">审核人</span><span class="detail-value" id="viewAuditor">—</span></div>
+          <div class="detail-item"><span class="detail-label">审核日期</span><span class="detail-value" id="viewAuditDate">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewAuditModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 审核弹窗 -->
+  <div class="modal-overlay" id="auditModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon> 审核申请</h3>
+        <button type="button" class="modal-close" onclick="closeModal('auditModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid audit-summary">
+          <div class="detail-item"><span class="detail-label">关联申请</span><span class="detail-value" id="auditApplyNo">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请类型</span><span class="detail-value" id="auditType">—</span></div>
+          <div class="detail-item"><span class="detail-label">申请人</span><span class="detail-value" id="auditApplicant">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通对象</span><span class="detail-value" id="auditObject">—</span></div>
+        </div>
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label><span class="req">*</span>审核结果</label>
+            <div class="radio-group">
+              <label><input type="radio" name="auditResult" value="通过" checked> <span>通过</span></label>
+              <label><input type="radio" name="auditResult" value="驳回"> <span>驳回</span></label>
+            </div>
+          </div>
+          <div class="form-group" id="accountPreview">
+            <div class="info-tip"><iconify-icon icon="ri:information-line"></iconify-icon> 审核通过后将自动生成管理员账号，并通过短信下发初始密码。</div>
+          </div>
+          <div class="form-group">
+            <label for="auditOpinion">审核意见<span class="req" id="opinionReq" style="display:none">*</span></label>
+            <textarea id="auditOpinion" class="form-input" rows="3" placeholder="请输入审核意见（驳回时必填）…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('auditModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitAudit()">确认审核</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 弹窗：开通审计 ==================== -->
+
+  <!-- 查看弹窗 -->
+  <div class="modal-overlay detail-modal" id="viewCheckModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:file-search-line"></iconify-icon> 审计记录详情</h3>
+        <button type="button" class="modal-close" onclick="closeModal('viewCheckModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">审计记录ID</span><span class="detail-value" id="viewCheckId">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通对象</span><span class="detail-value" id="viewCheckObject">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通类型</span><span class="detail-value" id="viewCheckType">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通日期</span><span class="detail-value" id="viewCheckDate">—</span></div>
+          <div class="detail-item"><span class="detail-label">操作人</span><span class="detail-value" id="viewCheckOperator">—</span></div>
+          <div class="detail-item"><span class="detail-label">生成账号</span><span class="detail-value" id="viewCheckAccount">—</span></div>
+          <div class="detail-item"><span class="detail-label">审计状态</span><span class="detail-value" id="viewCheckStatus">—</span></div>
+          <div class="detail-item detail-full"><span class="detail-label">审计备注</span><span class="detail-value" id="viewCheckRemark">—</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal('viewCheckModal')">关 闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑备注弹窗 -->
+  <div class="modal-overlay" id="editCheckModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:edit-line"></iconify-icon> 编辑审计备注</h3>
+        <button type="button" class="modal-close" onclick="closeModal('editCheckModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid audit-summary">
+          <div class="detail-item"><span class="detail-label">审计记录ID</span><span class="detail-value" id="editCheckId">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通对象</span><span class="detail-value" id="editCheckObject">—</span></div>
+          <div class="detail-item"><span class="detail-label">开通类型</span><span class="detail-value" id="editCheckType">—</span></div>
+          <div class="detail-item"><span class="detail-label">审计状态</span><span class="detail-value" id="editCheckStatus">—</span></div>
+        </div>
+        <form onsubmit="return false">
+          <div class="form-group">
+            <label for="editRemark"><span class="req">*</span>审计备注</label>
+            <textarea id="editRemark" class="form-input" rows="4" placeholder="请输入审计备注…" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('editCheckModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditCheck()">保 存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出弹窗 -->
+  <div class="modal-overlay" id="exportModal" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><iconify-icon icon="ri:download-2-line"></iconify-icon> 导出申请数据</h3>
+        <button type="button" class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭弹窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="export-tip">请选择导出格式，将按当前页签与筛选结果导出审核 / 审计记录。</p>
+        <div class="export-formats" id="exportFormats">
+          <label class="format-card active" data-format="图片" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:image-line"></iconify-icon>
+            <b>图片</b><span>PNG / JPG</span>
+          </label>
+          <label class="format-card" data-format="Excel" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-excel-2-line"></iconify-icon>
+            <b>Excel</b><span>.xlsx 表格</span>
+          </label>
+          <label class="format-card" data-format="PDF" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-pdf-2-line"></iconify-icon>
+            <b>PDF</b><span>文档归档</span>
+          </label>
+          <label class="format-card" data-format="Txt" onclick="selectFormat(this)">
+            <iconify-icon icon="ri:file-text-line"></iconify-icon>
+            <b>Txt</b><span>纯文本</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="exportFileName">导出文件名</label>
+          <input type="text" id="exportFileName" class="form-input" value="开通审核记录" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeModal('exportModal')">取 消</button>
+        <button type="button" class="btn btn-primary" onclick="doExport()">确认导出</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- Tab 切换（开通审核 / 开通审计） ---- */
+      window.switchAuditTab = function (tab) {
+        document.querySelectorAll('#auditTabs .tab-item').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var key = tab.getAttribute('data-tab');
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.style.display = 'none'; });
+        var panel = document.getElementById('tab-' + key);
+        if (panel) panel.style.display = '';
+      };
+
+      /* ---- 通用分页工厂（默认 10 条/页） ---- */
+      function makePager(tbody, countEl, refs, getVisible) {
+        var pageSize = 10;
+        var currentPage = 1;
+        function render() {
+          var visible = getVisible();
+          var total = visible.length;
+          var totalPages = Math.max(1, Math.ceil(total / pageSize));
+          if (currentPage > totalPages) currentPage = totalPages;
+          var start = (currentPage - 1) * pageSize;
+          tbody.querySelectorAll('tr').forEach(function (r) { r.style.display = 'none'; });
+          for (var i = start; i < Math.min(start + pageSize, total); i++) visible[i].style.display = '';
+          countEl.textContent = total;
+          refs.cur.textContent = currentPage;
+          refs.total.textContent = totalPages;
+          refs.prev.classList.toggle('disabled', currentPage <= 1);
+          refs.next.classList.toggle('disabled', currentPage >= totalPages);
+          var html = '';
+          for (var p = 1; p <= totalPages; p++) {
+            html += '<button type="button" class="pager-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+          }
+          refs.nums.innerHTML = html;
+        }
+        refs.pager.addEventListener('click', function (e) {
+          var numBtn = e.target.closest('.pager-btn[data-page]');
+          if (numBtn) {
+            currentPage = parseInt(numBtn.getAttribute('data-page'), 10);
+            render();
+            return;
+          }
+          if (e.target.closest('.pager-prev')) {
+            if (currentPage > 1) { currentPage--; render(); }
+            return;
+          }
+          if (e.target.closest('.pager-next')) {
+            var tp = Math.max(1, Math.ceil(getVisible().length / pageSize));
+            if (currentPage < tp) { currentPage++; render(); }
+          }
+        });
+        refs.size.addEventListener('change', function () {
+          pageSize = parseInt(this.value, 10);
+          currentPage = 1;
+          render();
+        });
+        return {
+          render: render,
+          reset: function () { currentPage = 1; render(); }
+        };
+      }
+
+      /* ---- 面板一：开通审核 筛选 + 分页 ---- */
+      var auditTbody = document.getElementById('auditTbody');
+      var auditPager = makePager(
+        auditTbody,
+        document.getElementById('auditRowCount'),
+        {
+          pager: document.querySelector('#tab-audit .pager'),
+          cur: document.querySelector('#tab-audit .pager-cur'),
+          total: document.querySelector('#tab-audit .pager-total'),
+          nums: document.querySelector('#tab-audit .pager-nums'),
+          prev: document.querySelector('#tab-audit .pager-prev'),
+          next: document.querySelector('#tab-audit .pager-next'),
+          size: document.querySelector('#tab-audit .pager-size')
+        },
+        function () {
+          var type = document.getElementById('fType').value;
+          var result = document.getElementById('fResult').value;
+          var out = [];
+          auditTbody.querySelectorAll('tr').forEach(function (row) {
+            var show = true;
+            if (type && row.getAttribute('data-type') !== type) show = false;
+            if (show && result && row.getAttribute('data-result') !== result) show = false;
+            if (show) out.push(row);
+          });
+          return out;
+        }
+      );
+      window.renderAuditRows = function () { auditPager.reset(); };
+      window.resetAuditFilter = function () {
+        document.getElementById('fType').value = '';
+        document.getElementById('fResult').value = '';
+        renderAuditRows();
+      };
+
+      /* ---- 面板二：开通审计 筛选 + 分页 ---- */
+      var checkTbody = document.getElementById('checkTbody');
+      var checkPager = makePager(
+        checkTbody,
+        document.getElementById('checkRowCount'),
+        {
+          pager: document.querySelector('#tab-check .pager'),
+          cur: document.querySelector('#tab-check .pager-cur'),
+          total: document.querySelector('#tab-check .pager-total'),
+          nums: document.querySelector('#tab-check .pager-nums'),
+          prev: document.querySelector('#tab-check .pager-prev'),
+          next: document.querySelector('#tab-check .pager-next'),
+          size: document.querySelector('#tab-check .pager-size')
+        },
+        function () {
+          var type = document.getElementById('checkFType').value;
+          var status = document.getElementById('checkFStatus').value;
+          var out = [];
+          checkTbody.querySelectorAll('tr').forEach(function (row) {
+            var show = true;
+            if (type && row.getAttribute('data-type') !== type) show = false;
+            if (show && status && row.getAttribute('data-status') !== status) show = false;
+            if (show) out.push(row);
+          });
+          return out;
+        }
+      );
+      window.renderCheckRows = function () { checkPager.reset(); };
+      window.resetCheckFilter = function () {
+        document.getElementById('checkFType').value = '';
+        document.getElementById('checkFStatus').value = '';
+        renderCheckRows();
+      };
+
+      /* ---- 追加 Mock 数据至 25 条（验证分页：10 + 10 + 5） ---- */
+      (function () {
+        var villageObjs = ['幸福村', '金桔村', '平安村', '松林村', '丰收村'];
+        var townObjs = ['青松乡', '白云镇', '红星镇', '临江镇', '绿野乡', '蜜桔镇', '益农镇'];
+        // 账号前缀与开通对象一一对应：乡村开通→村级账号、乡镇开通→镇级账号
+        var objPrefix = { '幸福村': 'xfc', '金桔村': 'jjc', '平安村': 'pac', '松林村': 'slc', '丰收村': 'fsc', '青松乡': 'qsx', '白云镇': 'byz', '红星镇': 'hxz', '临江镇': 'ljz', '绿野乡': 'lyx', '蜜桔镇': 'mjz', '益农镇': 'ynz' };
+        var names = ['王建国', '李秀兰', '刘桂芳', '陈志远', '王丽', '赵国强', '孙丽华', '周建军', '吴秀英', '郑海燕', '冯志刚', '褚桂兰', '蒋国栋', '沈丽娟', '韩文明', '杨春梅', '朱建军', '秦桂芳'];
+        var remarks = [
+          '账号初始化正常，权限配置完整。',
+          '开通流程合规，数据同步正常。',
+          '数据同步正常，权限范围正确。',
+          '一切正常，已纳入例行审计。',
+          '待复核，账号生成与权限分配均符合规范。'
+        ];
+        function fmtDate(offset) {
+          var d = new Date(2026, 7, 11 - offset);
+          return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        // 开通审核面板：编号 4 位补零连续，接续静态行（VA 至 0004、TA 至 0003）
+        var results = ['待审核', '通过', '通过', '驳回'];
+        var vaCount = 4, taCount = 3;
+        for (var i = 0; i < 18; i++) {
+          var isVillage = i % 2 === 0;
+          var type = isVillage ? '乡村开通' : '乡镇开通';
+          var seq = isVillage ? ++vaCount : ++taCount;
+          var code = (isVillage ? 'VA' : 'TA') + '-2026-' + String(seq).padStart(4, '0');
+          var result = results[i % 4];
+          var audited = result !== '待审核';
+          var auditor = audited ? (i % 3 === 0 ? '陈丽华' : '周慧敏') : '—';
+          var auditDate = audited ? fmtDate(16 - i) : '—';
+          // 开通对象与申请类型匹配：乡村开通→村名、乡镇开通→乡镇名
+          var obj = isVillage ? villageObjs[Math.floor(i / 2) % villageObjs.length] : townObjs[Math.floor(i / 2) % townObjs.length];
+          var opCell = '<button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>';
+          if (!audited) {
+            opCell += '<span class="op-divider"></span><button type="button" class="btn-op btn-op-edit" onclick="openAuditModal(this)"><iconify-icon icon="ri:checkbox-circle-line"></iconify-icon>审核</button>';
+          }
+          var tr = document.createElement('tr');
+          tr.setAttribute('data-type', type);
+          tr.setAttribute('data-result', result);
+          tr.innerHTML =
+            '<td class="town-name">' + code + '</td>' +
+            '<td><span class="tag ' + (isVillage ? 'tag-blue' : 'tag-purple') + '">' + type + '</span></td>' +
+            '<td>' + names[i % names.length] + '</td>' +
+            '<td>' + obj + '</td>' +
+            '<td class="nums">' + fmtDate(17 - i) + '</td>' +
+            '<td><span class="tag ' + (result === '待审核' ? 'tag-orange' : result === '通过' ? 'tag-green' : 'tag-red') + '">' + result + '</span></td>' +
+            '<td>' + auditor + '</td>' +
+            '<td class="nums">' + auditDate + '</td>' +
+            '<td class="op-cell">' + opCell + '</td>';
+          auditTbody.appendChild(tr);
+        }
+        // 开通审计面板：编号 4 位补零连续（接续静态 AU-2026-0007），账号前缀与开通对象匹配
+        for (var j = 0; j < 18; j++) {
+          var jType = j % 2 === 0 ? '乡村开通' : '乡镇开通';
+          var jStatus = j % 4 === 3 ? '异常' : '正常';
+          var jObj = jType === '乡村开通' ? villageObjs[Math.floor(j / 2) % villageObjs.length] : townObjs[Math.floor(j / 2) % townObjs.length];
+          var jAccount = objPrefix[jObj] + (j % 2 === 0 ? '_admin' : '_op');
+          var jRemark = jStatus === '正常' ? remarks[j % remarks.length] : '初始化账号延迟生成，需复核短信下发记录。';
+          var jTr = document.createElement('tr');
+          jTr.setAttribute('data-type', jType);
+          jTr.setAttribute('data-status', jStatus);
+          jTr.innerHTML =
+            '<td class="town-name">AU-2026-' + String(8 + j).padStart(4, '0') + '</td>' +
+            '<td>' + jObj + '</td>' +
+            '<td><span class="tag ' + (jType === '乡村开通' ? 'tag-blue' : 'tag-purple') + '">' + jType + '</span></td>' +
+            '<td class="nums">' + fmtDate(17 - j) + '</td>' +
+            '<td>' + names[(j + 3) % names.length] + '</td>' +
+            '<td class="nums">' + jAccount + '</td>' +
+            '<td><span class="tag ' + (jStatus === '正常' ? 'tag-green' : 'tag-red') + '">' + jStatus + '</span></td>' +
+            '<td class="reason-cell">' + jRemark + '</td>' +
+            '<td class="op-cell">' +
+              '<button type="button" class="btn-op" onclick="viewCheck(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看</button>' +
+              '<span class="op-divider"></span>' +
+              '<button type="button" class="btn-op btn-op-edit" onclick="openEditCheck(this)"><iconify-icon icon="ri:edit-line"></iconify-icon>编辑备注</button>' +
+            '</td>';
+          checkTbody.appendChild(jTr);
+        }
+      })();
+
+      auditPager.render();
+      checkPager.render();
+
+      /* ---- 开通审核：查看详情 ---- */
+      window.viewAudit = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewApplyNo').textContent = td[0].textContent.trim();
+        document.getElementById('viewType').innerHTML = td[1].innerHTML;
+        document.getElementById('viewApplicant').textContent = td[2].textContent.trim();
+        document.getElementById('viewObject').textContent = td[3].textContent.trim();
+        document.getElementById('viewApplyDate').textContent = td[4].textContent.trim();
+        document.getElementById('viewResult').innerHTML = td[5].innerHTML;
+        document.getElementById('viewAuditor').textContent = td[6].textContent.trim();
+        document.getElementById('viewAuditDate').textContent = td[7].textContent.trim();
+        openModal('viewAuditModal');
+      };
+
+      /* ---- 开通审核：审核弹窗 ---- */
+      window.openAuditModal = function (btn) {
+        var row = btn.closest('tr');
+        window._auditRow = row;
+        var td = row.cells;
+        document.getElementById('auditApplyNo').textContent = td[0].textContent.trim();
+        document.getElementById('auditType').textContent = td[1].textContent.trim();
+        document.getElementById('auditApplicant').textContent = td[2].textContent.trim();
+        document.getElementById('auditObject').textContent = td[3].textContent.trim();
+        document.querySelectorAll('input[name="auditResult"]').forEach(function (r) { r.checked = r.value === '通过'; });
+        document.getElementById('auditOpinion').value = '';
+        document.getElementById('opinionReq').style.display = 'none';
+        document.getElementById('accountPreview').style.display = '';
+        openModal('auditModal');
+      };
+
+      var radios = document.getElementsByName('auditResult');
+      var req = document.getElementById('opinionReq');
+      var preview = document.getElementById('accountPreview');
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].addEventListener('change', function () {
+          var pass = this.value === '通过';
+          req.style.display = pass ? 'none' : '';
+          preview.style.display = pass ? '' : 'none';
+        });
+      }
+
+      window.submitAudit = function () {
+        var checked = document.querySelector('input[name="auditResult"]:checked');
+        var result = checked ? checked.value : '';
+        var opinion = document.getElementById('auditOpinion').value.trim();
+        if (result === '驳回' && !opinion) { showToast('驳回时请填写审核意见', 'warning'); return; }
+        var row = window._auditRow;
+        if (row) {
+          var isPass = result === '通过';
+          var now = new Date();
+          var date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+          row.setAttribute('data-result', result);
+          var tag = row.cells[5].querySelector('.tag');
+          tag.className = 'tag ' + (isPass ? 'tag-green' : 'tag-red');
+          tag.textContent = result;
+          row.cells[6].textContent = '周慧敏';
+          row.cells[7].textContent = date;
+          var cell = row.querySelector('.op-cell');
+          cell.innerHTML = '<button type="button" class="btn-op" onclick="viewAudit(this)"><iconify-icon icon="ri:eye-line"></iconify-icon>查看详情</button>';
+        }
+        closeModal('auditModal');
+        renderAuditRows();
+        showToast('审核已完成', 'success');
+      };
+
+      /* ---- 开通审计：查看详情 ---- */
+      window.viewCheck = function (btn) {
+        var row = btn.closest('tr');
+        var td = row.cells;
+        document.getElementById('viewCheckId').textContent = td[0].textContent.trim();
+        document.getElementById('viewCheckObject').textContent = td[1].textContent.trim();
+        document.getElementById('viewCheckType').innerHTML = td[2].innerHTML;
+        document.getElementById('viewCheckDate').textContent = td[3].textContent.trim();
+        document.getElementById('viewCheckOperator').textContent = td[4].textContent.trim();
+        document.getElementById('viewCheckAccount').textContent = td[5].textContent.trim();
+        document.getElementById('viewCheckStatus').innerHTML = td[6].innerHTML;
+        document.getElementById('viewCheckRemark').textContent = td[7].textContent.trim();
+        openModal('viewCheckModal');
+      };
+
+      /* ---- 开通审计：编辑备注 ---- */
+      window.openEditCheck = function (btn) {
+        var row = btn.closest('tr');
+        window._editRow = row;
+        var td = row.cells;
+        document.getElementById('editCheckId').textContent = td[0].textContent.trim();
+        document.getElementById('editCheckObject').textContent = td[1].textContent.trim();
+        document.getElementById('editCheckType').textContent = td[2].textContent.trim();
+        document.getElementById('editCheckStatus').innerHTML = td[6].innerHTML;
+        document.getElementById('editRemark').value = td[7].textContent.trim();
+        openModal('editCheckModal');
+      };
+
+      window.submitEditCheck = function () {
+        var remark = document.getElementById('editRemark').value.trim();
+        if (!remark) { showToast('请填写审计备注', 'warning'); return; }
+        var row = window._editRow;
+        if (row) row.cells[7].textContent = remark;
+        closeModal('editCheckModal');
+        showToast('备注已保存', 'success');
+      };
+
+      /* ---- 导出弹窗 ---- */
+      window.openExportModal = function () {
+        openModal('exportModal');
+      };
+      window.selectFormat = function (el) {
+        document.querySelectorAll('.format-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+      };
+      window.doExport = function () {
+        var active = document.querySelector('.format-card.active');
+        var fmt = active ? active.getAttribute('data-format') : 'Excel';
+        var name = document.getElementById('exportFileName').value.trim() || '开通审核记录';
+        var ext = fmt === '图片' ? 'png' : fmt === 'Excel' ? 'xlsx' : fmt === 'PDF' ? 'pdf' : 'txt';
+        closeModal('exportModal');
+        showToast('导出成功：已生成「' + name + '.' + ext + '」文件', 'success');
+      };
+
+      /* ---- 从 URL 恢复页签 ---- */
+      var m = (location.search.match(/[?&]tab=([\w-]+)/) || [])[1];
+      if (m) {
+        var t = document.querySelector('#auditTabs .tab-item[data-tab="' + m + '"]');
+        if (t) switchAuditTab(t);
+      }
+    })();
+  </script>
+</body>
+</html>

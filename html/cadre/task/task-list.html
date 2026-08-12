@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务管理</title>
+  <link rel="stylesheet" href="../css/cadre.css">
+</head>
+<body data-end="cadre">
+<div class="phone-container">
+  <!-- 导航栏 -->
+  <header>
+    <div class="nav-bar">
+      <a class="nav-back" href="../index.html" aria-label="返回首页">&#8249;</a>
+      <h1 class="nav-title">任务管理</h1>
+    </div>
+  </header>
+
+  <!-- 页面内容 -->
+  <main class="page-content-no-tab">
+    <!-- Tab切换 -->
+    <div class="tab-switch" role="tablist" data-filter-target=".list-card .list-item">
+      <div class="tab-btn active" role="tab" aria-selected="true" data-filter="all">全部</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="active">进行中</div>
+      <div class="tab-btn" role="tab" aria-selected="false" data-filter="completed">已完成</div>
+    </div>
+
+    <!-- 任务列表 -->
+    <div class="list-card" style="margin-top:0;">
+      <!-- 进行中 -->
+      <div class="list-item" role="button" onclick="location.href='task-detail.html?id=1'" data-status="active">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-blue">进行中</span>
+            村庄卫生清洁整治
+          </div>
+          <div class="item-desc">分派人：张建国</div>
+          <div class="item-desc2">对村内主要道路、公共区域进行卫生清洁，清理积存垃圾</div>
+          <div class="item-meta">
+            <span>截止：2026-07-05</span>
+            <span>创建：2026-06-28</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 已完成 -->
+      <div class="list-item" role="button" onclick="location.href='task-detail.html?id=2'" data-status="completed">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-green">已完成</span>
+            低保户走访核查
+          </div>
+          <div class="item-desc">分派人：张建国</div>
+          <div class="item-desc2">对村内12户低保家庭进行入户走访，核实家庭经济状况</div>
+          <div class="item-meta">
+            <span>截止：2026-06-30</span>
+            <span>创建：2026-06-20</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 待接收 -->
+      <div class="list-item" role="button" onclick="location.href='task-detail.html?id=3'" data-status="pending">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-orange">待开始</span>
+            防汛安全隐患排查
+          </div>
+          <div class="item-desc">分派人：镇政府</div>
+          <div class="item-desc2">排查村内河道、山塘、危房等重点区域安全隐患</div>
+          <div class="item-meta">
+            <span>截止：2026-07-03</span>
+            <span>创建：2026-06-30</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+
+      <!-- 已完成 -->
+      <div class="list-item" role="button" onclick="location.href='task-detail.html?id=4'" data-status="completed">
+        <div class="item-content">
+          <div class="item-title">
+            <span class="tag tag-green">已完成</span>
+            村民矛盾调解
+          </div>
+          <div class="item-desc">分派人：张建国</div>
+          <div class="item-desc2">调解第三组王明与邻居因宅基地边界引起的纠纷</div>
+          <div class="item-meta">
+            <span>截止：2026-06-27</span>
+            <span>创建：2026-06-23</span>
+          </div>
+        </div>
+        <div class="item-arrow">&#8250;</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/cadre.js"></script>
+</body>
+</html>
